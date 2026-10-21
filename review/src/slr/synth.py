@@ -169,19 +169,41 @@ def prisma_counts(run):
     c["included_db"] = sum(1 for k in inc if k[0] in "RA")
     c["included_other"] = sum(1 for k in inc if k[0] in "VOM")
     c["included_snow"] = sum(1 for k in inc if k.startswith("S"))
+    assert c["ft_excluded"] + c["included"] + c["snow_pending"] == c["ft_assessed"]
+    assert sum(by.values()) == c["ft_excluded"]
     rate = c["included"] / max(1, c["ft_assessed"] - c["snow_pending"])
     c["snow_pending_included_est"] = round(rate * c["snow_pending"])
     est = rd / "round2_estimates.json"
     c["round2"] = json.loads(est.read_text()) if est.exists() and c["snow_pending"] else {}
     c["round2_included_est"] = c["round2"].get("openalex_included", 0) + c["round2"].get("manual_included", 0)
-    assert c["ft_excluded"] + c["included"] + c["snow_pending"] == c["ft_assessed"]
-    assert sum(by.values()) == c["ft_excluded"]
+    r2 = c["round2"]
+    if r2:  # carry the estimated new records through every PRISMA stage so the flow balances
+        fwd_new = r2["openalex_forward"] + r2["manual_forward"]
+        got_new = round(fwd_new * c["ft_assessed"] / max(1, c["ft_sought"]))
+        c["hits_openalex"] += r2["openalex_r1_hits"] + r2["openalex_r2_hits"]
+        c["records_in"] += r2["openalex_r1_hits"] + r2["openalex_r2_hits"]
+        c["duplicates"] += r2["openalex_r1_hits"] + r2["openalex_r2_hits"] - r2["openalex_new"]
+        c["screened_db"] += r2["openalex_new"]
+        c["ta_forward_db"] += r2["openalex_forward"]
+        c["ta_excluded_db"] += r2["openalex_new"] - r2["openalex_forward"]
+        c["other_identified"] += r2["manual_new"]
+        c["other_forward"] += r2["manual_forward"]
+        c["other_excluded_ta"] += r2["manual_new"] - r2["manual_forward"]
+        c["ft_sought"] += fwd_new
+        c["ft_not_retrieved"] += fwd_new - got_new
+        c["ft_assessed"] += got_new
+        c["ft_excluded"] += got_new - c["round2_included_est"]
+        c["ft_excluded_by"]["new records (estimate)"] = got_new - c["round2_included_est"]
+    inc_t = c["included"] + c["snow_pending_included_est"] + c["round2_included_est"]
+    exc_t = c["ft_excluded"] + c["snow_pending"] - c["snow_pending_included_est"]
+    assert c["ft_sought"] == c["ft_not_retrieved"] + c["ft_assessed"] and c["ft_assessed"] == inc_t + exc_t
+    assert c["screened_db"] == c["ta_forward_db"] + c["ta_excluded_db"]
     return c
 
 
-def box(ax, x, y, w, h, text, fc="#f4f3ef"):
+def box(ax, x, y, w, h, text, fc="#f4f3ef", color=None):
     ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.004,rounding_size=0.01", fc=fc, ec=INK2, lw=0.6))
-    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=7, color=INK, linespacing=1.25)
+    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=7, color=color or INK, linespacing=1.25)
 
 
 def arrow(ax, x1, y1, x2, y2):
@@ -196,29 +218,32 @@ def fig_prisma(c):
     inc = c["included"] + c["snow_pending_included_est"] + c["round2_included_est"]
     exc = c["ft_excluded"] + c["snow_pending"] - c["snow_pending_included_est"]
     est = c["snow_pending"] > 0
+    ec = EST if c.get("round2") else None
     fig, ax = plt.subplots(figsize=(6.6, 6.0))
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
     L, R, W = 0.0, 0.53, 0.47
     box(ax, L, 0.88, W, 0.11, f"Records identified (database search)\nOpenAlex n={c['hits_openalex']}; Semantic Scholar "
-        f"n={c['hits_s2']};\narXiv n={c['hits_arxiv']} (raw hits, overlapping)")
-    box(ax, R, 0.90, W, 0.07, f"Removed before screening:\nduplicates n={c['duplicates']}")
-    box(ax, L, 0.73, W, 0.09, f"Records screened (title/abstract)\nn={c['screened_db']}")
-    box(ax, R, 0.73, W, 0.09, f"Excluded at title/abstract\nn={c['ta_excluded_db']}")
+        f"n={c['hits_s2']};\narXiv n={c['hits_arxiv']} (raw hits, overlapping)", color=ec)
+    box(ax, R, 0.90, W, 0.07, f"Removed before screening:\nduplicates n={c['duplicates']}", color=ec)
+    box(ax, L, 0.73, W, 0.09, f"Records screened (title/abstract)\nn={c['screened_db']}", color=ec)
+    box(ax, R, 0.73, W, 0.09, f"Excluded at title/abstract\nn={c['ta_excluded_db']}", color=ec)
     box(ax, L, 0.56, W, 0.11, f"Reports sought for retrieval\nn={c['ft_sought']} (database {c['ta_forward_db']}; "
-        f"venue sweep\nand section searches {c['other_forward']}; snowballing {c['snow_forward']})")
-    box(ax, R, 0.58, W, 0.07, f"Reports not retrieved (no full text)\nn={c['ft_not_retrieved']}")
-    box(ax, L, 0.40, W, 0.10, f"Reports assessed for eligibility\nn={c['ft_assessed']}")
+        f"venue sweep\nand section searches {c['other_forward']}; snowballing {c['snow_forward']})", color=ec)
+    box(ax, R, 0.58, W, 0.07, f"Reports not retrieved (no full text)\nn={c['ft_not_retrieved']}", color=ec)
+    box(ax, L, 0.40, W, 0.10, f"Reports assessed for eligibility\nn={c['ft_assessed']}", color=ec)
     items = list(c["ft_excluded_by"].items())
     lines = "\n".join(", ".join(f"{k} {v}" for k, v in items[i:i + 4]) for i in range(0, len(items), 4))
     box(ax, R, 0.30, W, 0.22, "")
     ax.text(R + W / 2, 0.47, f"Reports excluded n={exc}", ha="center", va="center", fontsize=7,
             color=EST if est else INK)
     ax.text(R + W / 2, 0.39, lines + (f"\nsnowballing reports {c['snow_pending'] - c['snow_pending_included_est']}" if est else ""),
-            ha="center", va="center", fontsize=6.5, color=INK, linespacing=1.25)
-    box(ax, R, 0.14, W, 0.12, f"Other methods: venue sweep and section-level\nsearches n={c['other_identified']}; "
-        f"snowballing (1 backward +\n1 forward) n={c['snow_identified']}, forwarded {c['snow_forward']}")
+            ha="center", va="center", fontsize=6.5, color=EST if est else INK, linespacing=1.25)
+    r2 = c.get("round2") or {}
+    manual = (f"; manual ACM DL and\nIEEE Xplore search ({r2['manual_records']} records, {r2['manual_new']} new)") if r2 else ""
+    box(ax, R, 0.115, W, 0.165, f"Other methods: venue sweep and section-\nlevel searches{manual};\ntotal n={c['other_identified']}. "
+        f"Snowballing (1 backward +\n1 forward) n={c['snow_identified']}, forwarded {c['snow_forward']}", color=ec)
     box(ax, L, 0.20, W, 0.12, "", fc="#e6effb")
     ax.text(L + W / 2, 0.28, "Studies included", ha="center", va="center", fontsize=7, color=INK)
     ax.text(L + W / 2, 0.235, f"n={inc}", ha="center", va="center", fontsize=7, color=EST if est else INK)
@@ -563,9 +588,7 @@ def counts_tex(c, rows, studies, extra):
         m[f"nNonTarg{tag[f]}"] = o
         m[f"nCorr{tag[f]}"] = cm
     pending = c["snow_pending"] > 0
-    fixed = {"nHitsOpenAlex", "nHitsSS", "nHitsArxiv", "nRecordsIn", "nDuplicates", "nScreened", "nTaExcluded", "nTaForward",
-             "nOtherIdentified", "nOtherForward", "nSnowIdentified", "nSnowForward", "nFtSought", "nFtNotRetrieved",
-             "nFtAssessedRetrieved"}
+    fixed = {"nHitsSS", "nHitsArxiv", "nSnowIdentified", "nSnowForward"}
     lines = ["% GENERATED by src/slr/synth.py. Use \\cnt{name} in text. While snowballing reports await extraction,",
              "% counts that depend on the included set include an estimate and render blue."]
     for k, v in m.items():
