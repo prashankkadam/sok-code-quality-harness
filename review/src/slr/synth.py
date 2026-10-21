@@ -89,6 +89,21 @@ def snow_pending(run: str = RUN) -> set[str]:
     return set(p.read_text().split()) if p.exists() else set()
 
 
+def sensitivity(eff, nt, qa, sens) -> dict:
+    """Percentages quoted in the text for the full and the peer-reviewed-only synthesis."""
+    def pct(e, test):
+        tot = sum(e.values())
+        return round(100 * sum(v for k, v in e.items() if test(*k.split("|"))) / tot, 1) if tot else 0
+    out = {}
+    for tag, e, n, q in (("All", eff, nt, qa), ("Peer", sens["effects"], sens["nontargeted"][0], sens["qa"])):
+        out[f"pct{tag}TargetUp"] = pct(e, lambda cor, tgt: tgt == "+")
+        out[f"pct{tag}CorrNR"] = pct(e, lambda cor, tgt: cor == "NR")
+        out[f"pct{tag}CorrDown"] = pct(e, lambda cor, tgt: cor == "-")
+        out[f"pct{tag}NonTarg"] = round(100 * sum(v[1] for v in n.values()) / max(1, sum(v[0] for v in n.values())))
+        out[f"qaMed{tag}"] = q["ALL"]["median_qa"]
+    return out
+
+
 def peer_reviewed(study: dict) -> bool:
     return study["venue_type"].startswith("peer-reviewed") or study["venue_type"] == "workshop"
 
@@ -580,6 +595,8 @@ def counts_tex(c, rows, studies, extra):
         "nLowConfidence": sum(1 for s in studies.values() if s["row0"]["confidence"] == "low"),
         "nPreprint": sum(1 for s in studies.values() if not peer_reviewed(s)),
         "nPeerReviewed": sum(1 for s in studies.values() if peer_reviewed(s)),
+        "pctPreprint": round(100 * sum(1 for s in studies.values() if not peer_reviewed(s)) / max(1, len(studies))),
+        **extra.get("sens", {}),
     }
     tag = {"prompting": "Prompting", "feedback-loop": "Feedback", "self-refinement": "SelfRefine",
            "multi-agent": "MultiAgent", "retrieval": "Retrieval", "decoding": "Decoding", "training": "Training",
@@ -618,7 +635,6 @@ def main() -> int:
     nt, tot_other, tot_corr, n = nontargeted_table(rows, studies)
     qa = qa_table(rows, studies)
     appendix_tables(rows, studies)
-    m = counts_tex(c, rows, studies, {"tot_other": tot_other, "tot_corr": tot_corr, "nt": nt})
     # Sensitivity: the synthesis tables re-counted on peer-reviewed studies only -> generated/peer/
     full, GEN = GEN, GEN / "peer"
     GEN.mkdir(parents=True, exist_ok=True)
@@ -626,6 +642,8 @@ def main() -> int:
     prows = [r for r in rows if r["rid"] in peer]
     sens = {"effects": effect_table(prows), "nontargeted": nontargeted_table(prows, peer)[:2], "qa": qa_table(prows, peer)}
     GEN = full
+    m = counts_tex(c, rows, studies, {"tot_other": tot_other, "tot_corr": tot_corr, "nt": nt,
+                                      "sens": sensitivity(eff, nt, qa, sens)})
     summary = {"prisma": c, "counts": m, "effects": eff, "nontargeted": nt, "qa": qa,
                "map_family": dict(zip(FAMILIES, M1)), "map_signal": dict(zip(SIGNALS, M2)),
                "per_year": per, "benchmarks": bench, "peer_reviewed_only": sens}
