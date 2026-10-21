@@ -1,0 +1,55 @@
+identifier,title,family,in_qgs,reason
+arXiv:2303.06689,Self-planning Code Generation with Large Language Models,prompting,False,Self-planning: correctness-only outcomes (EC5)
+arXiv:2305.06599,Structured Chain-of-Thought Prompting for Code Generation,prompting,False,SCoT: correctness-only outcomes (EC5)
+arXiv:2407.07064,Prompting Techniques for Secure Code Generation: A Systematic Investigation,prompting,True,prompting techniques evaluated on security of generated code
+arXiv:2502.06039,Benchmarking Prompt Engineering Techniques for Secure Code Generation with GPT Models,prompting,True,prompt engineering for secure code; security outcome
+arXiv:2412.20545,The Impact of Prompt Programming on Function-Level Code Generation,prompting,True,CodePromptEval: prompting effects on correctness and quality
+arXiv:2411.00006,Personality-Guided Code Generation Using Large Language Models,prompting,False,personality-guided generation: correctness-only outcomes (EC5)
+arXiv:2509.10099,Generating Energy-Efficient Code via Large-Language Models -- Where are we now?,prompting,True,prompting for energy-efficient code; efficiency outcome
+arXiv:2508.14419,Static Analysis as a Feedback Loop: Enhancing LLM-Generated Code Beyond Correctness,feedback-loop,True,Pylint+Bandit loop; quality and security outcomes
+arXiv:2309.12938,Frustrated with Code Quality Issues? LLMs can Help!,feedback-loop,True,CORE: CodeQL/SonarQube-driven fixes; quality outcome
+arXiv:2312.00024,Can LLMs Patch Security Issues?,feedback-loop,True,FDSP: Bandit feedback; security outcome
+arXiv:2405.03927,Codexity: Secure AI-assisted Code Generation,feedback-loop,True,Codexity: Infer/CppCheck feedback; security outcome
+arXiv:2506.10330,Augmenting Large Language Models with Static Code Analysis for Automated Code Quality Improvements,feedback-loop,True,SonarQube-guided refinement; quality outcome
+arXiv:2509.16275,SecureFixAgent: A Hybrid LLM Agent for Automated Python Static Vulnerability Repair,feedback-loop,True,SecureFixAgent: Bandit-guided repair; security outcome
+arXiv:2405.01103,LLM Security Guard for Code,feedback-loop,False,LLMSecGuard: vision paper without quantitative results (IC3)
+arXiv:2403.16792,Iterative Refinement of Project-Level Code Context for Precise Code Generation with Compiler Feedback,feedback-loop,False,ProCoder: correctness-only outcomes (EC5)
+arXiv:2603.23613,LLMLOOP: Improving LLM-Generated Code and Tests through Automated Iterative Feedback Loops,feedback-loop,True,LLMLOOP: compiler/static-analysis/test loop; quality outcomes
+arXiv:2409.10737,AutoSafeCoder: A Multi-Agent Framework for Securing LLM Code Generation through Static Analysis and Fuzz Testing,multi-agent,True,AutoSafeCoder: multi-agent security pipeline; security outcome
+arXiv:2303.17651,Self-Refine: Iterative Refinement with Self-Feedback,self-refinement,True,Self-Refine: includes code readability and optimization tasks
+arXiv:2304.05128,Teaching Large Language Models to Self-Debug,self-refinement,False,Self-Debug: correctness-only outcomes (EC5)
+arXiv:2303.11366,Reflexion: Language Agents with Verbal Reinforcement Learning,self-refinement,False,Reflexion: correctness-only outcomes (EC5)
+arXiv:2305.11738,CRITIC: Large Language Models Can Self-Correct with Tool-Interactive Critiquing,self-refinement,False,CRITIC: correctness-only for code (EC5)
+arXiv:2306.09896,Is Self-Repair a Silver Bullet for Code Generation?,self-refinement,False,Self-repair analysis: correctness-only outcomes (EC5)
+arXiv:2405.15189,EffiLearner: Enhancing Efficiency of Generated Code via Self-Optimization,self-refinement,True,EffiLearner: efficiency self-optimization; efficiency outcome
+arXiv:2405.11403,MapCoder: Multi-Agent Code Generation for Competitive Problem Solving,multi-agent,False,MapCoder: correctness-only outcomes (EC5)
+arXiv:2312.13010,AgentCoder: Multi-Agent-based Code Generation with Iterative Testing and Optimisation,multi-agent,False,AgentCoder: correctness-only outcomes (EC5)
+arXiv:2307.07924,ChatDev: Communicative Agents for Software Development,multi-agent,False,ChatDev: no non-functional quality outcome as defined in §3
+arXiv:2308.00352,MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework,multi-agent,False,MetaGPT: no non-functional quality outcome as defined in §3
+arXiv:2304.07590,Self-collaboration Code Generation via ChatGPT,multi-agent,False,Self-collaboration: correctness-only outcomes (EC5)
+arXiv:2608.25457,MACGen: Toward Functionally Correct and Secure Code Generation via Multi-Agent Collaboration,multi-agent,True,MACGen: multi-agent secure generation; security outcome
+arXiv:2603.22717,Does Teaming-Up LLMs Improve Secure Code Generation? A Comprehensive Evaluation with Multi-LLMSecCodeEval,multi-agent,True,Multi-LLMSecCodeEval: multi-LLM pipelines; security outcome
+arXiv:2207.05987,DocPrompting: Generating Code by Retrieving the Docs,retrieval,False,DocPrompting: correctness-only outcomes (EC5)
+arXiv:2303.12570,RepoCoder: Repository-Level Code Completion Through Iterative Retrieval and Generation,retrieval,False,RepoCoder: correctness/similarity outcomes only (EC5)
+arXiv:2406.14497,CodeRAG-Bench: Can Retrieval Augment Code Generation?,retrieval,False,CodeRAG-Bench: correctness-only benchmark (EC5)
+arXiv:2410.01488,SecCoder: Towards Generalizable and Robust Secure Code Generation,retrieval,True,SecCoder: retrieval for secure code; security outcome
+arXiv:2503.13654,SOSecure: Safer Code Generation with RAG and StackOverflow Discussions,retrieval,True,SOSecure: retrieval of SO discussions; security outcome
+arXiv:2510.18204,RESCUE: Retrieval Augmented Secure Code Generation,retrieval,True,RESCUE: retrieval-augmented secure code; security outcome
+arXiv:2201.11227,Synchromesh: Reliable code generation from pre-trained language models,decoding,False,Synchromesh: validity/correctness outcomes only (EC5)
+arXiv:2207.10397,CodeT: Code Generation with Generated Tests,decoding,False,CodeT: correctness-only outcomes (EC5)
+arXiv:2302.08468,LEVER: Learning to Verify Language-to-Code Generation with Execution,decoding,False,LEVER: correctness-only outcomes (EC5)
+arXiv:2211.16490,Coder Reviewer Reranking for Code Generation,decoding,False,Coder-Reviewer reranking: correctness-only outcomes (EC5)
+arXiv:2405.00218,Constrained Decoding for Secure Code Generation,decoding,True,constrained decoding for secure code; security outcome
+doi:10.1145/3650212.3680371,CoSec: On-the-Fly Security Hardening of Code LLMs via Supervised Co-decoding,decoding,True,CoSec: supervised co-decoding for security; security outcome
+arXiv:2504.09246,Type-Constrained Code Generation with Language Models,decoding,False,type-constrained decoding: compilability/correctness outcomes (EC5)
+arXiv:2302.05319,Large Language Models for Code: Security Hardening and Adversarial Testing,training,True,SVEN: security hardening via prefix tuning; security outcome
+arXiv:2402.09497,Instruction Tuning for Secure Code Generation,training,True,SafeCoder: security instruction tuning; security outcome
+arXiv:2302.07867,Learning Performance-Improving Code Edits,training,True,PIE: performance-improving edits; efficiency outcome
+arXiv:2403.09032,CodeUltraFeedback: An LLM-as-a-Judge Dataset for Aligning Large Language Models to Coding Preferences,training,True,CodeUltraFeedback: preference data incl. non-functional preferences
+arXiv:2410.05605,CodeDPO: Aligning Code Models with Self Generated and Verified Source Code,training,True,CodeDPO: correctness and efficiency preference optimization
+arXiv:2410.10209,EffiCoder: Enhancing Code Generation in Large Language Models through Efficiency-Aware Fine-tuning,training,True,EffiCoder: efficiency-aware fine-tuning; efficiency outcome
+arXiv:2412.17264,ACECode: A Reinforcement Learning Framework for Aligning Code Efficiency and Correctness in Code Language Models,training,True,ACECode: RL for efficiency and correctness; efficiency outcome
+arXiv:2411.12882,ProSec: Fortifying Code LLMs with Proactive Security Alignment,training,True,ProSec: proactive security alignment; security outcome
+arXiv:2505.23387,Afterburner: Reinforcement Learning Facilitates Self-Improving Code Efficiency Optimization,training,True,Afterburner: RL for efficiency; efficiency outcome
+arXiv:2505.22704,Training Language Models to Generate Quality Code with Program Analysis Feedback,training,True,REAL: RL with program-analysis rewards; quality/security outcomes
+arXiv:2507.19060,PurpCode: Reasoning for Safer Code Generation,training,True,PurpCode: secure-code reasoning alignment; security outcome

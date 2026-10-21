@@ -1,0 +1,13 @@
+{
+ "id": "msgbatch_01GRVfY4DME93mApsyR2FvNX",
+ "type": "message_batch",
+ "processing_status": "in_progress",
+ "request_counts": {
+  "processing": 30,
+  "succeeded": 0,
+  "errored": 0,
+  "canceled": 0,
+  "expired": 0
+ },
+ "results_url": null
+}

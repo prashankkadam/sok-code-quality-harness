@@ -1,0 +1,33 @@
+key,title,doi_or_arxiv,family
+arXiv_2407.07064,Prompting Techniques for Secure Code Generation: A Systematic Investigation,arXiv:2407.07064,prompting
+arXiv_2502.06039,Benchmarking Prompt Engineering Techniques for Secure Code Generation with GPT Models,arXiv:2502.06039,prompting
+arXiv_2412.20545,The Impact of Prompt Programming on Function-Level Code Generation,arXiv:2412.20545,prompting
+arXiv_2509.10099,Generating Energy-Efficient Code via Large-Language Models -- Where are we now?,arXiv:2509.10099,prompting
+arXiv_2508.14419,Static Analysis as a Feedback Loop: Enhancing LLM-Generated Code Beyond Correctness,arXiv:2508.14419,feedback-loop
+arXiv_2309.12938,Frustrated with Code Quality Issues? LLMs can Help!,arXiv:2309.12938,feedback-loop
+arXiv_2312.00024,Can LLMs Patch Security Issues?,arXiv:2312.00024,feedback-loop
+arXiv_2405.03927,Codexity: Secure AI-assisted Code Generation,arXiv:2405.03927,feedback-loop
+arXiv_2506.10330,Augmenting Large Language Models with Static Code Analysis for Automated Code Quality Improvements,arXiv:2506.10330,feedback-loop
+arXiv_2509.16275,SecureFixAgent: A Hybrid LLM Agent for Automated Python Static Vulnerability Repair,arXiv:2509.16275,feedback-loop
+arXiv_2603.23613,LLMLOOP: Improving LLM-Generated Code and Tests through Automated Iterative Feedback Loops,arXiv:2603.23613,feedback-loop
+arXiv_2409.10737,AutoSafeCoder: A Multi-Agent Framework for Securing LLM Code Generation through Static Analysis and Fuzz Testing,arXiv:2409.10737,multi-agent
+arXiv_2303.17651,Self-Refine: Iterative Refinement with Self-Feedback,arXiv:2303.17651,self-refinement
+arXiv_2405.15189,EffiLearner: Enhancing Efficiency of Generated Code via Self-Optimization,arXiv:2405.15189,self-refinement
+arXiv_2608.25457,MACGen: Toward Functionally Correct and Secure Code Generation via Multi-Agent Collaboration,arXiv:2608.25457,multi-agent
+arXiv_2603.22717,Does Teaming-Up LLMs Improve Secure Code Generation? A Comprehensive Evaluation with Multi-LLMSecCodeEval,arXiv:2603.22717,multi-agent
+arXiv_2410.01488,SecCoder: Towards Generalizable and Robust Secure Code Generation,arXiv:2410.01488,retrieval
+arXiv_2503.13654,SOSecure: Safer Code Generation with RAG and StackOverflow Discussions,arXiv:2503.13654,retrieval
+arXiv_2510.18204,RESCUE: Retrieval Augmented Secure Code Generation,arXiv:2510.18204,retrieval
+arXiv_2405.00218,Constrained Decoding for Secure Code Generation,arXiv:2405.00218,decoding
+doi_10.1145/3650212.3680371,CoSec: On-the-Fly Security Hardening of Code LLMs via Supervised Co-decoding,doi:10.1145/3650212.3680371,decoding
+arXiv_2302.05319,Large Language Models for Code: Security Hardening and Adversarial Testing,arXiv:2302.05319,training
+arXiv_2402.09497,Instruction Tuning for Secure Code Generation,arXiv:2402.09497,training
+arXiv_2302.07867,Learning Performance-Improving Code Edits,arXiv:2302.07867,training
+arXiv_2403.09032,CodeUltraFeedback: An LLM-as-a-Judge Dataset for Aligning Large Language Models to Coding Preferences,arXiv:2403.09032,training
+arXiv_2410.05605,CodeDPO: Aligning Code Models with Self Generated and Verified Source Code,arXiv:2410.05605,training
+arXiv_2410.10209,EffiCoder: Enhancing Code Generation in Large Language Models through Efficiency-Aware Fine-tuning,arXiv:2410.10209,training
+arXiv_2412.17264,ACECode: A Reinforcement Learning Framework for Aligning Code Efficiency and Correctness in Code Language Models,arXiv:2412.17264,training
+arXiv_2411.12882,ProSec: Fortifying Code LLMs with Proactive Security Alignment,arXiv:2411.12882,training
+arXiv_2505.23387,Afterburner: Reinforcement Learning Facilitates Self-Improving Code Efficiency Optimization,arXiv:2505.23387,training
+arXiv_2505.22704,Training Language Models to Generate Quality Code with Program Analysis Feedback,arXiv:2505.22704,training
+arXiv_2507.19060,PurpCode: Reasoning for Safer Code Generation,arXiv:2507.19060,training

@@ -1,0 +1,3750 @@
+{
+ "seeds": 374,
+ "per_seed": {
+  "arXiv:2505.11480": {
+   "references": {
+    "status": 200,
+    "n": 85
+   },
+   "citations": {
+    "status": 200,
+    "n": 9
+   }
+  },
+  "DOI:10.52202/085713-3624": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2302.07867": {
+   "references": {
+    "status": 200,
+    "n": 94
+   },
+   "citations": {
+    "status": 200,
+    "n": 171
+   }
+  },
+  "arXiv:2309.15606": {
+   "references": {
+    "status": 200,
+    "n": 59
+   },
+   "citations": {
+    "status": 200,
+    "n": 50
+   }
+  },
+  "arXiv:2310.04047": {
+   "references": {
+    "status": 200,
+    "n": 54
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2309.09826": {
+   "references": {
+    "status": 200,
+    "n": 44
+   },
+   "citations": {
+    "status": 200,
+    "n": 40
+   }
+  },
+  "arXiv:2310.08992": {
+   "references": {
+    "status": 200,
+    "n": 60
+   },
+   "citations": {
+    "status": 200,
+    "n": 91
+   }
+  },
+  "arXiv:2310.16263": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 42
+   }
+  },
+  "arXiv:2312.00024": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 19
+   }
+  },
+  "arXiv:2302.05319": {
+   "references": {
+    "status": 200,
+    "n": 76
+   },
+   "citations": {
+    "status": 200,
+    "n": 337
+   }
+  },
+  "arXiv:2312.14949": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2312.05657": {
+   "references": {
+    "status": 200,
+    "n": 18
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2408.00994": {
+   "references": {
+    "status": 200,
+    "n": 55
+   },
+   "citations": {
+    "status": 200,
+    "n": 20
+   }
+  },
+  "arXiv:2405.15189": {
+   "references": {
+    "status": 200,
+    "n": 73
+   },
+   "citations": {
+    "status": 200,
+    "n": 55
+   }
+  },
+  "arXiv:2402.07844": {
+   "references": {
+    "status": 200,
+    "n": 56
+   },
+   "citations": {
+    "status": 200,
+    "n": 71
+   }
+  },
+  "arXiv:2401.05443": {
+   "references": {
+    "status": 200,
+    "n": 62
+   },
+   "citations": {
+    "status": 200,
+    "n": 92
+   }
+  },
+  "arXiv:2401.14176": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 17
+   }
+  },
+  "DOI:10.3390/app14031046": {
+   "references": {
+    "status": 200,
+    "n": 11
+   },
+   "citations": {
+    "status": 200,
+    "n": 62
+   }
+  },
+  "arXiv:2307.12596": {
+   "references": {
+    "status": 200,
+    "n": 65
+   },
+   "citations": {
+    "status": 200,
+    "n": 266
+   }
+  },
+  "arXiv:2402.09497": {
+   "references": {
+    "status": 200,
+    "n": 43
+   },
+   "citations": {
+    "status": 200,
+    "n": 110
+   }
+  },
+  "arXiv:2403.09032": {
+   "references": {
+    "status": 200,
+    "n": 75
+   },
+   "citations": {
+    "status": 200,
+    "n": 81
+   }
+  },
+  "arXiv:2403.12671": {
+   "references": {
+    "status": 200,
+    "n": 32
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2403.15852": {
+   "references": {
+    "status": 200,
+    "n": 52
+   },
+   "citations": {
+    "status": 200,
+    "n": 51
+   }
+  },
+  "arXiv:2404.06041": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 56
+   }
+  },
+  "DOI:10.1145/3650105.3652299": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 47
+   }
+  },
+  "DOI:10.1145/3603287.3651194": {
+   "references": {
+    "status": 200,
+    "n": 16
+   },
+   "citations": {
+    "status": 200,
+    "n": 19
+   }
+  },
+  "arXiv:2404.18864": {
+   "references": {
+    "status": 200,
+    "n": 75
+   },
+   "citations": {
+    "status": 200,
+    "n": 28
+   }
+  },
+  "arXiv:2405.00218": {
+   "references": {
+    "status": 200,
+    "n": 55
+   },
+   "citations": {
+    "status": 200,
+    "n": 61
+   }
+  },
+  "arXiv:2405.03927": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "arXiv:2303.06689": {
+   "references": {
+    "status": 200,
+    "n": 96
+   },
+   "citations": {
+    "status": 200,
+    "n": 306
+   }
+  },
+  "arXiv:2406.11935": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2406.12146": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2406.12513": {
+   "references": {
+    "status": 200,
+    "n": 63
+   },
+   "citations": {
+    "status": 200,
+    "n": 49
+   }
+  },
+  "arXiv:2407.14044": {
+   "references": {
+    "status": 200,
+    "n": 32
+   },
+   "citations": {
+    "status": 200,
+    "n": 40
+   }
+  },
+  "arXiv:2408.09078": {
+   "references": {
+    "status": 200,
+    "n": 63
+   },
+   "citations": {
+    "status": 200,
+    "n": 25
+   }
+  },
+  "arXiv:2408.10495": {
+   "references": {
+    "status": 200,
+    "n": 30
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2408.12159": {
+   "references": {
+    "status": 200,
+    "n": 55
+   },
+   "citations": {
+    "status": 200,
+    "n": 76
+   }
+  },
+  "arXiv:2408.12948": {
+   "references": {
+    "status": 200,
+    "n": 71
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.1109/tetci.2024.3446695": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 16
+   }
+  },
+  "arXiv:2409.06446": {
+   "references": {
+    "status": 200,
+    "n": 63
+   },
+   "citations": {
+    "status": 200,
+    "n": 21
+   }
+  },
+  "DOI:10.1145/3650212.3680371": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 34
+   }
+  },
+  "arXiv:2409.10737": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 67
+   }
+  },
+  "arXiv:2409.12699": {
+   "references": {
+    "status": 200,
+    "n": 75
+   },
+   "citations": {
+    "status": 200,
+    "n": 55
+   }
+  },
+  "arXiv:2409.16526": {
+   "references": {
+    "status": 200,
+    "n": 54
+   },
+   "citations": {
+    "status": 200,
+    "n": 9
+   }
+  },
+  "arXiv:2409.19182": {
+   "references": {
+    "status": 200,
+    "n": 42
+   },
+   "citations": {
+    "status": 200,
+    "n": 30
+   }
+  },
+  "arXiv:2410.01488": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 30
+   }
+  },
+  "arXiv:2307.08220": {
+   "references": {
+    "status": 200,
+    "n": 78
+   },
+   "citations": {
+    "status": 200,
+    "n": 32
+   }
+  },
+  "arXiv:2410.05605": {
+   "references": {
+    "status": 200,
+    "n": 40
+   },
+   "citations": {
+    "status": 200,
+    "n": 63
+   }
+  },
+  "arXiv:2410.07356": {
+   "references": {
+    "status": 200,
+    "n": 14
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "arXiv:2410.10209": {
+   "references": {
+    "status": 200,
+    "n": 54
+   },
+   "citations": {
+    "status": 200,
+    "n": 22
+   }
+  },
+  "DOI:10.1145/3691620.3695505": {
+   "references": {
+    "status": 200,
+    "n": 33
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2410.14321": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 8
+   }
+  },
+  "DOI:10.1109/issre62328.2024.00030": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 28
+   }
+  },
+  "DOI:10.1109/igsc64514.2024.00017": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 13
+   }
+  },
+  "arXiv:2412.03578": {
+   "references": {
+    "status": 200,
+    "n": 68
+   },
+   "citations": {
+    "status": 200,
+    "n": 58
+   }
+  },
+  "arXiv:2411.12882": {
+   "references": {
+    "status": 200,
+    "n": 70
+   },
+   "citations": {
+    "status": 200,
+    "n": 30
+   }
+  },
+  "arXiv:2409.07368": {
+   "references": {
+    "status": 200,
+    "n": 8
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2412.05587": {
+   "references": {
+    "status": 200,
+    "n": 41
+   },
+   "citations": {
+    "status": 200,
+    "n": 21
+   }
+  },
+  "DOI:10.1109/ispras64596.2024.10899123": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2412.15118": {
+   "references": {
+    "status": 200,
+    "n": 121
+   },
+   "citations": {
+    "status": 200,
+    "n": 21
+   }
+  },
+  "DOI:10.54254/2755-2721/2025.20425": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2412.17264": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 20
+   }
+  },
+  "arXiv:2412.20545": {
+   "references": {
+    "status": 200,
+    "n": 59
+   },
+   "citations": {
+    "status": 200,
+    "n": 46
+   }
+  },
+  "DOI:10.26634/jse.20.1.22554": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.65286/icic.v21i4.69146": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/access.2025.3585742": {
+   "references": {
+    "status": 200,
+    "n": 59
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2507.19060": {
+   "references": {
+    "status": 200,
+    "n": 137
+   },
+   "citations": {
+    "status": 200,
+    "n": 23
+   }
+  },
+  "arXiv:2504.10369": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 24
+   }
+  },
+  "arXiv:2505.22704": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "DOI:10.1016/j.eswa.2024.126357": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 33
+   }
+  },
+  "arXiv:2501.16692": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2501.18916": {
+   "references": {
+    "status": 200,
+    "n": 23
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2502.18489": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 15
+   }
+  },
+  "DOI:10.1145/3717383.3717394": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "DOI:10.1145/3732945.3732990": {
+   "references": {
+    "status": 200,
+    "n": 15
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2310.09748": {
+   "references": {
+    "status": 200,
+    "n": 82
+   },
+   "citations": {
+    "status": 200,
+    "n": 92
+   }
+  },
+  "DOI:10.1145/3711708.3723442": {
+   "references": {
+    "status": 200,
+    "n": 27
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1109/saner64311.2025.00045": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.1109/saner-c66551.2025.00028": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2410.17031": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 67
+   }
+  },
+  "arXiv:2407.07064": {
+   "references": {
+    "status": 200,
+    "n": 116
+   },
+   "citations": {
+    "status": 200,
+    "n": 92
+   }
+  },
+  "arXiv:2506.10987": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2503.09020": {
+   "references": {
+    "status": 200,
+    "n": 57
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2503.11402": {
+   "references": {
+    "status": 200,
+    "n": 61
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2503.13654": {
+   "references": {
+    "status": 200,
+    "n": 43
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "arXiv:2503.15554": {
+   "references": {
+    "status": 200,
+    "n": 59
+   },
+   "citations": {
+    "status": 200,
+    "n": 26
+   }
+  },
+  "arXiv:2503.15669": {
+   "references": {
+    "status": 200,
+    "n": 68
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/icnlp65360.2025.11108400": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2503.17741": {
+   "references": {
+    "status": 200,
+    "n": 57
+   },
+   "citations": {
+    "status": 200,
+    "n": 32
+   }
+  },
+  "arXiv:2504.03723": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 22
+   }
+  },
+  "DOI:10.23919/date64628.2025.10992751": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.1145/3727980": {
+   "references": {
+    "status": 200,
+    "n": 41
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "arXiv:2504.16429": {
+   "references": {
+    "status": 200,
+    "n": 54
+   },
+   "citations": {
+    "status": 200,
+    "n": 30
+   }
+  },
+  "arXiv:2502.06039": {
+   "references": {
+    "status": 200,
+    "n": 15
+   },
+   "citations": {
+    "status": 200,
+    "n": 43
+   }
+  },
+  "arXiv:2504.21043": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2411.10599": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "arXiv:2504.21187": {
+   "references": {
+    "status": 200,
+    "n": 36
+   },
+   "citations": {
+    "status": 200,
+    "n": 15
+   }
+  },
+  "arXiv:2505.02184": {
+   "references": {
+    "status": 200,
+    "n": 56
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "DOI:10.1109/cai64502.2025.00057": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2505.03906": {
+   "references": {
+    "status": 200,
+    "n": 45
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2505.15858": {
+   "references": {
+    "status": 200,
+    "n": 32
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2505.18574": {
+   "references": {
+    "status": 200,
+    "n": 64
+   },
+   "citations": {
+    "status": 200,
+    "n": 21
+   }
+  },
+  "arXiv:2505.23387": {
+   "references": {
+    "status": 200,
+    "n": 74
+   },
+   "citations": {
+    "status": 200,
+    "n": 20
+   }
+  },
+  "arXiv:2506.00419": {
+   "references": {
+    "status": 200,
+    "n": 51
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "DOI:10.1007/s11227-025-07378-5": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.1109/jetcas.2025.3568712": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2506.02211": {
+   "references": {
+    "status": 200,
+    "n": 34
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2506.03006": {
+   "references": {
+    "status": 200,
+    "n": 74
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2506.07313": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2506.10125": {
+   "references": {
+    "status": 200,
+    "n": 91
+   },
+   "citations": {
+    "status": 200,
+    "n": 16
+   }
+  },
+  "arXiv:2506.11561": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.63397/iscsitr-ijcse_2025_06_03_004": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2506.13663": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 15
+   }
+  },
+  "DOI:10.1145/3715726": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 34
+   }
+  },
+  "DOI:10.1145/3696630.3728609": {
+   "references": {
+    "status": 200,
+    "n": 22
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "DOI:10.1109/dsn-w65791.2025.00077": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2506.23034": {
+   "references": {
+    "status": 200,
+    "n": 73
+   },
+   "citations": {
+    "status": 200,
+    "n": 23
+   }
+  },
+  "arXiv:2510.08665": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2507.04736": {
+   "references": {
+    "status": 200,
+    "n": 23
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2507.09508": {
+   "references": {
+    "status": 200,
+    "n": 42
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2507.09665": {
+   "references": {
+    "status": 200,
+    "n": 80
+   },
+   "citations": {
+    "status": 200,
+    "n": 14
+   }
+  },
+  "arXiv:2507.11083": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 8
+   }
+  },
+  "arXiv:2507.14111": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 69
+   }
+  },
+  "arXiv:2507.17962": {
+   "references": {
+    "status": 200,
+    "n": 33
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "arXiv:2507.23194": {
+   "references": {
+    "status": 200,
+    "n": 9
+   },
+   "citations": {
+    "status": 200,
+    "n": 40
+   }
+  },
+  "arXiv:2508.01443": {
+   "references": {
+    "status": 200,
+    "n": 74
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2508.05675": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2508.12910": {
+   "references": {
+    "status": 200,
+    "n": 27
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2508.20124": {
+   "references": {
+    "status": 200,
+    "n": 19
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "DOI:10.47363/jaicc/2025(4)476": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2505.08542": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "DOI:10.1109/tse.2025.3591791": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "DOI:10.1109/icsme64153.2025.00083": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.1109/icsme64153.2025.00041": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2508.14419": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 17
+   }
+  },
+  "arXiv:2509.06504": {
+   "references": {
+    "status": 200,
+    "n": 57
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2509.07506": {
+   "references": {
+    "status": 200,
+    "n": 64
+   },
+   "citations": {
+    "status": 200,
+    "n": 61
+   }
+  },
+  "arXiv:2509.10099": {
+   "references": {
+    "status": 200,
+    "n": 79
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "arXiv:2509.14265": {
+   "references": {
+    "status": 200,
+    "n": 63
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.23939/sisn2025.18.1.229": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2509.12649": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/ubmk67458.2025.11207030": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.5753/vem.2025.14275": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2510.00031": {
+   "references": {
+    "status": 200,
+    "n": 66
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2509.25626": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2510.01379": {
+   "references": {
+    "status": 200,
+    "n": 68
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2510.00932": {
+   "references": {
+    "status": 200,
+    "n": 52
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.63282/3050-922x.ijeret-v6i4p101": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2510.03760": {
+   "references": {
+    "status": 200,
+    "n": 29
+   },
+   "citations": {
+    "status": 200,
+    "n": 15
+   }
+  },
+  "arXiv:2510.04135": {
+   "references": {
+    "status": 200,
+    "n": 14
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2505.22906": {
+   "references": {
+    "status": 200,
+    "n": 52
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2510.09682": {
+   "references": {
+    "status": 200,
+    "n": 49
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.1109/icoseit67010.2025.11290944": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2510.07189": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.1109/vlsi-soc64688.2025.11421711": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2510.10517": {
+   "references": {
+    "status": 200,
+    "n": 17
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2510.11151": {
+   "references": {
+    "status": 200,
+    "n": 15
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/flta67013.2025.11336593": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/cyberc66434.2025.00017": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2510.16384": {
+   "references": {
+    "status": 200,
+    "n": 77
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2510.16996": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 27
+   }
+  },
+  "arXiv:2510.16933": {
+   "references": {
+    "status": 200,
+    "n": 6
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2510.18204": {
+   "references": {
+    "status": 200,
+    "n": 61
+   },
+   "citations": {
+    "status": 200,
+    "n": 17
+   }
+  },
+  "arXiv:2511.01884": {
+   "references": {
+    "status": 200,
+    "n": 22
+   },
+   "citations": {
+    "status": 200,
+    "n": 55
+   }
+  },
+  "DOI:10.1109/ic3it66137.2025.11341145": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1016/j.jss.2025.112682": {
+   "references": {
+    "status": 200,
+    "n": 70
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2507.14776": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  },
+  "arXiv:2510.22944": {
+   "references": {
+    "status": 200,
+    "n": 46
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2510.23674": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2511.00592": {
+   "references": {
+    "status": 200,
+    "n": 51
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2511.03898": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1080/17538947.2025.2569405": {
+   "references": {
+    "status": 200,
+    "n": 56
+   },
+   "citations": {
+    "status": 200,
+    "n": 16
+   }
+  },
+  "DOI:10.1109/iccd65941.2025.00087": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2511.09794": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.1109/icdmw69685.2025.00164": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2511.09879": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/apeie66761.2025.11289297": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/trustcom66490.2025.00061": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.1109/trustcom66490.2025.00106": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1145/3731599.3767401": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2511.12385": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2510.17142": {
+   "references": {
+    "status": 200,
+    "n": 45
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "DOI:10.1109/ase63991.2025.00034": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.1109/ase63991.2025.00139": {
+   "references": {
+    "status": 200,
+    "n": 49
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2511.13972": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2511.15817": {
+   "references": {
+    "status": 200,
+    "n": 52
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.1109/iccbdai66607.2025.11388648": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2509.09947": {
+   "references": {
+    "status": 200,
+    "n": 27
+   },
+   "citations": {
+    "status": 200,
+    "n": 9
+   }
+  },
+  "arXiv:2511.22651": {
+   "references": {
+    "status": 200,
+    "n": 36
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1016/j.mlwa.2025.100804": {
+   "references": {
+    "status": 200,
+    "n": 16
+   },
+   "citations": {
+    "status": 200,
+    "n": 10
+   }
+  },
+  "arXiv:2512.01010": {
+   "references": {
+    "status": 200,
+    "n": 42
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/tse.2025.3619281": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 13
+   }
+  },
+  "DOI:10.1109/tai.2025.3639527": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 32
+   }
+  },
+  "DOI:10.3390/jcp5040110": {
+   "references": {
+    "status": 200,
+    "n": 55
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.1109/wsc68292.2025.11339012": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/acsac67867.2025.00094": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/icmnwc66779.2025.11354349": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2512.15766": {
+   "references": {
+    "status": 200,
+    "n": 69
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.1109/icicnis66685.2025.11315793": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2512.14018": {
+   "references": {
+    "status": 200,
+    "n": 54
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.1145/3799830.3799841": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2512.21354": {
+   "references": {
+    "status": 200,
+    "n": 22
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2512.23424": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "DOI:10.1109/access.2026.3673923": {
+   "references": {
+    "status": 200,
+    "n": 59
+   },
+   "citations": {
+    "status": 200,
+    "n": 21
+   }
+  },
+  "DOI:10.21655/ijsi.1673-7288.00376": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.14569/ijacsa.2026.0170204": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2601.00509": {
+   "references": {
+    "status": 200,
+    "n": 3
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.18653/v1/2026.findings-acl.1542": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/tdsc.2026.3679566": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2601.01184": {
+   "references": {
+    "status": 200,
+    "n": 9
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2601.02060": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2601.05475": {
+   "references": {
+    "status": 200,
+    "n": 19
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2601.06419": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2601.07084": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2601.07348": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 13
+   }
+  },
+  "arXiv:2601.12698": {
+   "references": {
+    "status": 200,
+    "n": 44
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2601.14523": {
+   "references": {
+    "status": 200,
+    "n": 40
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1016/j.scico.2026.103446": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2601.15094": {
+   "references": {
+    "status": 200,
+    "n": 84
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/nnice68970.2026.11466224": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2601.23009": {
+   "references": {
+    "status": 200,
+    "n": 53
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.71465/ajbd3634": {
+   "references": {
+    "status": 200,
+    "n": 9
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/cgo68049.2026.11395240": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2602.02584": {
+   "references": {
+    "status": 200,
+    "n": 15
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "DOI:10.71465/ajeet3630": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2602.01187": {
+   "references": {
+    "status": 200,
+    "n": 33
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2602.02597": {
+   "references": {
+    "status": 200,
+    "n": 44
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.20944/preprints202602.0007.v1": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  },
+  "arXiv:2602.03648": {
+   "references": {
+    "status": 200,
+    "n": 29
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2602.06085": {
+   "references": {
+    "status": 200,
+    "n": 23
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2508.11958": {
+   "references": {
+    "status": 200,
+    "n": 90
+   },
+   "citations": {
+    "status": 200,
+    "n": 9
+   }
+  },
+  "arXiv:2602.07422": {
+   "references": {
+    "status": 200,
+    "n": 57
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2602.11000": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "arXiv:2602.10778": {
+   "references": {
+    "status": 200,
+    "n": 43
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2602.10418": {
+   "references": {
+    "status": 200,
+    "n": 68
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2602.12049": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2602.12305": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2602.14293": {
+   "references": {
+    "status": 200,
+    "n": 33
+   },
+   "citations": {
+    "status": 200,
+    "n": 14
+   }
+  },
+  "arXiv:2602.17169": {
+   "references": {
+    "status": 200,
+    "n": 23
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2602.23407": {
+   "references": {
+    "status": 200,
+    "n": 68
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2602.24286": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 54
+   }
+  },
+  "arXiv:2603.00822": {
+   "references": {
+    "status": 200,
+    "n": 68
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "DOI:10.1109/tse.2025.3650127": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2603.01494": {
+   "references": {
+    "status": 200,
+    "n": 29
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2603.02637": {
+   "references": {
+    "status": 200,
+    "n": 22
+   },
+   "citations": {
+    "status": 200,
+    "n": 11
+   }
+  },
+  "arXiv:2412.14841": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 27
+   }
+  },
+  "DOI:10.1145/3803291.3803376": {
+   "references": {
+    "status": 200,
+    "n": 24
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/ms.2026.3672189": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2603.11212": {
+   "references": {
+    "status": 200,
+    "n": 46
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2603.11935": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2603.17204": {
+   "references": {
+    "status": 200,
+    "n": 24
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2603.17613": {
+   "references": {
+    "status": 200,
+    "n": 24
+   },
+   "citations": {
+    "status": 200,
+    "n": 7
+   }
+  },
+  "arXiv:2603.23633": {
+   "references": {
+    "status": 200,
+    "n": 41
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2603.22717": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.15588/1607-3274-2026-1-8": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2603.26664": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2603.27850": {
+   "references": {
+    "status": 200,
+    "n": 52
+   },
+   "citations": {
+    "status": 200,
+    "n": 12
+   }
+  },
+  "arXiv:2603.28686": {
+   "references": {
+    "status": 200,
+    "n": 43
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.63561/jca.v3i1.1204": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1016/j.knosys.2026.115925": {
+   "references": {
+    "status": 200,
+    "n": 20
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2604.03632": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2604.03587": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2604.03622": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2604.04238": {
+   "references": {
+    "status": 200,
+    "n": 49
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2604.05137": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/aiita69518.2026.11567118": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2604.09089": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.5281/zenodo.19509465": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3786181.3788704": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3786583.3786915": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.1145/3786583.3786872": {
+   "references": {
+    "status": 200,
+    "n": 52
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2604.10387": {
+   "references": {
+    "status": 200,
+    "n": 34
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3744916.3773210": {
+   "references": {
+    "status": 200,
+    "n": 43
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2606.06826": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2604.04332": {
+   "references": {
+    "status": 200,
+    "n": 95
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2604.15041": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2604.15485": {
+   "references": {
+    "status": 200,
+    "n": 36
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2604.16697": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2604.17803": {
+   "references": {
+    "status": 200,
+    "n": 71
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2604.23892": {
+   "references": {
+    "status": 200,
+    "n": 45
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2603.08520": {
+   "references": {
+    "status": 200,
+    "n": 19
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1109/ipdpsw71298.2026.00036": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.5281/zenodo.20021690": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  },
+  "arXiv:2605.04677": {
+   "references": {
+    "status": 200,
+    "n": 16
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2605.30359": {
+   "references": {
+    "status": 200,
+    "n": 27
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2605.08382": {
+   "references": {
+    "status": 200,
+    "n": 51
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2605.13536": {
+   "references": {
+    "status": 200,
+    "n": 32
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2605.17978": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2605.24298": {
+   "references": {
+    "status": 200,
+    "n": 30
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "arXiv:2605.24300": {
+   "references": {
+    "status": 200,
+    "n": 49
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2605.24812": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 4
+   }
+  },
+  "DOI:10.32520/stmsi.v15i5.6395": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2605.26898": {
+   "references": {
+    "status": 200,
+    "n": 23
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3786335.3813220": {
+   "references": {
+    "status": 200,
+    "n": 19
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2605.30478": {
+   "references": {
+    "status": 200,
+    "n": 15
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2606.00308": {
+   "references": {
+    "status": 200,
+    "n": 30
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2606.02963": {
+   "references": {
+    "status": 200,
+    "n": 18
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1109/isaeece70502.2026.11635708": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2606.03489": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.3390/s26113502": {
+   "references": {
+    "status": 200,
+    "n": 49
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "DOI:10.1177/00375497261447015": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2601.04327": {
+   "references": {
+    "status": 200,
+    "n": 50
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2606.06214": {
+   "references": {
+    "status": 200,
+    "n": 32
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.5281/zenodo.20618291": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3816713.3818803": {
+   "references": {
+    "status": 200,
+    "n": 16
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2606.16244": {
+   "references": {
+    "status": 200,
+    "n": 33
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2606.17461": {
+   "references": {
+    "status": 200,
+    "n": 19
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.20501": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1109/dsn-w70714.2026.00031": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/jcsse68839.2026.11596963": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2606.26453": {
+   "references": {
+    "status": 200,
+    "n": 44
+   },
+   "citations": {
+    "status": 200,
+    "n": 6
+   }
+  },
+  "arXiv:2606.27733": {
+   "references": {
+    "status": 200,
+    "n": 62
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1145/3803846.3807461": {
+   "references": {
+    "status": 200,
+    "n": 7
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3797120": {
+   "references": {
+    "status": 200,
+    "n": 38
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2606.06821": {
+   "references": {
+    "status": 200,
+    "n": 57
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2606.28998": {
+   "references": {
+    "status": 200,
+    "n": 66
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2509.09942": {
+   "references": {
+    "status": 200,
+    "n": 61
+   },
+   "citations": {
+    "status": 200,
+    "n": 5
+   }
+  },
+  "DOI:10.1109/ciacon70148.2026.11688692": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/aeect69724.2026.11657848": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3774895.3812199": {
+   "references": {
+    "status": 200,
+    "n": 2
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "DOI:10.1145/3805760.3814903": {
+   "references": {
+    "status": 200,
+    "n": 36
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3803846.3807466": {
+   "references": {
+    "status": 200,
+    "n": 8
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2607.04577": {
+   "references": {
+    "status": 200,
+    "n": 64
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.07632": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2607.07881": {
+   "references": {
+    "status": 200,
+    "n": 35
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.14181": {
+   "references": {
+    "status": 200,
+    "n": 101
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.15937": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.17619": {
+   "references": {
+    "status": 200,
+    "n": 58
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2607.21641": {
+   "references": {
+    "status": 200,
+    "n": 8
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.19653": {
+   "references": {
+    "status": 200,
+    "n": 58
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2607.20908": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.23710": {
+   "references": {
+    "status": 200,
+    "n": 24
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2607.27271": {
+   "references": {
+    "status": 200,
+    "n": 37
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1111/coin.70282": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2607.28529": {
+   "references": {
+    "status": 200,
+    "n": 33
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1109/imns67862.2026.11655277": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.3390/app16157733": {
+   "references": {
+    "status": 200,
+    "n": 10
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.03535": {
+   "references": {
+    "status": 200,
+    "n": 25
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.06640": {
+   "references": {
+    "status": 200,
+    "n": 47
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2608.06848": {
+   "references": {
+    "status": 200,
+    "n": 66
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.08085": {
+   "references": {
+    "status": 200,
+    "n": 21
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.09740": {
+   "references": {
+    "status": 200,
+    "n": 27
+   },
+   "citations": {
+    "status": 200,
+    "n": 2
+   }
+  },
+  "arXiv:2608.13742": {
+   "references": {
+    "status": 200,
+    "n": 15
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.14953": {
+   "references": {
+    "status": 200,
+    "n": 26
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.16187": {
+   "references": {
+    "status": 200,
+    "n": 9
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.24857": {
+   "references": {
+    "status": 200,
+    "n": 28
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.25457": {
+   "references": {
+    "status": 200,
+    "n": 46
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.26588": {
+   "references": {
+    "status": 200,
+    "n": 31
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2609.00058": {
+   "references": {
+    "status": 200,
+    "n": 32
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.30025": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1002/cpe.70926": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2608.30248": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.24963/ijcai.2026/15": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2609.04061": {
+   "references": {
+    "status": 200,
+    "n": 66
+   },
+   "citations": {
+    "status": 200,
+    "n": 1
+   }
+  },
+  "arXiv:2512.24570": {
+   "references": {
+    "status": 200,
+    "n": 146
+   },
+   "citations": {
+    "status": 200,
+    "n": 3
+   }
+  },
+  "arXiv:2609.05232": {
+   "references": {
+    "status": 200,
+    "n": 9
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2609.05779": {
+   "references": {
+    "status": 200,
+    "n": 9
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1016/j.jss.2026.113064": {
+   "references": {
+    "status": 200,
+    "n": 46
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2609.12464": {
+   "references": {
+    "status": 200,
+    "n": 5
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3816250": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3847661": {
+   "references": {
+    "status": 200,
+    "n": 0
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2609.34963": {
+   "references": {
+    "status": 200,
+    "n": 13
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2609.37849": {
+   "references": {
+    "status": 200,
+    "n": 12
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2610.02571": {
+   "references": {
+    "status": 200,
+    "n": 42
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2407.02395": {
+   "references": {
+    "status": 200,
+    "n": 36
+   },
+   "citations": {
+    "status": 200,
+    "n": 54
+   }
+  },
+  "arXiv:2610.05858": {
+   "references": {
+    "status": 200,
+    "n": 39
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2610.10659": {
+   "references": {
+    "status": 200,
+    "n": 19
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.1145/3832783.3837499": {
+   "references": {
+    "status": 200,
+    "n": 48
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2610.14968": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  },
+  "arXiv:2610.14453": {
+   "references": {
+    "status": 200,
+    "n": 51
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "arXiv:2401.15963": {
+   "references": {
+    "status": 200,
+    "n": 73
+   },
+   "citations": {
+    "status": 200,
+    "n": 33
+   }
+  },
+  "arXiv:2603.24755": {
+   "references": {
+    "status": 200,
+    "n": 86
+   },
+   "citations": {
+    "status": 200,
+    "n": 28
+   }
+  },
+  "arXiv:2608.13404": {
+   "references": {
+    "status": 200,
+    "n": 29
+   },
+   "citations": {
+    "status": 200,
+    "n": 0
+   }
+  },
+  "DOI:10.52202/079017-2717": {
+   "references": {
+    "status": 404,
+    "n": 0
+   },
+   "citations": {
+    "status": 404,
+    "n": 0
+   }
+  }
+ },
+ "candidates_total": 17366,
+ "in_window": 12509,
+ "not_already_screened": 8105,
+ "unique_new": 4673,
+ "failed_calls": 14
+}

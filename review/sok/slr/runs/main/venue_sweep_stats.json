@@ -1,0 +1,84 @@
+{
+ "source": "s2",
+ "query": "(\"large language model*\" | LLM | LLMs | \"language model*\" | \"code model*\" | \"foundation model*\" | \"code LLM*\" | GPT* | Codex | ChatGPT | Copilot | \"code LM*\" | LMs) + (\"code generation\" | \"program synthesis\" | \"generated code\" | \"code completion\" | \"code synthesis\" | \"generating code\" | \"AI-generated code\" | \"LLM-generated code\" | \"machine-generated code\" | \"coding assistant*\" | \"source code\" | \"code edit*\" | \"code repair\" | \"vulnerability repair\" | \"code refinement\" | \"program optimization\" | \"code optimization\" | \"programming task*\" | \"coding task*\" | \"code-related task*\" | \"coding preference*\" | \"code revision*\" | codebase* | \"code efficiency\" | \"Python code\" | \"code snippet*\")",
+ "records_scanned": 14658,
+ "title_matches_all_venues": 1625,
+ "in_target_venues": 274,
+ "already_in_search": 143,
+ "missed_by_search": 131,
+ "by_venue": {
+  "ASE": {
+   "sweep": 48,
+   "in_search": 26
+  },
+  "TOSEM": {
+   "sweep": 36,
+   "in_search": 23
+  },
+  "ACL": {
+   "sweep": 36,
+   "in_search": 15
+  },
+  "ICLR": {
+   "sweep": 10,
+   "in_search": 5
+  },
+  "ICML": {
+   "sweep": 10,
+   "in_search": 5
+  },
+  "ICSME": {
+   "sweep": 3,
+   "in_search": 2
+  },
+  "EMSE": {
+   "sweep": 15,
+   "in_search": 7
+  },
+  "USENIX Security": {
+   "sweep": 3,
+   "in_search": 2
+  },
+  "NeurIPS": {
+   "sweep": 14,
+   "in_search": 10
+  },
+  "EMNLP": {
+   "sweep": 13,
+   "in_search": 4
+  },
+  "SANER": {
+   "sweep": 13,
+   "in_search": 8
+  },
+  "ICSE": {
+   "sweep": 39,
+   "in_search": 15
+  },
+  "CCS": {
+   "sweep": 6,
+   "in_search": 4
+  },
+  "MSR": {
+   "sweep": 5,
+   "in_search": 1
+  },
+  "FSE": {
+   "sweep": 4,
+   "in_search": 2
+  },
+  "TSE": {
+   "sweep": 15,
+   "in_search": 10
+  },
+  "ISSTA": {
+   "sweep": 1,
+   "in_search": 1
+  },
+  "IEEE S&P": {
+   "sweep": 3,
+   "in_search": 3
+  }
+ },
+ "note": "Missed records are screened with the same prompt; the recall estimate is computed on records screened include/uncertain."
+}

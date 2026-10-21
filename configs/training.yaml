@@ -1,0 +1,9 @@
+base_models:
+  g31: accounts/fireworks/models/gemma-4-31b-it
+  g26: accounts/fireworks/models/gemma-4-26b-a4b-it
+deployments:
+  g31: accounts/sok-code-quality/deployments/gemma-4-31b-it
+  g26: accounts/sok-code-quality/deployments/gemma-4-26b-a4b-it
+sft: {lora_rank: 16, epochs: 2, learning_rate: 1.0e-4, max_context: 16384, batch_samples: 4}
+dpo: {lora_rank: 16, epochs: 1, learning_rate: 5.0e-6, max_context: 16384, beta: 0.1}
+grpo: {lora_rank: 16, epochs: 1, learning_rate: 1.0e-6, max_context: 16384, kl_beta: 0.04, group_size: 8, temperature: 1.0, max_tokens: 4096}

@@ -1,0 +1,46 @@
+[project]
+name = "sok-code-quality-harness"
+version = "1.0.0"
+description = "Controlled re-evaluation of techniques for improving the quality of LLM-generated code"
+requires-python = ">=3.10"
+dependencies = [
+  "anthropic>=0.60",
+  "openai>=1.90",
+  "httpx>=0.27",
+  "pyyaml>=6.0",
+  "numpy>=1.26",
+  "scipy>=1.11",
+  "pandas>=2.1",
+  "datasets>=2.19",
+  "evalplus>=0.3",
+  "pylint==3.3.7",
+  "bandit==1.8.6",
+  "safety==3.6.0",
+  "cognitive-complexity==1.3.0",
+  "rank-bm25>=0.2.2",
+  "sacrebleu>=2.4",
+  "tqdm>=4.66",
+  "mini-swe-agent==2.4.6",
+  "radon==6.0.1",
+  "huggingface-hub>=0.34",
+  "lxml>=5.3",
+  "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.optional-dependencies]
+whitebox = ["torch>=2.4", "transformers>=5.0,<6", "accelerate>=1.0", "peft>=0.13", "trl>=0.24", "vllm==0.18.0"]
+h2h = ["chromadb>=1.0", "codebleu>=0.7", "scikit-learn>=1.5", "torch-geometric>=2.6", "tree-sitter>=0.23", "tree-sitter-python>=0.23",
+       "tree-sitter-c>=0.23", "tree-sitter-c-sharp>=0.23.1", "tree-sitter-cpp>=0.23.4", "tree-sitter-go>=0.23",
+       "tree-sitter-java>=0.23.5", "tree-sitter-javascript>=0.23", "tree-sitter-php>=0.23", "tree-sitter-ruby>=0.23.1",
+       "tree-sitter-rust>=0.23", "mypy", "sqlparse", "fire", "pytest>=8"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+harness = "harness.cli:main"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["harness*"]

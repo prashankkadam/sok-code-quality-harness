@@ -1,0 +1,11 @@
+{
+ "batch_ids": [
+  "msgbatch_0186ubtRmPNukUt6CG9UfqfR",
+  "msgbatch_01UrihK6WZip5gPAJsRdNDsD",
+  "msgbatch_015HPGFWFAhwuY8L9z4TfodN",
+  "msgbatch_01XCQE61tVAFUFE8g58BNa9N"
+ ],
+ "model": "claude-haiku-5-5",
+ "prompt": "screen_ft.md",
+ "effort": "low"
+}

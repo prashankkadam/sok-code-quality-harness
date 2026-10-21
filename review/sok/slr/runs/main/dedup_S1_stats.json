@@ -1,0 +1,15 @@
+{
+ "records_in": 4819,
+ "dropped_before_window": 0,
+ "unique_after_dedup": 2773,
+ "duplicates_removed": 2046,
+ "by_source_combo": {
+  "openalex+semanticscholar": 784,
+  "semanticscholar": 117,
+  "openalex": 1265,
+  "arxiv+openalex+semanticscholar": 477,
+  "arxiv": 86,
+  "arxiv+semanticscholar": 31,
+  "arxiv+openalex": 13
+ }
+}

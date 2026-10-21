@@ -1,0 +1,4 @@
+# Ranker (T7) and analyzer-loop (T3) weights per finding.
+bandit: {HIGH: 5.0, MEDIUM: 3.0, LOW: 1.0}
+safety: 5.0
+pylint: {fatal: 3.0, error: 2.0, warning: 1.0, refactor: 0.5, convention: 0.25, info: 0.0}

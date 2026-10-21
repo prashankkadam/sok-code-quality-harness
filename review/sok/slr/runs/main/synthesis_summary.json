@@ -1,0 +1,504 @@
+{
+ "prisma": {
+  "hits_openalex": 2769,
+  "hits_s2": 7777,
+  "hits_arxiv": 4663,
+  "records_in": 14664,
+  "duplicates": 7722,
+  "screened_db": 6942,
+  "ta_excluded_db": 5700,
+  "ta_forward_db": 1242,
+  "other_identified": 164,
+  "other_forward": 29,
+  "other_excluded_ta": 135,
+  "snow_identified": 4580,
+  "snow_forward": 506,
+  "snow_stageA_excluded": 77,
+  "snow_awaiting": 429,
+  "ft_not_retrieved": 687,
+  "ft_excluded": 662,
+  "ft_excluded_by": {
+   "IC3": 234,
+   "EC5": 219,
+   "IC1": 92,
+   "EC4": 69,
+   "IC4": 13,
+   "IC2": 9,
+   "EC8": 9,
+   "EC3": 7,
+   "EC6": 5,
+   "EC1": 4,
+   "EC2": 1
+  },
+  "side_context": 108,
+  "side_adjacent": 88,
+  "side_correctness": 307,
+  "side_secondary": 2,
+  "included": 606,
+  "included_db": 594,
+  "included_other": 12
+ },
+ "counts": {
+  "nHitsOpenAlex": 2769,
+  "nHitsSS": 7777,
+  "nHitsArxiv": 4663,
+  "nRecordsIn": 14664,
+  "nDuplicates": 7722,
+  "nScreened": 6942,
+  "nTaExcluded": 5700,
+  "nTaForward": 1242,
+  "nOtherIdentified": 164,
+  "nOtherForward": 29,
+  "nFtAssessed": 1271,
+  "nSnowIdentified": 4580,
+  "nSnowForward": 506,
+  "nSnowStageAExcluded": 77,
+  "nSnowAwaiting": 429,
+  "nFtExcluded": 662,
+  "nFtAbstractOnly": 687,
+  "nIncluded": 606,
+  "nIncludedDb": 594,
+  "nIncludedOther": 12,
+  "nTechRows": 678,
+  "nSideContext": 108,
+  "nSideAdjacent": 88,
+  "nSideCorrectness": 307,
+  "nSideSecondary": 2,
+  "nFamPrompting": 143,
+  "nFamFeedback": 92,
+  "nFamSelfRefine": 20,
+  "nFamMultiAgent": 69,
+  "nFamRetrieval": 41,
+  "nFamDecoding": 18,
+  "nFamTraining": 119,
+  "nFamOther": 155,
+  "nDimRM": 162,
+  "nDimEff": 242,
+  "nDimSec": 241,
+  "nNonTargetedMeasured": 65,
+  "nCorrectnessMeasured": 471,
+  "nLowConfidence": 290,
+  "nNonTargPrompting": 15,
+  "nCorrPrompting": 89,
+  "nNonTargFeedback": 9,
+  "nCorrFeedback": 62,
+  "nNonTargSelfRefine": 3,
+  "nCorrSelfRefine": 12,
+  "nNonTargMultiAgent": 10,
+  "nCorrMultiAgent": 56,
+  "nNonTargRetrieval": 8,
+  "nCorrRetrieval": 30,
+  "nNonTargDecoding": 2,
+  "nCorrDecoding": 17,
+  "nNonTargTraining": 12,
+  "nCorrTraining": 106,
+  "nNonTargOther": 12,
+  "nCorrOther": 137
+ },
+ "effects": {
+  "+|+": 206,
+  "+|0": 4,
+  "+|-": 0,
+  "+|mixed": 16,
+  "+|NR": 18,
+  "0|+": 47,
+  "0|0": 3,
+  "0|-": 0,
+  "0|mixed": 5,
+  "0|NR": 0,
+  "-|+": 25,
+  "-|0": 2,
+  "-|-": 5,
+  "-|mixed": 19,
+  "-|NR": 1,
+  "mixed|+": 61,
+  "mixed|0": 1,
+  "mixed|-": 1,
+  "mixed|mixed": 26,
+  "mixed|NR": 2,
+  "NR|+": 142,
+  "NR|0": 3,
+  "NR|-": 4,
+  "NR|mixed": 46,
+  "NR|NR": 41
+ },
+ "nontargeted": {
+  "prompting": [
+   143,
+   15,
+   89
+  ],
+  "feedback-loop": [
+   92,
+   9,
+   62
+  ],
+  "self-refinement": [
+   20,
+   3,
+   12
+  ],
+  "multi-agent": [
+   69,
+   10,
+   56
+  ],
+  "retrieval": [
+   41,
+   8,
+   30
+  ],
+  "decoding": [
+   18,
+   2,
+   17
+  ],
+  "training": [
+   119,
+   12,
+   106
+  ],
+  "other": [
+   155,
+   12,
+   137
+  ]
+ },
+ "qa": {
+  "prompting": {
+   "n": 143,
+   "median_qa": 5.0,
+   "compute": 25.174825174825173,
+   "contamination": 23.076923076923077,
+   "human": 21.678321678321677,
+   "artifacts": 46.85314685314685
+  },
+  "feedback-loop": {
+   "n": 92,
+   "median_qa": 5.5,
+   "compute": 45.65217391304348,
+   "contamination": 28.26086956521739,
+   "human": 11.956521739130435,
+   "artifacts": 50.0
+  },
+  "self-refinement": {
+   "n": 20,
+   "median_qa": 5.25,
+   "compute": 15.0,
+   "contamination": 30.0,
+   "human": 25.0,
+   "artifacts": 45.0
+  },
+  "multi-agent": {
+   "n": 69,
+   "median_qa": 4.5,
+   "compute": 46.3768115942029,
+   "contamination": 14.492753623188406,
+   "human": 7.246376811594203,
+   "artifacts": 37.68115942028985
+  },
+  "retrieval": {
+   "n": 41,
+   "median_qa": 5.0,
+   "compute": 29.26829268292683,
+   "contamination": 31.70731707317073,
+   "human": 21.951219512195124,
+   "artifacts": 53.65853658536585
+  },
+  "decoding": {
+   "n": 18,
+   "median_qa": 6.0,
+   "compute": 38.888888888888886,
+   "contamination": 16.666666666666668,
+   "human": 16.666666666666668,
+   "artifacts": 66.66666666666667
+  },
+  "training": {
+   "n": 119,
+   "median_qa": 6.0,
+   "compute": 47.05882352941177,
+   "contamination": 46.21848739495798,
+   "human": 18.48739495798319,
+   "artifacts": 59.66386554621849
+  },
+  "other": {
+   "n": 155,
+   "median_qa": 5.0,
+   "compute": 50.96774193548387,
+   "contamination": 23.225806451612904,
+   "human": 14.193548387096774,
+   "artifacts": 45.16129032258065
+  },
+  "ALL": {
+   "n": 606,
+   "median_qa": 5.0,
+   "compute": 40.0990099009901,
+   "contamination": 26.237623762376238,
+   "human": 16.006600660066006,
+   "artifacts": 47.194719471947195
+  }
+ },
+ "map_family": {
+  "prompting": [
+   52,
+   38,
+   59
+  ],
+  "feedback-loop": [
+   17,
+   44,
+   37
+  ],
+  "self-refinement": [
+   4,
+   6,
+   14
+  ],
+  "multi-agent": [
+   14,
+   36,
+   23
+  ],
+  "retrieval": [
+   7,
+   10,
+   20
+  ],
+  "decoding": [
+   3,
+   2,
+   13
+  ],
+  "training": [
+   34,
+   45,
+   48
+  ],
+  "other": [
+   38,
+   74,
+   56
+  ]
+ },
+ "map_signal": {
+  "none": [
+   46,
+   35,
+   60
+  ],
+  "self": [
+   20,
+   44,
+   51
+  ],
+  "other-LLM": [
+   34,
+   69,
+   50
+  ],
+  "static-analyzer": [
+   56,
+   36,
+   95
+  ],
+  "compiler": [
+   21,
+   85,
+   27
+  ],
+  "test-execution": [
+   43,
+   155,
+   36
+  ],
+  "profiler": [
+   5,
+   124,
+   4
+  ],
+  "retrieved-knowledge": [
+   28,
+   62,
+   72
+  ],
+  "human": [
+   13,
+   13,
+   23
+  ],
+  "learned-verifier": [
+   5,
+   9,
+   15
+  ],
+  "reward-model": [
+   9,
+   7,
+   8
+  ]
+ },
+ "per_year": {
+  "prompting": [
+   0,
+   0,
+   5,
+   29,
+   49,
+   53
+  ],
+  "feedback-loop": [
+   0,
+   0,
+   6,
+   11,
+   22,
+   38
+  ],
+  "self-refinement": [
+   0,
+   0,
+   1,
+   2,
+   6,
+   4
+  ],
+  "multi-agent": [
+   0,
+   0,
+   0,
+   7,
+   27,
+   34
+  ],
+  "retrieval": [
+   0,
+   0,
+   3,
+   4,
+   18,
+   13
+  ],
+  "decoding": [
+   0,
+   0,
+   1,
+   4,
+   5,
+   7
+  ],
+  "training": [
+   0,
+   0,
+   3,
+   17,
+   35,
+   54
+  ],
+  "other": [
+   0,
+   0,
+   7,
+   21,
+   58,
+   62
+  ]
+ },
+ "benchmarks": {
+  "HumanEval(+)": [
+   0,
+   0,
+   4,
+   27,
+   28,
+   32
+  ],
+  "MBPP(+)": [
+   0,
+   0,
+   2,
+   14,
+   14,
+   19
+  ],
+  "LeetCode": [
+   0,
+   0,
+   2,
+   10,
+   5,
+   6
+  ],
+  "APPS": [
+   0,
+   0,
+   3,
+   3,
+   8,
+   7
+  ],
+  "SecurityEval": [
+   0,
+   0,
+   2,
+   5,
+   6,
+   5
+  ],
+  "CyberSecEval": [
+   0,
+   0,
+   0,
+   2,
+   5,
+   10
+  ],
+  "LLMSecEval": [
+   0,
+   0,
+   1,
+   2,
+   7,
+   6
+  ],
+  "CWEval": [
+   0,
+   0,
+   0,
+   0,
+   4,
+   12
+  ],
+  "EffiBench": [
+   0,
+   0,
+   0,
+   4,
+   4,
+   7
+  ],
+  "PIE": [
+   0,
+   0,
+   3,
+   3,
+   6,
+   3
+  ],
+  "LiveCodeBench": [
+   0,
+   0,
+   0,
+   1,
+   2,
+   9
+  ],
+  "SWE-bench": [
+   0,
+   0,
+   0,
+   2,
+   2,
+   7
+  ]
+ }
+}

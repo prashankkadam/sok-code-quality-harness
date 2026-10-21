@@ -1,0 +1,127 @@
+rid,title,source,chars,sha256
+S00004,. Aligningcrowd-sourcedhumanfeedback for reinforcement learning on code generation by large language models,abstract-only,0,
+S00017,. EnergyFlowGraph:ModelingSoftwareEnergyConsumption,abstract-only,0,
+S00047,.Afterburner:ReinforcementLearning FacilitatesSelf-ImprovingCodeEfficiencyOptimization,abstract-only,0,
+S00123,Automating Automotive Software Development: A Synergy of Generative AI and Formal Methods,arxiv-pdf:2505.02500,44368,3130749be2bffa0830e108978902489bd893613085b107fdeec56f8a0dcadbaf
+S00154,Closing the Gap: A User Study on the Real-world Usefulness of AI-powered Vulnerability Detection & Repair in the IDE,abstract-only,0,
+S00210,Enabling Tensor Language Model to Assist in Generating High-Performance Tensor Programs for Deep Learning,abstract-only,0,
+S00294,How efficient is your clone? Evaluating LLM capabilities for runtime and memory-aware code selection,abstract-only,0,
+S00327,LLM verification-evasion patterns in AI-assisted software development: A taxonomy and implications for developer trust,abstract-only,0,
+S00339,Learning from Failures: Error Notebook-guided Secure Code Generation,acl-anthology-pdf:2026.findings-acl.1200,43208,3dac076be5ca918209b50fa1139ffc7947640ac8ab81b906896206ac7dbbdf8b
+S00367,Model-Agnostic Empirical Evaluation of Test-Driven Prompt Engineering on Improving Accuracy and Efficiency in Large Language Models Python Code Generation,abstract-only,0,
+S00374,Mutual-Supervised Learning for Sequential-to-Parallel Code Translation,arxiv-pdf:2506.11153,80153,30fa1ec46b2ce43fa8e097a388e5a992516437e3fc1c0acb7f576bfdd56f9ac4
+S00403,Perfinsights: Detecting performance optimization opportunities in go code using generative ai,abstract-only,0,
+S00463,Security and Reliability of AI-Generated C++ Code: A Static Analysis Study Aligned With Saudi NCA Essential Cybersecurity Controls (ECC),abstract-only,0,
+S00509,The Rise of AI Teammates in Software Engineering (SE) 3.0: How Autonomous Coding Agents Are Reshaping Software Engineering,arxiv-pdf:2507.15003,80162,59c30f465026de171a27e66e19ef1d6a593836bd565953c20f918ba413bc4716
+S00541,"We propose SecAwareCoder, a security-aware, agent-based framework that explicitly models task-specific attack surfaces, derives task-grounded vulnerability hypotheses, and leverages",abstract-only,0,
+S00591,“Test-Driven Development and LLM-based Code Gen-eration”,abstract-only,0,
+S00744,Data Augmentation by Program Transformation,abstract-only,0,
+S01106,"ChatGPT Prompt Patterns for Improving Code Quality, Refactoring, Requirements Elicitation, and Software Design",arxiv-pdf:2303.07839,75293,e3a41c9ab0e3ede14f333c9ed1a55fc69bf06aa6f3995e30f1d7c96ec029b968
+S01329,Modeling Parallel Programs using Large Language Models,arxiv-pdf:2306.17281,62005,c566169ad296ab6508d6326eefb24668400a54f4300c04f7a1fe760a7e6a131d
+S01516,SCAR: Power Side-Channel Analysis at RTL Level,arxiv-pdf:2310.06257,75587,06a22df6989458c80b9331dd279ece08c8143dcc371b29aa8ec3f50e0cc015ca
+S01630,"Advanced Large Language Model (LLM)-Driven Verilog Development: Enhancing Power, Performance, and Area Optimization in Code Synthesis",arxiv-pdf:2312.01022,36095,9b889bb070a0c827fe2656dffadc096a61891d0e51904e610c6ff071424c5eee
+S01747,BetterV: Controlled Verilog Generation with Discriminative Guidance,arxiv-pdf:2402.03375,47495,08cc64f31a945bd2d8f878a56fe5c6a4f4ad00e65b2dab5fb72f9698cedd9d5e
+S01866,Compiler generated feedback for Large Language Models,arxiv-pdf:2403.14714,38533,4d0c5ee91d3bf6fed0e9c8262f43875ce7ba699a0b2a365aa862bcc7b4689118
+S02037,Translating and Optimising Computational Microscopy Algorithms with Large Language Models,abstract-only,0,
+S02106,"TextGrad: Automatic ""Differentiation"" via Text",arxiv-pdf:2406.07496,132615,02f0ae046e847a337213c40133f6a6639be75234898ba9c27f46a1f63b32dd51
+S02165,LASSI: An LLM-Based Automated Self-Correcting Pipeline for Translating Parallel Scientific Codes,arxiv-pdf:2407.01638,40248,dd92c12990337f0faeaa7fe02c4a28f89b11df7573144705e9bbef8a2daf6045
+S02214,Rome was Not Built in a Single Step: Hierarchical Prompting for LLM-based Chip Design,arxiv-pdf:2407.18276,47371,83af2db0d7ae4e84b2dbd4233e115e70ef348c957c7cfaca734d6134f6d26442
+S02330,OMPar: Automatic Parallelization with AI-Driven Source-to-Source Compilation,arxiv-pdf:2409.14771,72570,212f369435500f86f52ce7a2513222cbc92fcd5bafa04f9a03abefe70d10c311
+S02444,DesignRepair: Dual-Stream Design Guideline-Aware Frontend Repair with Large Language Models,arxiv-pdf:2411.01606,67221,ac2b4264c21fff67b1a3936973fd87ef56fcf57b39f8d38e029d0e4768a3f860
+S02484,chatHPC: Empowering HPC users with large language models,oa-pdf:https://www.osti.gov/servlets/purl/2538074,70193,f0ae9142d81b21b0523d9db1127118d963f9f07c9299569b2ff14b667a1e004a
+S02532,An Exploratory Study of ML Sketches and Visual Code Assistants,arxiv-pdf:2412.13386,68813,5a47fc7eec05871d943d37abcc59b032a4000b79900ca11aa2b4c55e32c868f9
+S02588,Chain of Grounded Objectives: Concise Goal-Oriented Prompting for Code Generation,arxiv-pdf:2501.13978,62324,45c7d1cc62bbbbd28ee141c7220e5df8806fea8fb4e259351a157400f40a5bc5
+S02627,On Iterative Evaluation and Enhancement of Code Quality Using GPT-4o,arxiv-pdf:2502.07399,82496,0e38e5d2776e6dc0149c7ded2aa4978ac8e97347a27b8318884d60542bf2fcf7
+S02646,"Automated TEE Adaptation With LLMs: Identifying, Transforming, and Porting Sensitive Functions in Programs",arxiv-pdf:2502.13379,96936,a6d9392f412ab37674fefb3a6ed98419da4599d1bfb3b2dd0b1f4cf3b1055956
+S02689,Optimizing generative AI by backpropagating language model feedback,abstract-only,0,
+S02711,Generation of Optimized Solidity Code for Machine Learning Models using LLMs,arxiv-pdf:2503.06203,24983,bdbcd72f300f6716680301eaee988ffa536734c8b75f99814e64edd2dde98b67
+S02751,VecTrans: Enhancing Compiler Auto-Vectorization through LLM-Assisted Code Transformations,arxiv-pdf:2503.19449,59054,9d32050e6a59b42105fe6a39ac91fdbe3f60c8ec20800a0d93e87755b998f661
+S02778,On Simulation-Guided LLM-based Code Generation for Safe Autonomous Driving Software,arxiv-pdf:2504.02141,69147,42eb9465e4955af18c888c9d414ffc4513f68e29ebd3119e03ba4c3474c422f0
+S02822,Risk Assessment Framework for Code LLMs via Leveraging Internal States,arxiv-pdf:2504.14640,79831,6c2112a642dc9a79748bb7b4204b6aa08dfb7e0691a6ca94cd1b7f9a078e48db
+S02915,CALM: Co-evolution of Algorithms and Language Model for Automatic Heuristic Design,arxiv-pdf:2505.12285,90526,0e91c9c8414b8c6ce399c40d2978a83e379ead8f711b776f4cdac98b09de5be1
+S02946,Refactoring Codebases through Library Design,arxiv-pdf:2506.11058,83010,ae4f30e2e6194341e32ce6f8bb215cc33c0589d973f56b06e7e853d211232a71
+S02964,CoQuIR: A Comprehensive Benchmark for Code Quality-Aware Information Retrieval,arxiv-pdf:2506.11066,65866,1e7f156da1745ab9b670c69078b70332c782ccf4a24ad11a31b0d571bc5577c3
+S02987,Toward Non-Expert Customized Congestion Control,arxiv-pdf:2601.22461,41935,6f9cafb06df1950cb3abc148a721536d56de8252f8a2dd61cb1334ec9dc90758
+S03007,SecureMind: A Framework for Benchmarking Large Language Models in Memory Bug Detection and Repair,abstract-only,0,
+S03038,Hardware Generation with High Flexibility using Reinforcement Learning Enhanced LLMs,abstract-only,0,
+S03055,EvoVerilog: Large Langugage Model Assisted Evolution of Verilog Code,arxiv-pdf:2508.13156,56700,005a8c35f834d4e8e89eb3fc1fb362f977f61ce017de11adf52124c92639d446
+S03084,HLStrans: Dataset for C-to-HLS Hardware Code Synthesis,arxiv-pdf:2507.04315,83552,d594c7849c4672240efb29079c565a9ab4c3dcd6721311de1b7bd0a6dd250a60
+S03114,AlgoTune: Can Language Models Speed Up General-Purpose Numerical Programs?,arxiv-pdf:2507.15887,121968,e3ee8441af71fe4eec10eaa5a90e0f12c5c98e62cb9da962d3b8dd9707abdc58
+S03155,GeoGraphRAG: A graph-based retrieval-augmented generation approach for empowering large language models in automated geospatial modeling,abstract-only,0,
+S03211,SwizzlePerf: Hardware-Aware LLMs for GPU Kernel Performance Optimization,arxiv-pdf:2508.20258,39286,dc5dd85a97ed250e08392aa6996d825aadac5a14d562b1c40f01506dd7a4a37a
+S03237,ASPEN: LLM-Guided E-Graph Rewriting for RTL Datapath Optimization,abstract-only,0,
+S03256,EfficientUICoder: A Bidirectional Token Compression Framework for Efficient MLLM-Based UI Code Generation,arxiv-pdf:2509.12159,87342,0b132a8e9b16d5595eb6bfe427060dc21988688c92ee1ae1010a290b044b8ebf
+S03266,ShinkaEvolve: Towards Open-Ended And Sample-Efficient Program Evolution,arxiv-pdf:2509.19349,171043,3e206a29a4d5b76388eb92b1dc5249e57b0a97f2c387352fbbc39882100d82e5
+S03332,Model-Agnostic Correctness Assessment for LLM-Generated Code via Dynamic Internal Representation Selection,arxiv-pdf:2510.02934,103127,5a7e5c262acf4ff70f68fa558be094ec49d873c2cd954afa2570536190d4394b
+S03357,IntrinTrans: LLM-based Intrinsic Code Translator for RISC-V Vector,arxiv-pdf:2510.10119,33369,809664089a542aecd9a64108f8c995dce2fe747efa04f807f4b3a27d08d694d3
+S03385,CodeQUEST: Evaluation and Improvement of Code Quality Using LLMs,abstract-only,0,
+S03403,"SwiftSolve: A Self-Iterative, Complexity-Aware Multi-Agent Framework for Competitive Programming",arxiv-pdf:2510.22626,42549,09fda8a0cf0365c3f804c1caf587f6232733fbe624a6aa3004f997b025a8d912
+S03429,Toward efficient vibe coding: An LLM-based agent for low-code software development,abstract-only,0,
+S03462,Utilizing LLMs for Industrial Process Automation: A Case Study on Modifying RAPID Programs,arxiv-pdf:2511.11125,52854,e0b4d82c09e0901d9a4e3264914152207cc8b1b8638881605136c7efa8a16d3c
+S03482,AccelOpt: A Self-Improving LLM Agentic System for AI Accelerator Kernel Optimization,arxiv-pdf:2511.15915,96764,02d47c2442cba91725ddbbb79bc001396caa290f2dd2ec859a497a0e9dec8a15
+S03488,Can LLMs Recover Program Semantics? A Systematic Evaluation with Symbolic Execution,arxiv-pdf:2511.19130,62693,cfc5985fef1ddecf164abba7a3122c9e07dffde3d1ba855c85faba53ea2c9759
+S03506,MetaIndux-PLC: A Control Logic-Guided LLM for PLC code generation in industrial control systems,abstract-only,0,
+S03537,TritonForge: Profiling-Guided Framework for Automated Triton Kernel Optimization,arxiv-pdf:2512.09196,47698,07c6146cfcc6ff733b3f160402913b85619781d0fcb402a7c4e7714044e2aa28
+S03569,VSA:Visual-Structural Alignment for UI-to-Code,arxiv-pdf:2512.20034,19406,72ff49f95eebdde30e04d7414e50c357a15d10d939a7370686b462c7eaa53f51
+S03602,Enhancing SWE Bench with Context Engineering: A Comparative Study Against Prompt Engineering in LLM-Based Software Tasks,oa-pdf:https://www.jisem-journal.com/index.php/journal/article/download/14079/6718,62460,6035b4a8e19de25721f0bcf022145bf7c5795b6bc000a71964f1ed75e288b788
+S03649,ChatMPI: LLM-Driven MPI Code Generation for HPC Workloads,abstract-only,0,
+S03661,LLM4ATS: Applying Large Language Models for Auto-Testing Scripts in Automobiles,abstract-only,0,
+S03703,The Influence of Prompt Language on Code Generation: A Comparative Analysis of Turkish and English,abstract-only,0,
+S03736,An end-to-end agentic pipeline for smart contract translation and quality evaluation,arxiv-pdf:2602.13808,61579,f1a5e24db3fb35f54d5fd4dec2fa419ff90570e3c0526043195ad7eca02eee9c
+S03771,A large-language-model-guided progressive error-correction framework for structured process modeling,abstract-only,0,
+S03781,Bespoke OLAP: Synthesizing Workload-Specific One-size-fits-one Database Engines,arxiv-pdf:2603.02001,83326,9bd7db4dad50a505fee9d1f4415e68db1940abc7b4610a16b5d01601b190290e
+S03786,His2Trans: A Knowledge-Guided Agentic Framework for Project-Level C-to-Rust Migration,arxiv-pdf:2603.02617,62244,425e2107035b6243ad78762bd6b471ee94f159da77fd0490a03d03e3a059bf95
+S03798,Making LLMs Optimize Multi-Scenario CUDA Kernels Like Experts,arxiv-pdf:2603.07169,93518,4297736945831ccb0d76f5b2270f1b069eedb31753ff987f31cc312917e0373e
+S03808,KernelFoundry: Hardware-aware evolutionary GPU kernel optimization,arxiv-pdf:2603.12440,86443,1e571ff30092d1d650d6cc4e12d62bfc5e485fe4f8783cfd6c27415b7842db87
+S03817,"Architecting open, accountable, and trustworthy AI-IDEs",abstract-only,0,
+S03841,Improving Coherence and Persistence in Agentic AI for System Optimization,arxiv-pdf:2603.21321,130240,bbbb554224d203a13901876da36a9c0d3dfbd8fc05c31c9190ea7bf0c6044b6a
+S03852,Understanding the Challenges in Iterative Generative Optimization with LLMs,arxiv-pdf:2603.23994,133310,70acea55ab1fdf4c6634ed36430edcc55f25e1d07b8f59b4b5c1abe472efa48a
+S03873,IACDM: Interactive Adversarial Convergence Development Methodology - A Structured Framework for AI-Assisted Software Development,arxiv-pdf:2604.16399,133187,4336a2745cbefd1b24081009b00685e72c9355e2cdfaed81e82878d71cfb8295
+S03891,InCoder-32B-Thinking: Industrial Code World Model for Thinking,arxiv-pdf:2604.03144,75905,8f899ee688779b57687348e72e7be3ae27ef812ec1a9c0b6b25c71eeba038585
+S03904,gyaradax: Local Gyrokinetics JAX Code,arxiv-pdf:2604.06085,81358,e82393448e3ad4c47193bc1db86553c54c6229d0c7116f09123c60f0e590da83
+S03940,AI Coding Agents Need Better Compiler Remarks,arxiv-pdf:2604.13927,11638,67bd46ec89feee978e6529a727949ba7a43156a8d8e472270772d49b69d425fb
+S03954,AdaExplore: Failure-Driven Adaptation and Diversity-Preserving Search for Efficient Kernel Generation,arxiv-pdf:2604.16625,81251,40a87c01d48ef114d9414c3f9e5abdbd92ae3d9ccd2836b66b974ca4da25ec9d
+S03961,A Quasi-Experimental Developer Study of Security Training in LLM-Assisted Web Application Development,arxiv-pdf:2604.17763,53247,2b67f43d16d24be5e275ecc7f5fffa54dcb71ed49a594bcd73330047d3ec4fbe
+S03993,LLM4SecurePQC: LLM-Driven and Side-Channel Resilient Hardware Synthesis of PQC Cores,abstract-only,0,
+S04007,AXL: Executable Intent for Governed LLM-Based Software Maintenance,abstract-only,0,
+S04022,ParCoder: Harnessing Transformer Models for Parallel Code Generation with OpenMP and MPI,abstract-only,0,
+S04043,BUILD-AND-FIND: An Effort-Aware Protocol for Evaluating Agent-Managed Codebases,arxiv-pdf:2605.06136,80332,8244c5db24b535869d3ff0b5b28727874768a33ba9a2a6e0b5aefe32a7c4eecb
+S04048,CUDAHercules: Benchmarking Hardware-Aware Expert-level CUDA Optimization for LLMs,arxiv-pdf:2605.08467,63121,ba088fce8875daf17c77cc7338818684f41350cfa6332d2c90bebcb18b85db5f
+S04078,JavaScript Debugging and Optimization Sandbox: An Integrated Platform for Enhanced Development Workflows,abstract-only,0,
+S04102,"KernelBrain: Coarse-to-Fine, Budget-Aware Search for Agentic GPU Kernel Optimization",arxiv-pdf:2608.02611,47331,1a5a8838fc72a44a2a165080a46fc7984f8537a0f141da0197786c7327b16173
+S04119,Heimdall: Formally Verified Automated Migration of Legacy eBPF Programs to Rust,arxiv-pdf:2605.25411,162151,1582371a30d7dac2da5d87947d0f084e5088f8cd99bf3b4a27940d9e9e871dfe
+S04129,From Human Guidance to Autonomy: Agent Skill System for End-to-End LLM Deployment on Spatial NPUs,arxiv-pdf:2606.07586,27797,61bc20ad8023fa034eeb06b8665aa487f748b96d7f3b17437dd512332bb38590
+S04137,PassNet: Scaling Large Language Models for Graph Compiler Pass Generation,arxiv-pdf:2605.29357,66832,75bd4b32fe09f336cec9a6a5abd5843d98bea1f06436418794ec89dd0b07ed3c
+S04153,Automated AFSIM Script Generation via Retrieval-Augmented Reasoning and Constrained Decoding,abstract-only,0,
+S04173,RepoCBench: A benchmark for C-oriented repository-level code generation with large language models and agents,abstract-only,0,
+S04182,Diff-SQL: SQL Efficiency Optimization via Patch Generation and Constraint Alignment,arxiv-pdf:2610.06857,121260,c0fbc4a3b242f9c5fae0135766f64e48685874a29762b9848652977b0aa7ecce
+S04194,From Rule-Based NLP to Prompt-Guided Multi-LLM Pipelines for Text-to-UML and Code Generation,oa-pdf:https://etasr.com/index.php/ETASR/article/download/18049/6631,37598,ec32bc2d6946f6b61da053aba24ee53ec21312c12bb7f7d301282dc7b28aca1c
+S04214,Security in a Workflow: Exploring Role-Based Agentic Architectures for Vulnerability Handling,arxiv-pdf:2606.14261,43247,a082615def3219977b5c34a14a849a5c5e637338881de3f7316c8f36c3cfa1ec
+S04228,SpecGen: Accelerating Agentic Kernel Optimization with Speculative Generation,arxiv-pdf:2606.17518,74033,fdf489ad6f64bfc1d000fdddd8651628cdfb933e94c86f24b0511b01d401a269
+S04257,EGG: An Expert-Guided Agent Framework for Kernel Generation,arxiv-pdf:2606.26758,89478,9b3ef77728c15ca8994314d8844bdfda06fa4a51e056dccc771e0345e00df6c2
+S04274,JETO-Bench: A Reproducible Benchmark for Execution Time Improvement Patches in Java,arxiv-pdf:2606.31767,75190,b39acae0e19f3aec9012b138c37a634a0f3b2739abf81070c0d01b451b35a545
+S04289,From Chain-of-Note to Explainable Cognitive Prompting: Reproducible Multi-Layer Validation for Auditable LLM-Assisted PLC Programming : Structured Explainability and Deterministic Reasoning for Indust,abstract-only,0,
+S04308,Hawk: Harnessing Hardware-Aware Knowledge for High-Performance NPU Kernel Generation,arxiv-pdf:2607.01590,60055,0b65df0c983e167f8fcb2cd9b93d58d6177639376d7bfbf288b3065f2d8fe066
+S04332,PERFOPT-Bench: Evaluating Coding Agents on Software Performance Optimization,arxiv-pdf:2607.07744,48395,3bb829fe1a46c93ae32f442d1fcac5ba0bd807d3ad40e0f0de19b758eba2a46f
+S04355,FlashRT: Agent Harness for Guiding Agents to Deploy Real-Time Multimodal Applications,arxiv-pdf:2607.18171,119552,a1e84d7c509165d24ed49373b7301c733518c05e1e34c21b8752284cf76b2455
+S04370,MAGen: Multi-agent smart contract generation with automated testing and verification,abstract-only,0,
+S04390,CoLSM: Collaborative Large and Small Models for Automatic Software Generation,abstract-only,0,
+S04405,Self-prompt: Gradient-guided discrete prompt optimization for code generation,abstract-only,0,
+S04416,Can Large Language Models Recover Semantic Optimization Opportunities That Compilers Miss?,arxiv-pdf:2608.03983,45660,19c6e27f28f775471d739862243a6950141240c59bee334df2f45dd8f0fa6899
+S04434,OSFoundry: Building and Evolving Operating Systems with Specification-Guided Agents,arxiv-pdf:2609.25018,116032,fc5a82fc2f878def130eb68fe21ecab2e9d2c46bbfaf922948ccca8601bcd15e
+S04449,CAKE: Compiler-Agent Co-Design for Frontier Kernel Evolution,arxiv-pdf:2608.12629,61544,b671ddbc829a07cd48479de6f601ebbb53bf54b66130595809530e51eceb25ea
+S04461,OGSAgent: an MCP-based multi-agent collaboration framework for intelligent GIServices,abstract-only,0,
+S04475,AsmEvo: Agentic Assembly-Level Optimization of AMD GPU Kernels with Functional Equivalence Verification,arxiv-pdf:2608.20711,44874,e36dbcba0791a0fcc2b73a721f69fbb12f6fb3e6d83ed5458b53452279ed2a8f
+S04481,LLM4LLM: Bridging Kernel Benchmarks and Real Deployment via Closed-Loop Agentic Optimization,arxiv-pdf:2608.21836,64291,411d526bad4fabce172850d22cd05968cff11b803ea2a99b6c74c79e6fdf9506
+S04496,Cloud-Native Multi-Agent Intelligence for Autonomous Software Delivery and Enterprise Workflow Automation,abstract-only,0,
+S04515,CoT+ (Chain-of-Thought Extended): A reproducible multi-reasoning prompting architecture for deterministic PLC code generation,abstract-only,0,
+S04549,ForgeMegakernel: A General Framework for Efficient Auto-Regressive Model Decode Megakernels,arxiv-pdf:2609.12379,74980,b7f888590624f6a5230c044336a2d01c091c589128e7ec1059773b632a7a3869
+S04562,A Study of the Reliability of Agentic AI-Generated Programs,arxiv-pdf:2609.18298,89031,9e66affc2d0b69bd2d9fd7a20d1eb28fb79b188f062d6add8cec6d74955f18f2
+S04574,TicTacBench: Benchmarking Timing Closure Capabilities of Coding Agents,arxiv-pdf:2609.23363,47306,42aa90d160d884e9a32f2530bb96fb467df5542a6f91412276ab9cfc68e12fa1
+S04584,ASCEND: Personal AI Agents for Autonomous Scientific Computing Across HPC Clusters and GPU Workstations,arxiv-pdf:2609.32868,79138,6746459e9797e6439a599fb37f8ed4da69293c95e22941b6651d715ebdc1dfe7
+S04596,Trajectory-Level Security Debt in LLM Coding Agents,arxiv-pdf:2609.35199,46667,28a877a55103a2e8973d126f16cd3a20d09b0643ff4558520bfd661816a99a72
+S04605,Comparative analysis of the applicability of artificial intelligence models for code generation,oa-pdf:https://ph.pollub.pl/index.php/jcsi/article/download/9777/5597,35480,09893d8cf27304c87edf34bc5ab1a9da8bfd2b794a3b1122571f25d654fc281a
+S04615,BashCoder-R1: Towards Robust and Explainable Bash Script Generation with Robustness-Aware Group Relative Policy Optimization,abstract-only,0,
+S04630,PLCWorld: Benchmarking LLM-Generated PLC Programs in Closed-Loop Plant Simulation,arxiv-pdf:2610.02982,117541,6f6a74674ccbacc5e1d61eb0286d6e255c45889a8a260ee3d0471407e36a9226
+S04649,DesignFix: Context-Augmented Repair of Design Rule Violations,abstract-only,0,
+S04665,"Conserved amount, negotiable placement. Prompting perturbs one architecture, an AI reviewer both",arxiv-pdf:2610.14130,88137,235252ea06c3c8d01820a4e3d2fe3a0fd404226594c611a3fcd75c433e6393a4

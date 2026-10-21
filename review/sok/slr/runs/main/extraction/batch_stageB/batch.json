@@ -1,0 +1,10 @@
+{
+ "batch_ids": [
+  "msgbatch_01MgMW2Jcxf6mHm1hoYwHSka",
+  "msgbatch_0165ReaXsAHbRCUFB3scPTAS",
+  "msgbatch_01UUi8V4zhaLb8b3CV3GtZsZ"
+ ],
+ "model": "claude-opus-5-5",
+ "prompt": "extract_ft.md",
+ "effort": "low"
+}

@@ -1,0 +1,10 @@
+# Benchmark settings. Data roots are relative to $HARNESS_DATA (default ./data).
+main:
+  COR: [lcb_pro, humaneval_plus, mbpp_plus, lcb_v6, deepswe]
+  RM: [race_r, race_m, nofuneval]
+  EFF: [evalperf, effibench_x, mercury]
+  SEC: [cweval, baxbench, pythonsecurityeval]
+extended_agent: [deepswe, terminal_bench, frontiercode, slopcodebench, gso, swe_fficiency, susvibes]
+h2h: [humaneval_plus, mbpp_plus, lcb_v6, lcb_pro, cweval, cyberseceval, effibench, evalperf]
+lcb_pro:
+  contests_after: "2026-07-01"

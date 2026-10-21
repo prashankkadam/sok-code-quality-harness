@@ -1,0 +1,38 @@
+{
+ "qgs_size": 32,
+ "per_source": {
+  "openalex": {
+   "records": 2770,
+   "found": 19,
+   "recall": 0.594
+  },
+  "s2": {
+   "records": 1442,
+   "found": 22,
+   "recall": 0.688
+  },
+  "arxiv": {
+   "records": 607,
+   "found": 18,
+   "recall": 0.562
+  }
+ },
+ "combined": {
+  "file": "dedup_S1.jsonl",
+  "records": 2773,
+  "found": 22,
+  "recall": 0.688,
+  "missed": [
+   "arXiv:2412.20545 | The Impact of Prompt Programming on Function-Level Code Generation",
+   "arXiv:2309.12938 | Frustrated with Code Quality Issues? LLMs can Help!",
+   "arXiv:2506.10330 | Augmenting Large Language Models with Static Code Analysis for Automated Code Quality Improvements",
+   "arXiv:2509.16275 | SecureFixAgent: A Hybrid LLM Agent for Automated Python Static Vulnerability Repair",
+   "arXiv:2603.23613 | LLMLOOP: Improving LLM-Generated Code and Tests through Automated Iterative Feedback Loops",
+   "arXiv:2303.17651 | Self-Refine: Iterative Refinement with Self-Feedback",
+   "arXiv:2410.01488 | SecCoder: Towards Generalizable and Robust Secure Code Generation",
+   "arXiv:2302.07867 | Learning Performance-Improving Code Edits",
+   "arXiv:2403.09032 | CodeUltraFeedback: An LLM-as-a-Judge Dataset for Aligning Large Language Models to Coding Preferences",
+   "arXiv:2505.23387 | Afterburner: Reinforcement Learning Facilitates Self-Improving Code Efficiency Optimization"
+  ]
+ }
+}

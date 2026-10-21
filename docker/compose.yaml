@@ -1,0 +1,12 @@
+services:
+  sonarqube:
+    image: sonarqube:26.9.0.129388-community
+    ports: ["9000:9000"]
+    environment: {SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"}
+  harness:
+    build: {context: .., dockerfile: docker/Dockerfile}
+    env_file: ../.env
+    privileged: true
+    cpuset: "2-3"
+    volumes: ["../data:/harness/data", "../runs:/harness/runs", "/var/run/docker.sock:/var/run/docker.sock"]
+    depends_on: [sonarqube]

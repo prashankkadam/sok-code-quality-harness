@@ -1,0 +1,13 @@
+{
+ "id": "msgbatch_01BVzbqmat12j3KrDkGwpqyP",
+ "type": "message_batch",
+ "processing_status": "ended",
+ "request_counts": {
+  "processing": 0,
+  "succeeded": 4,
+  "errored": 0,
+  "canceled": 0,
+  "expired": 0
+ },
+ "results_url": "https://api.anthropic.com/v1/messages/batches/msgbatch_01BVzbqmat12j3KrDkGwpqyP/results"
+}

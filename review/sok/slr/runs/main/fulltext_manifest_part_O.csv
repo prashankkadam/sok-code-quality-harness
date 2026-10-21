@@ -1,0 +1,14 @@
+rid,title,source,chars,sha256
+O00001,NoFunEval: Funny How Code LMs Falter on Requirements Beyond Functional Correctness,arxiv-pdf:2401.15963,75323,033fc325318b29228f26b05845ad5e8e3f6f0f676bed83eadcb4ba4126aed874
+O00002,SlopCodeBench: Benchmarking How Coding Agents Degrade Over Long-Horizon Iterative Tasks,arxiv-pdf:2603.24755,83141,4c10fae163c1872a76571fc9542d55b13f9db528500fc73f90bc395d73d25114
+O00004,From Metrics to Improvement: A Lifecycle-Aware LLM Feedback Framework for Research Software Quality,arxiv-pdf:2608.23118,91628,2f6bedfd197aa0e455f404e3759311f26df94bed6edd9c257979da4b61f50e33
+O00005,LLM Security Guard for Code,arxiv-pdf:2405.01103,25144,0d6060dcb93e25f8ab476aa583f4ae4a7fe079cd8725b674967647c3daa42e42
+O00007,Does Fixing Break Security? An Empirical Study of Security Degradation in Iterative LLM-Driven Infrastructure-as-Code Repair,arxiv-pdf:2608.13404,67567,2ac3d51d933ab91e9ff872218d87b3ab9051d3d3d25cb03713ca9ca6ab2dcd4d
+O00008,Self-Refine: Iterative Refinement with Self-Feedback,arxiv-pdf:2303.17651,125825,37d77b258ef1feb17914c948cf5aa836cfdf9d1e6e4379c2a1e66e02069c62ba
+O00012,A Study on Thinking Patterns of Large Reasoning Models in Code Generation,arxiv-pdf:2509.13758,79853,f22c048bb86cd1e8a18397351b5bc3347fb6cb26e338878cc8c805553b988095
+O00013,ChatDev: Communicative Agents for Software Development,arxiv-pdf:2307.07924,54043,805aaaa20b811ebd3724a61dad66a86a0d5a82796ce208c9c4ef6ad85058ec74
+O00015,INDICT: Code Generation with Internal Dialogues of Critiques for Both Security and Helpfulness,oa-pdf:https://arxiv.org/pdf/2407.02518,107276,9918af5f37be5d853bdc824a25c5011a143c0952bf61331deafbb40ad9380e71
+O00021,"A^3-CodGen: A Repository-Level Code Generation Framework for Code Reuse with Local-Aware, Global-Aware, and Third-Party-Library-Aware",arxiv-pdf:2312.05772,101280,083e14c43569c51fbcff65f7a701fe3600a0d48e6f8b3ea96ff3594f5708b79b
+O00023,CodePRM: Execution Feedback-enhanced Process Reward Model for Code Generation,oa-pdf:https://aclanthology.org/2025.findings-acl.428.pdf,54473,2a6a137871aa619bef6c32003764a75ebbc70527efc1bfedffc8f32bf530bddf
+O00031,Extrapolative Weight Averaging Reveals Correctness-Efficiency Frontiers in Code RL,arxiv-pdf:2605.28751,154979,81a569111ae2660bf4e2ce71ce51d79b55bff3945a05a049d4a9938374433731
+O00032,Themis: Training Robust Multilingual Code Reward Models for Flexible Multi-Criteria Scoring,arxiv-pdf:2605.00754,246394,6632213e281becea21d92f39c883ddc5db8af33c8e796e2de8d67cbca3530e1e

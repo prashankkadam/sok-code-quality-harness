@@ -1,0 +1,12 @@
+qgs,title,doi,publisher,found_openalex,found_semanticscholar
+arXiv:2407.07064,Prompting Techniques for Secure Code Generation: A Systematic Investigation,10.1145/3722108,ACM,True,True
+arXiv:2502.06039,Benchmarking Prompt Engineering Techniques for Secure Code Generation with GPT Models,10.1109/forge66646.2025.00018,IEEE,True,True
+arXiv:2412.20545,The Impact of Prompt Programming on Function-Level Code Generation,10.1109/tse.2025.3587794,IEEE,False,True
+arXiv:2509.10099,Generating Energy-Efficient Code via Large-Language Models - Where are we now?,10.1145/3744916.3764522,ACM,False,True
+arXiv:2508.14419,Static Analysis as a Feedback Loop: Enhancing LLM-Generated Code Beyond Correctness,10.1109/scam67354.2025.00017,IEEE,True,True
+arXiv:2506.10330,Augmenting Large Language Models with Static Code Analysis for Automated Code Quality Improvements,10.1109/forge66646.2025.00017,IEEE,False,True
+arXiv:2509.16275,SecureFixAgent: A Hybrid LLM Agent for Automated Python Static Vulnerability Repair,10.1109/icmla66185.2025.00212,IEEE,False,True
+arXiv:2603.23613,LLMLOOP: Improving LLM-Generated Code and Tests Through Automated Iterative Feedback Loops,10.1109/icsme64153.2025.00109,IEEE,False,False
+doi:10.1145/3650212.3680371,CoSec: On-the-Fly Security Hardening of Code LLMs via Supervised Co-decoding,10.1145/3650212.3680371,ACM,True,True
+arXiv:2302.05319,Large Language Models for Code: Security Hardening and Adversarial Testing,10.1145/3576915.3623175,ACM,True,True
+arXiv:2403.09032,CodeUltraFeedback: An LLM-as-a-Judge Dataset for Aligning Large Language Models to Coding Preferences,10.1145/3736407,ACM,False,True

@@ -1,0 +1,30 @@
+{
+ "qgs_size": 32,
+ "per_source": {
+  "openalex": {
+   "records": 0,
+   "found": 0,
+   "recall": 0.0
+  },
+  "s2": {
+   "records": 2718,
+   "found": 28,
+   "recall": 0.875
+  },
+  "arxiv": {
+   "records": 980,
+   "found": 23,
+   "recall": 0.719
+  }
+ },
+ "combined": {
+  "file": "dedup_all.jsonl",
+  "records": 6942,
+  "found": 30,
+  "recall": 0.938,
+  "missed": [
+   "arXiv:2603.23613 | LLMLOOP: Improving LLM-Generated Code and Tests through Automated Iterative Feedback Loops",
+   "arXiv:2303.17651 | Self-Refine: Iterative Refinement with Self-Feedback"
+  ]
+ }
+}

@@ -1,0 +1,8 @@
+{
+ "seeds": 374,
+ "candidates_total": 17366,
+ "in_window": 12509,
+ "not_already_screened": 8105,
+ "unique_new": 4673,
+ "failed_calls": 14
+}

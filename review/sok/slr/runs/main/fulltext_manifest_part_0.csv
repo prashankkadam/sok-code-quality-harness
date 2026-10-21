@@ -1,0 +1,372 @@
+rid,title,source,chars,sha256
+R00005,A New Paradigm for Scientific Computing: Accelerated Algorithm Development With Large Reasoning Models,abstract-only,0,
+R00009,AI Can Look Up StackOverflow too: Retrieval-Augmented Code Generation,abstract-only,0,
+R00024,An empirical analysis of GitHub Copilot,abstract-only,0,
+R00028,Assessing the Promise and Pitfalls of ChatGPT for Automated CS1-driven Code Generation,abstract-only,0,
+R00033,Beyond Expectations: Quantile-Guided Alignment for Risk-Calibrated Language Models,abstract-only,0,
+R00040,Code Generation Using LLMs,oa-pdf:https://www.futureengineeringjournal.com/uploads/archives/20250319180222_FEI-2025-1-004.1.pdf,19754,4254b679dcc6a11d6dbc70412119d5d74d6710c43bb371b888a3e730aa80d12a
+R00041,CodeSwift: Accelerating LLM Inference for Efficient Code Generation,arxiv-pdf:2502.17139,69840,2254c4e27ad8916eb9fbbf4abcc9f565e23cda681a7d50296e65cce8f016562d
+R00042,Combining Foundation Models and Symbolic AI for Automated Detection and Mitigation of Code Vulnerabilities,abstract-only,0,
+R00044,Constraint Modelling with LLMs Using In-Context Learning,abstract-only,0,
+R00050,Deep-Context-Awareness-Based LLM Code Generation and Accurate-Defect-Repair Integrated Architecture,oa-pdf:http://www.clausiuspress.com/assets/default/article/2025/06/13/article_1749871964.pdf,29925,c70c8ef17922fce0fa64ca5a9362886eb00feedf80ad6136d2679cced9ee24ee
+R00055,Dynamic Mitigation of RESTful Service Failures Using LLMs,abstract-only,0,
+R00057,EXPLORING THE DESIGN SPACE OF AI BASED CODE COMPLETION ENGINES,abstract-only,0,
+R00059,Enhancing Contextual Memory in LLMs for Software Engineering via Ontology-based Inference,abstract-only,0,
+R00063,Evaluating the Performance of LLM-Generated Code for ChatGPT-4 and AutoGen Along with Top-Rated Human Solutions,abstract-only,0,
+R00068,Fine-Tuning Large Language Models for Answering Programming Questions with Code Snippets,abstract-only,0,
+R00072,Generating Secure Hardware using ChatGPT Resistant to CWEs,abstract-only,0,
+R00074,"I'm Sorry Dave, I'm Afraid I Can't Fix Your Code: On ChatGPT, CyberSecurity, and Secure Coding",abstract-only,0,
+R00075,Improving Assembly Code Performance with Large Language Models via Reinforcement Learning,arxiv-pdf:2505.11480,62657,ffb163c58c0eda94d9076e8d16fad689b87721dd87657e20391a312a5fe9031e
+R00091,Leveraging Large Language Models for End-User Website Generation,abstract-only,0,
+R00094,LmPa: Improving Decompilation by Synergy of Large Language Model and Program Analysis,arxiv-pdf:2306.02546,141431,79dab92bf35bb13f6fe3a569256d38208fd66eb7ffdedcabcef828318c7ccc00
+R00095,"Logs In, Patches Out: Automated Vulnerability Repair via Tree-of-Thought LLM Analysis",abstract-only,0,
+R00098,More Than Just Functional: LLM-as-a-Critique for Efficient Code Generation,abstract-only,0,
+R00104,On the Use of LLMs for Upgrading Legacy Smart Contracts: An Initial Study,abstract-only,0,
+R00109,PATCHAGENT: A Practical Program Repair Agent Mimicking Human Expertise,abstract-only,0,
+R00110,PRO-V: An Efficient Program Generation Multi-Agent System for Automatic RTL Verification,arxiv-pdf:2506.12200,42922,c14a4eec679494fa54c0ffb194d148e4586222540a9ab0206f8ae121dc3f4a9f
+R00123,Revisiting Chain-of-Thought in Code Generation: Do Language Models Need to Learn Reasoning before Coding?,abstract-only,0,
+R00129,Scalability of LLM-Based Multi-Agent Systems for Scientific Code Generation: A Preliminary Study,oa-pdf:https://aclanthology.org/2025.mathnlp-main.4.pdf,38016,4ca3fd3d2e202f8563b21ec3104314fc59a7dddf4b3d0a94213496b9f5ff480a
+R00151,"Yes, You Can Make an App Too: A Systematic Study of Prompt Engineering in the Automatic Generation of Mobile Applications from User Queries",abstract-only,0,
+R00152,of GitHub Copilot’s Code,abstract-only,0,
+R00168,Building a GenAI Powered Advanced Code Generation Assistant Integrated with CI/CD Pipelines,oa-pdf:https://tijer.org/tijer/papers/TIJER2202009.pdf,46126,582cc5931b8e27433920940fd7860393baf34e924ab527cf0f7f70ebaae48914
+R00193,Enhancing Ansible Playbooks with Large Language Models:Revolutionizing Automation,abstract-only,0,
+R00239,Context-Aware IDE Systems Using Large Language Models and Semantic Memory Architectures,oa-pdf:https://ijetcsit.org/index.php/ijetcsit/article/download/716/649,54207,6ec74ff96794970b957714c825b29d33e3be65b7e11f8d28ee7e2b78666efe3a
+R00243,How Hardened is Your Hardware? Guiding ChatGPT to Generate Secure Hardware Resistant to CWEs,abstract-only,0,
+R00249,Exploring Data Augmentation for Code Generation Tasks,arxiv-pdf:2302.03499,36720,a30dfee64b1ce846599c32350da46bbe77944e1013938a81609001440b01905c
+R00256,Learning Performance-Improving Code Edits,arxiv-pdf:2302.07867,68765,c8b1549d792bc8b5d2adac2b3c7b09873c271e8c488e28115a4404df3dab00a7
+R00258,Redefining Software Development: Fine-Tuning Generative AI and Large Language Models for Intelligent Automation,abstract-only,0,
+R00265,A Syntax-Guided Multi-Task Learning Approach for Turducken-Style Code Generation,arxiv-pdf:2303.05061,94906,00c5dffa7fbf25fb2d9a9db219161cbc15ac79df5c6473adccb75c1091d588f5
+R00268,"Large Language Models and Simple, Stupid Bugs",arxiv-pdf:2303.11455,63372,0810face7e4582ad4435e2ba94d3d8640e44761f8531d1a59b37757c0677a80e
+R00271,On Codex Prompt Engineering for OCL Generation: An Empirical Study,arxiv-pdf:2303.16244,56291,84956cda18c99f0740e25c2b49430ecc1637af03ea3816b2df983cf36d701172
+R00275,Large Language Models for Automated Financial Code Generation and Documentation in Data Pipelines,oa-pdf:https://ijetcsit.org/index.php/ijetcsit/article/download/372/323,37915,8fe94ee1f9cbfae6e6e918ec20d4020517573f65c0dde4d035ccc23ac2d3e51c
+R00277,AceCoder: Utilizing Existing Code to Enhance Code Generation,arxiv-pdf:2303.17780,71594,1042a737d0916474286a1483fa1761d1e7900c89f385a322d7ea9eaca89e5ace
+R00295,AI-assisted coding: Experiments with GPT-4,arxiv-pdf:2304.13187,28977,b2d4f2fba0ae4bdf91ab743280ec59f85200e396148cbfe0606f9db378cf77e5
+R00308,Structured Chain-of-Thought Prompting for Code Generation,arxiv-pdf:2305.06599,68363,b7a0aabfb78fe76ec0b90130cd364114dff346488bb38d581c35147c9e838920
+R00317,"Transformer-based Vulnerability Detection in Code at EditTime: Zero-shot, Few-shot, or Fine-tuning?",arxiv-pdf:2306.01754,57754,4f20815dde7dc34b0884880f44b1cd641807f6ede1671b23e6a9acd64182ce50
+R00329,RefBERT: A Two-Stage Pre-trained Framework for Automatic Rename Refactoring,arxiv-pdf:2305.17708,70482,3fcf26b9c54b9613e6588b0eb2d429e54b7685f3f369dd6923041d128020e207
+R00332,BRIDGING THE GAP OF LLM-ASSISTED SECURE CODING: CONTEXT-AWARE RULE NARROWING WITH CODEGUARD AND AN MCP-AS-A-JUDGE SERVER,abstract-only,0,
+R00335,A Static Evaluation of Code Completion by Large Language Models,arxiv-pdf:2306.03203,41433,fc1c9fadc0ffcdb38abb2364383d68e92ad468ebec50d20af43dc2a6be6fbe47
+R00342,Double-edged sword of large language models: mitigating security risks of AI-generated code,abstract-only,0,
+R00352,RAPGen: An Approach for Fixing Code Inefficiencies in Zero-Shot,arxiv-pdf:2306.17077,60249,8b08d0bc6a06f807de99de2154ade827bca82062d788011dde7e265f5e1ee645
+R00376,No Need to Lift a Finger Anymore? Assessing the Quality of Code Generation by ChatGPT,arxiv-pdf:2308.04838,206316,0fe0682bc212d82f70d8e79710f81f305bcf010d8538a678d5725d20571f4eb3
+R00380,Towards Automatically Addressing Self-Admitted Technical Debt: How Far Are We?,arxiv-pdf:2308.08943,78909,739f73c7a93ff6b4f27038285988e8073ea216ffc9d114a8e763750d70a48ab5
+R00393,Large Language Models Should Ask Clarifying Questions to Increase Confidence in Generated Code,arxiv-pdf:2308.13507,28544,5df8f1e3f88d3022ff2e980799802a4d37d9dde55987942d021fbecac9fb8efe
+R00410,From Misuse to Mastery: Enhancing Code Generation with Knowledge-Driven AI Chaining,arxiv-pdf:2309.15606,72253,0ad8a3fd5f895379e32d45e5897911a198d8671e6c3793f541a0a84f42d4fc17
+R00411,Large Language Models for Compiler Optimization,arxiv-pdf:2309.07062,56794,2854b5b65f10cb3d4c75d43b5d59ac31b10e67a80d1ff50d6c6a25c389b786ec
+R00425,Safurai 001: New Qualitative Approach for Code LLM Evaluation,arxiv-pdf:2309.11385,61202,a9a450145ef75343d0cb4b38b9a57a4bd87bc0d92573f51a2e974676903f9265
+R00427,A Preliminary Attempt of Deploying AIGC in Autodriving Scenario Generation: Via LLM,abstract-only,0,
+R00436,CRAFT: Customizing LLMs by Creating and Retrieving from Specialized Toolsets,arxiv-pdf:2309.17428,98980,b7bb336f0bae7886dfbfe399b11b32001e1c5df0e496afbc3cbb22cda8d7cc05
+R00439,How Secure is Code Generated by ChatGPT?,arxiv-pdf:2304.09655,43413,c638e3f108a8f7ff8b298d6648d93af11a9eed44e6ad1418b01819022f34bf47
+R00448,Security Weaknesses of Copilot-Generated Code in GitHub Projects: An Empirical Study,arxiv-pdf:2310.02059,126026,875861d45df65188c415ac41401b149c4119a10a9597d7fc6630c4bb6dff3da9
+R00452,AutoParLLM: GNN-guided Context Generation for Zero-Shot Code Parallelization using LLMs,arxiv-pdf:2310.04047,78087,cf3e3722ac7d2698f6b2f86d8f24ce66b98b074de2801873431e0ec330e45609
+R00453,Coding by Design: GPT-4 empowers Agile Model Driven Development,arxiv-pdf:2310.04304,45727,0ba052aa3d1b1cba3e03747c7901cdb622a0f9409628e7009a6ecd41789fc6f4
+R00457,Efficient Avoidance of Vulnerabilities in Auto-completed Smart Contract Code Using Vulnerability-constrained Decoding,arxiv-pdf:2309.09826,60274,115ded7f5ec4dd27bc0a15e1a6d00b8b4231b8d778c7c1d3cd072b7ccc0a2273
+R00466,GameGPT: Multi-agent Collaborative Framework for Game Development,arxiv-pdf:2310.08067,25419,511bd0990e624ab8a6ef63e2807512264f7be43c143c7b657a512e2a4eaa17ef
+R00469,CodeChain: Towards Modular Code Generation Through Chain of Self-revisions with Representative Sub-modules,arxiv-pdf:2310.08992,94474,8ffd14e93d989e4df4c1b90354aaa9eeb387503cdb6fc4b64fffc7b9be8e7104
+R00473,Concrete Type Inference for Code Optimization using Machine Learning with SMT Solving,abstract-only,0,
+R00491,Enhancing Large Language Models for Secure Code Generation: A Dataset-driven Study on Vulnerability Mitigation,arxiv-pdf:2310.16263,63371,eb0b46a3768805e22dae1d658bae76d14f5ccb47aaca77af96c906a5c9095aa6
+R00492,Program Synthesis with Generative Pre-trained Transformers and Grammar-Guided Genetic Programming Grammar,abstract-only,0,
+R00495,LILO: Learning Interpretable Libraries by Compressing and Documenting Code,arxiv-pdf:2310.19791,145543,9db97cac510a2c73b04058ce0ca9fac112eaade1453b5edbea5bef99392e3dad
+R00498,InstructCoder: Instruction Tuning Large Language Models for Code Editing,arxiv-pdf:2310.20329,50061,2358a06b5cd08faca7b2fb19b1351cec1858ea5c58b2a1de31d6be86b43ceaa2
+R00516,Can LLMs Patch Security Issues?,arxiv-pdf:2312.00024,50292,728192cce76638d3f454c085c6e32ae35666d204119ed6172a1f92d62c12b3e2
+R00523,Large Language Models for Code: Security Hardening and Adversarial Testing,arxiv-pdf:2302.05319,108403,979e1145f28b167164baf985a5b3e2429ba380fafc46c2a240fa50b8766f9abd
+R00533,Empirical evaluation of automated code generation for mobile applications by AI tools,abstract-only,0,
+R00535,LLM-Assisted Code Cleaning For Training Accurate Code Generators,arxiv-pdf:2311.14904,82628,fcf02d4323cedd207ec787ba6793682489c507e504d58c084112d5bfd4f56cf0
+R00537,Novel Preprocessing Technique for Data Embedding in Engineering Code Generation Using Large Language Model,arxiv-pdf:2311.16267,70637,2120d57cb64673c99bd2e034bcb02268919ebed9ed3e9a57b8a2e267d707c33f
+R00539,Towards LLM-Based System Migration in Language-Driven Engineering,abstract-only,0,
+R00541,Generative AI for Software Engineering: Large Language Model-Driven Code Generation with Safety and Trust Assessment in Enterprise Development,abstract-only,0,
+R00568,Leveraging Generative AI Tools to Support the Development of Digital Solutions in Health Care Research: Case Study,oa-pdf:https://d1.awsstatic.com/whitepapers/aws-overview.pdf,355112,d272a5babcd8f51924d6d2a7c8e07953b26856a1a3be34294dd449315fa84bd1
+R00591,Analysis of LLM Code Synthesis in Software Productivity,oa-pdf:https://www.publications.scrs.in/uploads/final_menuscript/3cba07c8efc40a1a583eb0d09e117f20.pdf,41350,cd68a1ab200f64e85481b9f29a0ca9cb2d7e04f43b339a14a101857e0fa33f13
+R00597,Beyond Copy–Pasting—Contextualizing LLMs for Secure Code Generation,abstract-only,0,
+R00604,EffiLearner: Enhancing Efficiency of Generated Code via Self-Optimization,arxiv-pdf:2405.15189,122155,98c08ef745350ecc60b3eb534b18ab46badc92640aaff3cc887da3b414253a49
+R00614,Prompt Engineering Best Practices for Code Generation Tools,abstract-only,0,
+R00630,LLM-Powered Code Vulnerability Repair with Reinforcement Learning and Semantic Reward,arxiv-pdf:2401.03374,42460,4d6aba543c80542ddbcd94688cd9ab25949a7b740cfc49042ec2a934f15f59f0
+R00653,Copilot-in-the-Loop: Fixing Code Smells in Copilot-Generated Python Code using Copilot,arxiv-pdf:2401.14176,31763,5669673e96c948368b0eba07c8cf0465f2a84ed16ae157305a86519204826d62
+R00678,CodePori: Large-Scale System for Autonomous Software Development Using Multi-Agent Technology,arxiv-pdf:2402.01411,60574,2a81a256a26b6b9a89693155f9dbaf33f9828ddcfdee2855ed3ee8a063202ae2
+R00725,ChemGen: Towards Understanding First-Principles Calculation Code Generation Based on Large Language Models,abstract-only,0,
+R00743,A Comparison of the Effectiveness of ChatGPT and Co-Pilot for Generating Quality Python Code Solutions,abstract-only,0,
+R00772,SOEN-101: Code Generation by Emulating Software Process Models Using Large Language Model Agents,arxiv-pdf:2403.15852,80063,6dbb5982d07630512fae61682ca2825494b5800ad21ff97687bcec6de910e2e1
+R00814,Domain‐specific translation tool from structured text to C source code with code readability enhancement in programmable logic controllers,abstract-only,0,
+R00836,Low-Cost Language Models: Survey and Performance Evaluation on Python Code Generation,arxiv-pdf:2404.11160,104330,6c4922f629219a77b3b8971bcd83d9d52f20885dc34edb08ab4920ceacd8394b
+R00864,Performance-Aligned LLMs for Generating Fast HPC Code,arxiv-pdf:2404.18864,68368,7b2c091bb8dba5e0e654a37ab3f45469b1f30666cb7d841589c8359e75256ce0
+R00888,Are Human Rules Necessary? Generating Reusable APIs with CoT Reasoning and In-Context Learning,arxiv-pdf:2405.03509,95655,f66d6e9b53a66605ed1809bd8c7838797e04b2872b4856cee910edca0369a459
+R00918,Chain of Targeted Verification Questions to Improve the Reliability of Code Generated by LLMs,arxiv-pdf:2405.13932,61248,7fec7d978c8bd3e52b45cabaa6befbec13bcb4ef90be67b02e91a50fcf17b3eb
+R00985,Self-Planning Code Generation with Large Language Models,arxiv-pdf:2303.06689,95677,ec1762cc476463f2bdbca9c9ba2426d6990ae6e86316180ba97316e1555ee09a
+R00999,"Can We Trust Large Language Models Generated Code? A Framework for In-Context Learning, Security Patterns, and Code Evaluations Across Diverse LLMs",arxiv-pdf:2406.12513,124656,6e1a2e5befe9534208f75b55365d187de1fd531c0e00aefb0a8d8042fa4b9064
+R01046,Enhancing Program Synthesis with Large Language Models Using Many-Objective Grammar-Guided Genetic Programming,abstract-only,0,
+R01058,Automated C/C++ Program Repair for High-Level Synthesis via Large Language Models,arxiv-pdf:2407.03889,56632,076053fff02a8e27c32def4690c23a05bee99fcdd7d1c407599071d96bbc34e4
+R01099,ECCO: Can We Improve Model-Generated Code Efficiency Without Sacrificing Functional Correctness?,arxiv-pdf:2407.14044,52036,db360d031500df39bcc678de8ed7566807427b482f77917bd791a7581f48c4db
+R01150,"""You still have to study"" -- On the Security of LLM generated code",arxiv-pdf:2408.07106,54254,49d9a300f0780aa21596d0def80d972965f6f730567b7ad34310a7cea14852fe
+R01164,Bridging the Language Gap: Enhancing Multilingual Prompt-Based Code Generation in LLMs via Zero-Shot Cross-Lingual Transfer,arxiv-pdf:2408.09701,43778,bac57fc341bf5380ad7d10ee9eef1945b8c70896ea0e4d3842e51a641c6f5473
+R01179,E-code: Mastering Efficient Code Generation through Pretrained Models and Expert Encoder Group,arxiv-pdf:2408.12948,95687,8bc7b9e0ed2716482450dc7f8b6eb3147eb6d5875fdbf36c6be29c352b66f00b
+R01191,Automatic Library Migration Using Large Language Models: First Results,arxiv-pdf:2408.16151,38495,64c87ec9dcdcd2bb8d3b1fa7849052df012851ccc8d2bead2bb22e98fa9462a5
+R01209,Navigating (in)Security of AI-Generated Code,abstract-only,0,
+R01238,Coding Companion: Elevating Learning Through an AI-Enhanced Code Editor,oa-pdf:https://www.researchsquare.com/article/rs-4879614/latest.pdf,53950,2e78d23a3743b7ffd03e34a2c4e129f46b877ecf71292e3fba94cb0972950a1c
+R01254,"May the Source Be with You: On ChatGPT, Cybersecurity, and Secure Coding",abstract-only,0,
+R01274,Code Vulnerability Repair with Large Language Model Using Context-Aware Prompt Tuning,arxiv-pdf:2409.18395,26695,ddd120c331f42994a4634c1dab9afcbfcf8be7ed2e199014ea78c2de9162f796
+R01298,Code Optimization for Python using Large Pre-Trained Model,abstract-only,0,
+R01312,CodeDPO: Aligning Code Models with Self Generated and Verified Source Code,arxiv-pdf:2410.05605,62625,d5710a4977736883fe94e5f782b121897f8bfd136dbc2cab2511b7b82f893d5d
+R01327,"Don't Transform the Code, Code the Transforms: Towards Precise Code Rewriting using LLMs",arxiv-pdf:2410.08806,17516,3489959fdaaaf8edae0cbf4d8fd2d33404fbd8b6089ce508b0ee208592ed0b6c
+R01344,EffiCoder: Enhancing Code Generation in Large Language Models through Efficiency-Aware Fine-tuning,arxiv-pdf:2410.10209,80436,17bdbbbdc9955ec32eed09df2d27b4b6ea04f63c17b8d2b0a7c0a93909f999ae
+R01368,Contextual Augmented Multi-Model Programming (CAMP): A Hybrid Local-Cloud Copilot Framework,arxiv-pdf:2410.15285,39032,747bb11f93cae6013f5f69bc8482ca4c267d823c4602179d13f03bbb225efd4a
+R01390,Whose fault is it anyway? SILC: Safe Integration of LLM-Generated Code,arxiv-pdf:2410.18703,66147,894d11e0ffb7795a9715c090d6d00987492912b836a8d2f692d642c135e894f5
+R01414,FALCON: Feedback-driven Adaptive Long/short-term memory reinforced Coding Optimization system,arxiv-pdf:2410.21349,28616,d264a5bb9d6e00e249da520a4a4124ea547472d4a88ee764ec35ccfcd4a955b8
+R01439,Initial Attempt at Automated Vulnerability Fixing of Obfuscated Smart Contracts Using a Large Language Model,abstract-only,0,
+R01454,Optimizing Microservice Deployment in Edge Computing with Large Language Models: Integrating Retrieval Augmented Generation and Chain of Thought Techniques,abstract-only,0,
+R01517,Evaluating and Improving the Robustness of Security Attack Detectors Generated by LLMs,arxiv-pdf:2411.18216,82872,0b63f67826fc468474dbcb71c6d6be735abef23a9cbb407e6297666d9bbb9935
+R01551,REVOLVE: Optimizing AI Systems by Tracking Response Evolution in Textual Optimization,arxiv-pdf:2412.03092,70821,85271a73c82eaab6ee0d2584e74a2052e5ea2723c793b8e8c916aa647bbbc6a5
+R01574,LLM-based Interactive Code Generation: Empirical Evaluation,abstract-only,0,
+R01601,Seeker: Towards Exception Safety Code Generation with Intermediate Language Agents Framework,arxiv-pdf:2412.11713,87885,a61c2b51f98336b1d3cfc45ebb1f026af326afc0b4f2c2315d5aa3832fb6e4ec
+R01618,SecureCoder: A Framework for Mitigating Vulnerabilities in Automated Code Generation Using Large Language Models,oa-pdf:https://ace.ewapub.com/article/view/20425.pdf,22160,bb61c1a983b7503ec096b0d210e57be8ed6e941933cde1a5c7aacbdaa76f886b
+R01645,Renaissance of Literate Programming in the Era of LLMs: Enhancing LLM-Based Code Generation in Large-Scale Projects,arxiv-pdf:2502.17441,118001,d48835d70d4db915974554f37ea9eb7b752773454f3c00c8ff6d16336f7f820b
+R01660,A Code Generation Watermarking Method Based on Double Threshold,abstract-only,0,
+R01675,Analyzing LLM-Generated Code According to Four ISO/IEC 5055:2021 Categories,abstract-only,0,
+R01688,Code Generation Security in LLMs: A Hybrid Detection and Post-Processing Framework for Vulnerability Mitigation,oa-pdf:http://poster-openaccess.com/files/ICIC2025/2583.pdf,32388,4f6493abd3aa67d0df165b042581732d49c1698469711f784ab361f2d1a3f4ef
+R01700,Enhancing programming productivity through domain specific code generation with large language models,abstract-only,0,
+R01718,Investigating The Smells of LLM Generated Code1,abstract-only,0,
+R01737,Measuring and Improving the Efficiency of Python Code Generated by LLMs Using CoT Prompting and Fine-Tuning,abstract-only,0,
+R01749,"Rk3e-Coder:Llm-Based Code Generation Framework with Code Knowledge, Algorithmic Knowledge, Third-Party Library Knowledge",abstract-only,0,
+R01759,Testing and evaluation of machine learning’s capability of generating program code,abstract-only,0,
+R01771,Effective LLM-Driven Code Generation with Pythoness,arxiv-pdf:2501.02138,21634,8b6803782b637b537c12d29063d75ebd27713bb260436a06269e715136e95d84
+R01804,Interactive Web: Leveraging AI-Driven Code Generation to Simplify Web Development Algorithms for Novice Programmers,oa-pdf:https://doi.org/10.5121/csit.2024.150107,21502,d617519fb5093cf27ef862d964643b34b4b464d1d4a73be21a233f2a61a7922d
+R01825,Optimizing Code Runtime Performance Through Context-Aware Retrieval-Augmented Generation,arxiv-pdf:2501.16692,34313,856e159ee98b7f64dd49425aae68b493db501a8431b38fe1e99c1f4124f621ee
+R01836,Generating highly customizable python code for data processing with large language models,abstract-only,0,
+R01866,Studying How Configurations Impact Code Generation in LLMs: the Case of ChatGPT,abstract-only,0,
+R01895,RefineCoder: Iterative Improving of Large Language Models via Adaptive Critique Refinement for Code Generation,arxiv-pdf:2502.09183,60845,7059a0dfc04d7449920a8c24328d2d5832756cb6a23f3090896a788951736e3c
+R01919,"Exploring Code Language Models for Automated HLS-based Hardware Generation: Benchmark, Infrastructure and Analysis",arxiv-pdf:2502.13921,42374,c8acfa0786c4ae4678184e656f903a3a48b610adfdb67d2b83ccb92ad3ab2357
+R01927,CodingCare: AI Code Generation Security Framework for Common Vulnerability Mitigation,abstract-only,0,
+R01956,Large Language Model-Aware In-Context Learning for Code Generation,arxiv-pdf:2310.09748,64393,39c92bf18850290a2185e371dee1ad5e95aef4b798fac5f53262e29cddfb62ff
+R01987,GeoCode-GPT: A large language model for geospatial code generation,arxiv-pdf:2410.17031,53114,11fea76e80fa258c06b8aed3b4b0687d82f053e248277c06d236445db86817dc
+R02006,Investigating Execution-Aware Language Models for Code Optimization,arxiv-pdf:2503.08228,67928,f1acea962c06d487b4c55aefc62ecd66022e7bc62413ff6c66e964faab396ced
+R02019,"Quality In, Quality Out: Investigating Training Data's Role in AI Code Generation",arxiv-pdf:2503.11402,68221,35ed6bbc1448ed3e4d92eed5b0ec2a27935cd123372176792beb04924a8794b0
+R02041,Rethinking the Evaluation of Secure Code Generation,arxiv-pdf:2503.15554,81964,7df815859d45adff456ce7e0d749b70beaff7343fe20e267f9663662bd603070
+R02053,Code Evolution Graphs: Understanding Large Language Model Driven Design of Algorithms,arxiv-pdf:2503.16668,43651,5f1316684b18d89460bfbc76432f286d58d617ad02dad9ba24babc4bc7f59e19
+R02068,SEAlign: Alignment Training for Software Engineering Agent,arxiv-pdf:2503.18455,65601,558ae132252c51daec29a455137791089d6a22ef996434945bef6f3c3b12bacb
+R02079,LLM-Based Web Generation Quality Assessment,abstract-only,0,
+R02099,LLM4GV: An LLM-Based Flexible Performance-Aware Framework for GEMM Verilog Generation,abstract-only,0,
+R02111,SRLCG: Self-Rectified Large-Scale Code Generation with Multidimensional Chain-of-Thought and Dynamic Backtracking,arxiv-pdf:2504.00532,67890,5d1871de6a65294cc5e7263f1a4038b21b5ba0f48a3506d2a1671d2e4b698322
+R02183,Code Copycat Conundrum: Demystifying Repetition in LLM-based Code Generation,arxiv-pdf:2504.12608,68031,f013a862db8ff111586945ddb5f7c45c2eb593b38b30e061f5a279eb1a50a9c0
+R02208,Accessible and Reliable AI Coding Tutors: Augmenting Large Language Models with Retrieval-Augmented Generation for Java Programming,abstract-only,0,
+R02241,Advancing Secure and Standard Source Code Generation Techniques,abstract-only,0,
+R02263,The Software Librarian: Python Package Insights for Copilot,abstract-only,0,
+R02275,An exploration of prompting LLMs to generate energy-efficient code,arxiv-pdf:2411.10599,49192,72c92219dd91748b5b221d406a311649cdd167c510fe549e5c83e876df7e0cf6
+R02306,"IDE Native, Foundation Model Based Agents for Software Refactoring",abstract-only,0,
+R02312,Artemis AI: Multi-LLM Framework for Code Optimisation,abstract-only,0,
+R02328,Exploring Influence Factors on LLM Suitability for No-Code Development of End User IoT Applications,arxiv-pdf:2505.04710,97221,9d08099e47322040d6d2c6d34c4b88d446b7dd828acbdfd33b7280401e748a48
+R02369,Generating Secure Artificial Intelligence Model Source Code: A Reinforcement Learning Approach,abstract-only,0,
+R02430,Graph-MoE: A Graph-Based LLM Framework for Scalable and Efficient Code Completion in Integrated Development Environment,abstract-only,0,
+R02464,Generating vulnerability security fixes with Code Language Models,abstract-only,0,
+R02479,Synthesizing Performance Constraints for Evaluating and Improving Code Efficiency,arxiv-pdf:2505.23471,121958,f7e937acd9593da579fb1876dbf409259f066ff55f02a935e0adad555e9fbcfc
+R02500,EvoGit: Decentralized Code Evolution via Git-Based Multi-Agent Collaboration,arxiv-pdf:2506.02049,61212,ee83c6dc8491f6687c626bff0e892ceaea7a5e99ddffde18d34e2b22e593f4a6
+R02511,Improving LLM-Generated Code Quality with GRPO,arxiv-pdf:2506.02211,34426,0ecfcad7eff72332610624b4c829e2805b70b44e787a451a9ce307a52afa7507
+R02554,ConTraPh: Contrastive Learning for Parallelization and Performance Optimization,abstract-only,0,
+R02599,Benchmarking Prompt Architectures: A Quantitative Study of Contextual and Decomposed Prompting for Complex ETL Code Generation,oa-pdf:https://doi.org/10.63397/iscsitr-ijcse_2025_06_03_004,47213,7458a3155d4b4f6b74c3d5a97794a6d1ec4d3ccb9531cea0135bb174cb2f2512
+R02628,DiSCo: Towards Decompiling EVM Bytecode to Source Code using Large Language Models,abstract-only,0,
+R02668,Securing AI Code Generation Through Automated Pattern-Based Patching,abstract-only,0,
+R02689,ASIC-Agent: An Autonomous Multi-Agent System for ASIC Design with Benchmark Evaluation,arxiv-pdf:2508.15940,79709,019f4304e9953c9e8a09e0124e03cc27c5759591d472e45c3ecc245fdf2ecff9
+R02715,RA-Gen: A Controllable Code Generation Framework Using ReAct for Multi-Agent Task Execution,arxiv-pdf:2510.08665,44200,0e3138de8937409f58685374410f44928a0cb7192a18b6419012b6f1487d04aa
+R02726,Leveraging AI for Automated Code Generation from Systems Engineering Specifications,abstract-only,0,
+R02754,AnnCoder: A Mti-Agent-Based Code Generation and Optimization Model,abstract-only,0,
+R02778,SAP2000 API Expert: a custom generative pre-trained transformer (GPT) for converting narrative structural engineering problems to SAP2000 API codes,abstract-only,0,
+R02799,An LLM-Based Multi-Agent Framework for Evolutionary Blackbox Optimization,abstract-only,0,
+R02821,SWE-Perf: Can Language Models Optimize Code Performance on Real-World Repositories?,arxiv-pdf:2507.12415,59957,e5c3921df8cd415b88fdef6b5c8bc5d68c431fa26ca61c1a076245f97f77a5c9
+R02843,Rethinking LLM-Based RTL Code Optimization Via Timing Logic Metamorphosis,arxiv-pdf:2507.16808,66188,3bdc7228c62082a1e72f7f7127184677ad8ea6ab0185353038f52f8e1a0cd1b8
+R02865,ReCatcher: Towards LLMs Regression Testing for Code Generation,arxiv-pdf:2507.19390,98616,42bf68c827082a0e087bd730c240389f24c280ffed35bc9abd32046819aac69f
+R02889,IFEvalCode: Controlled Code Generation,arxiv-pdf:2507.22462,82350,03d598f8e4bbc4618c6847b5987e081f3032305ba8c2a294a64893ed23d9185c
+R02908,Tuning LLM-based Code Optimization via Meta-Prompting: An Industrial Perspective,arxiv-pdf:2508.01443,63561,28a08de8177385b210bf88e2f397a1171d89cffbfd6acccfd89ae9a84b93ed93
+R02936,EvoC2Rust: A Skeleton-guided Framework for Project-Level C-to-Rust Translation,arxiv-pdf:2508.04295,64351,fe7eba7b3092470f6389820c628f7025189ef53c742a33cafca72a631dc6c078
+R02958,"Context Engineering for Multi-Agent LLM Code Assistants Using Elicit, NotebookLM, ChatGPT, and Claude Code",arxiv-pdf:2508.08322,39741,5b6712a746e4cfc05f7bdf3777afde95901ff10d00f16d82d1e1bc1dae61d44d
+R03007,SecFSM: Knowledge Graph-Guided Verilog Code Generation for Secure Finite State Machines in Systems-on-Chip,arxiv-pdf:2508.12910,40171,dac199202ea0ad91c23d378c26cdf0321bf8adcd381d7c9bc9d7573cbf448ee6
+R03034,Towards Better Correctness and Efficiency in Code Generation,arxiv-pdf:2508.20124,44253,3e1fe161f18c06ab99d137bead1bc052d5783b247889c0b0e41c8c7069ca9d4c
+R03074,Exploiting Contexts of LLM-based Code-Completion,abstract-only,0,
+R03081,Integrating Large Language Models Into Web Design Study: AI-Assisted Code Optimization in Higher Education,abstract-only,0,
+R03099,Evaluation of human and AI cooperation in pair programming on the example of CodeLlama and GPT-4,oa-pdf:https://itce.vn.ua/web/uploads/pdf/ІТКІ_22_2_2025_47-62.pdf,75629,e5a9f9a0ec712387562fe3547695f91d151e96b0ce643792c7201b2243e16fac
+R03123,Offloading the Tedious Task of Writing eBPF Programs,abstract-only,0,
+R03139,Design and Implementation of Code Completion System Based on LLM and CodeBERT Hybrid Subsystem,arxiv-pdf:2509.08215,16675,9dc088ae0763e79c79e8ccecea1dd22205038552da7a6946387286a0d20cb0fe
+R03160,Evolution of Kernels: Automated RISC-V Kernel Optimization with Large Language Models,arxiv-pdf:2509.14265,86501,ea43d75576b1577383072e886d9362575bd12c083bfdf52f57e6fbab8be1873a
+R03188,Prompting for Security: A Cross-Model Evaluation of Code Generation in LLMs,abstract-only,0,
+R03232,Investigating Security Implications of Automatically Generated Code on the Software Supply Chain,arxiv-pdf:2509.20277,92408,77f2f5313799cd983bc5c4c07fddb115a96b62d4f7c6ace60435469e3fa922ab
+R03252,WebGen-Agent: Enhancing Interactive Website Generation with Multi-Level Feedback and Step-Level Reinforcement Learning,arxiv-pdf:2509.22644,95248,f7db048dec82d54c14276fc6ae8a9324219b328075be32de922930ed26ae76bd
+R03280,LLM-Powered Code Analysis and Optimization for Gaussian Splatting Kernels,arxiv-pdf:2509.25626,57532,b17c9f6a8c6ae34694bc6c5d7d19da5f21360f0a7c67c8e58066869cd0e8a7b3
+R03301,Opal: A Modular Framework for Optimizing Performance using Analytics and LLMs,arxiv-pdf:2510.00932,75865,6ffc46721a838b733cc237edd44f9dc454aa8baab9a019d717db7ee9bc78b11d
+R03329,GA4GC: Greener Agent for Greener Code via Multi-Objective Configuration Optimization,arxiv-pdf:2510.04135,17123,7915a5a362af31ecb798d78b7069feab1db8f39bcb727cc4abd40f2790d059f2
+R03345,SCCA: A Multi-Agent Code Security Analysis Framework for AI-Assisted Code Generation,abstract-only,0,
+R03359,Fortifying LLM-Based Code Generation with Graph-Based Reasoning on Secure Coding Practices,arxiv-pdf:2510.09682,86579,c1f18d924541a39c0fbaf18e5ad0b9690c467c46e270eb35238872556ab8269d
+R03380,Context-Aware Visual Prompting: Automating Geospatial Web Dashboards with Large Language Models and Agent Self-Validation for Decision Support,arxiv-pdf:2511.20656,84754,b864c93b4e42f976839bc8a076858bc744a1385f4f5ffb3d5e8db4ee986cef63
+R03394,"SLEAN: Simple Lightweight Ensemble Analysis Network for Multi-Provider LLM Coordination: Design, Implementation, and Vibe Coding Bug Investigation Case Study",arxiv-pdf:2510.10010,62685,721afd286afcf5e43be85130fb7b924a633b4438add78d6e8df24c34779c87a5
+R03414,TypePilot: Leveraging the Scala Type System for Secure LLM-generated Code,arxiv-pdf:2510.11151,44080,3c7c8ad15198b5d40e9da0298c196c4e2e207cf972993d4784f4bfb9af4aa860
+R03441,Do AI Models Dream of Faster Code? An Empirical Study on LLM-Proposed Performance Improvements in Real-World Software,arxiv-pdf:2510.15494,83149,f2603a612bc0ff995c5e8ae7bd2ddc78cf5dd206bbdee9887cecb481c09bd3cd
+R03453,CodeCRDT: Observation-Driven Coordination for Multi-Agent LLM Code Generation,arxiv-pdf:2510.18893,38336,2f89702dc7fa656aba1a28baca85751e8c64d4ea038518fdcfe3b075d7ec4372
+R03473,Tutoring LLM into a Better CUDA Optimizer,arxiv-pdf:2510.16933,39885,cf8732362c7c07e9b051d16f89b7a41109a11a2910ca23f71ae921201ff4698c
+R03507,FidelityGPT: Correcting Decompilation Distortions with Retrieval Augmented Generation,arxiv-pdf:2510.19615,106296,f6b22197490407996cc7a74b72c27bb87b7be07c87e4d5970aef150709dea368
+R03531,Role-Aware Intelligent Agent Framework for Enhanced Code Generation Using Large Language Model,abstract-only,0,
+R03540,VeriOpt: PPA-Aware High-Quality Verilog Generation via Multi-Role LLMs,arxiv-pdf:2507.14776,62989,0bb738f7a15067ef2d87823ef86b9645fc112b5a4c9e5834b357d42134155855
+R03554,LMFuzz: Program repair fuzzing based on large language models,abstract-only,0,
+R03577,QCoder Benchmark: Bridging Language Generation and Quantum Hardware through Simulator-Based Feedback,arxiv-pdf:2510.26101,39244,65f7449c501e2170ff0f871376adc3d173b5a38ab22b4ebf8f44358f3e0f29ca
+R03607,Dependable Code Repair with LLMs: AI-Driven Vulnerability Detection and Automated Patching,abstract-only,0,
+R03631,GeoColab: an LLM-based multi-agent collaborative framework for geospatial code generation,abstract-only,0,
+R03656,LLM-Driven Code Generation for Neural Networks on FPGAs: Bridging Python and HLS,abstract-only,0,
+R03673,Context-Aware Optimization of Large Language Models for Object-Oriented Programming: Strategies and Challenges,abstract-only,0,
+R03683,AI Prompt Engineering for Reliable and Explainable Code Generation,abstract-only,0,
+R03702,Securing AI Code Generation - A Prompt Rectification Approach for Mitigating Cyber Risks,abstract-only,0,
+R03718,Fixing Broken Graphs: LLM-Powered Automatic Code Optimization for DNN Programs,abstract-only,0,
+R03729,PrefGen: A Preference-Driven Methodology for Secure Yet Gas-Efficient Smart Contract Generation,abstract-only,0,
+R03752,"A Causal Perspective on Measuring, Explaining and Mitigating Smells in LLM-Generated Code",arxiv-pdf:2511.15817,79410,bf2add2678d59139d56a51e7ce2e350b96612186bbc2180a0978fe8c1b5e716f
+R03768,"Beyond Code Similarity: Benchmarking the Plausibility, Efficiency, and Complexity of LLM-Generated Smart Contracts",arxiv-pdf:2511.16224,74064,4ae6aa883d6669bee3406b547902eeced6ffc94a4ab3a11adc0d2c1a7360b660
+R03819,Toward Green Code: Prompting Small Language Models for Energy-Efficient Code Generation,arxiv-pdf:2509.09947,36228,9203b22504207b20a7dffcb17bfa61c549473dae09b132e33ab8494a56051e66
+R03830,Benchmarking and validation of prompting techniques for AI-assisted industrial PLC programming,abstract-only,0,
+R03843,Multi-Agent System for Cross-Platform PLC Code Generation with Domain Adaptation,oa-pdf:https://www.ijetaa.com/article/download/141/44,47396,2c6d099cea0e5aa5ca47c401ff3454daaa9259675e0b5e9577c7306e5a1cd62f
+R03871,Intelligent Code Optimization: Leveraging AI For Energy-Efficient Software Systems,oa-pdf:https://jicrcr.com/index.php/jicrcr/article/download/3475/2951,29223,5fbedeae5694c8cef40058b7045ba761098c69fe44b4ac21960775dd90873660
+R03900,End-to-End Secure Code Repair with Context-Aware Anonymization and Isolated Agent Execution,abstract-only,0,
+R03912,LLM Prompt Engineering for Performance in Simulation Software Development: A Metric-Based Approach to using LLMS,abstract-only,0,
+R03938,Secure or Suspect? Investigating Package Hallucinations of Shell Command in Original and Quantized LLMs,arxiv-pdf:2512.08213,45056,66c3e388cd739e77e9973db36f3d0c3923d37612c149ef4574474bd6eadd7f91
+R03958,SmartAPIForge: A No-Code Platform for Automated REST API Generation from Natural Language,oa-pdf:https://doi.org/10.17148/ijarcce.2025.141262,38896,1189350576ebeedfd1a5d79870c7d545d64dc2a4c321063ca80b6678859bb021
+R03973,Fine-tuned LLM-based Code Migration Framework,arxiv-pdf:2512.13515,75055,eef84fbd38bb3fbea4d26f627dd81a5b8d2c3e76e548b4345cd7901527f10fc8
+R04005,Collaborative Multi-Agent Framework for Autonomous Code Generation and Debugging,abstract-only,0,
+R04016,SecureCode: A Production-Grade Multi-Turn Dataset for Training Security-Aware Code Generation Models,arxiv-pdf:2512.18542,76949,058fb09ccf68d154f9e1518876d989fcfcd01eba082047510b11daaa656def24
+R04035,Code Generation Competition: 16 Proprietary vs. Open-Source LLMs & Iterative Learning Based on FDA Adverse Event Reporting System,abstract-only,0,
+R04092,A Multi-agent Security Framework for AI-Assisted Software Development,oa-pdf:https://ijaibdcms.org/index.php/ijaibdcms/article/download/370/365,35167,f95b32bb0dfeba9a5847c80ad77ce0a18f8ea936f0522c27ddceca7d26a7aa79
+R04097,A TECHNOLOGY FOR GENERATION AND QUALITY EVALUATION OF LLM-GENERATED SOURCE CODE,oa-pdf:http://www.kibernetika.org/volumes/2026/numbers/03/articles/02/2.pdf,3284,a16fe1be5065b2817629f119fe266c6e9db36bd25e8b71b6d5afc17c8b79cf25
+R04105,"AI-Assisted Software Engineering: Evaluating Copilot, Cursor, and Autonomous AI Agents for Rapid Application Development",abstract-only,0,
+R04116,"An Empirical Study on Runtime Performance and AI-Assisted Development Efficiency: A Comparative Analysis of Angular, React, and Next.js",abstract-only,0,
+R04128,AutoML-Pipeline: A RAG-Enhanced Code Generation Framework With Pre-Validation for Cloud-Native Machine Learning Workflows,abstract-only,0,
+R04136,BinDec: LLM and Symbolic Execution Collaborative Decompilation Method for RISC-V,abstract-only,0,
+R04147,CodeAir: A Multi-Agent Orchestration Framework for AI-Assisted Software Development,abstract-only,0,
+R04153,Convergent Correctness in Stochastic Code Generation: A Generate-Verify-Repair Architecture for Deterministic Validation of Autonomous AI Coding Agents in Regulated Environments,abstract-only,0,
+R04167,Efficiency Analysis of LLM-generated Dynamic Programming Code: A Benchmarking Study using EffiBench Framework,abstract-only,0,
+R04175,Evaluating the Efficiency of LLM-Generated Software in Resisting Malicious Attacks,oa-pdf:https://thesai.org/Downloads/Volume17No2/Paper_4-Evaluating_the_Efficiency_of_LLM_Generated_Software.pdf,47175,9f5dd6c180d0f871c4b01d051a9478a29d9cc0813c080c6a8b8526f02058de9a
+R04188,FrontCoder: Scaling Visual Fidelity in Front-End Code Generation,oa-pdf:https://aclanthology.org/2026.findings-acl.220.pdf,80128,c888e3023b5ae149e89247a69c4fa0d11e3ac22e518473036e2867699ba0da38
+R04202,Improving LLM-Assisted Secure Code Generation through Retrieval-Augmented-Generation and Multi-Tool Feedback,arxiv-pdf:2601.00509,16031,36f93b3f050ce8dea632462f702d61dd38c24702bbea45d85198b81972f5fcc6
+R04212,LLM-Enabled Multi-Agent Collaborative Instrument Control for Automated Microelectronic Testing,abstract-only,0,
+R04219,LibUp: a static analysis tool for LLM-assisted dependency updates,abstract-only,0,
+R04229,On the Gap Between Declarative Vulnerability Knowledge and Secure Code Generation in Large Language Models,abstract-only,0,
+R04250,Safety Sidecar: Reflection-Driven Runtime Control for Safer Agents,oa-pdf:https://aclanthology.org/2026.findings-acl.1542.pdf,62579,f2be3685cfa23a3f0438c2c7878909f0cdcbab20f53ee1e5aaf1b1bf9eee49bd
+R04257,Security Knowledge Distillation for Enhancing LLM Safety in Code Generation Authors,abstract-only,0,
+R04268,Teaching LLMs to Write Clean Code: Quality-Aware Feedback via Reinforcement Learning Training,abstract-only,0,
+R04275,The Fragility of Intent: Tracking How Multi-Turn Prompt Refinements Amplify or Attenuate the Original Developer Goal in LLM-Based Code Editing,abstract-only,0,
+R04291,Zero-Trust Verification of AI-Generated Code Through Proof-Carrying Security Types,abstract-only,0,
+R04311,Perish or Flourish? A Holistic Evaluation of Large Language Models for Code Generation in Functional Programming,arxiv-pdf:2601.02060,62857,9c5809bbab0d4300e7343d18ada78769a4422566cfa4d634203c457f25d40134
+R04352,CNC Milling Optimization via Intelligent Algorithms: An AI-Based Methodology,abstract-only,0,
+R04358,Identifying and Mitigating API Misuse in Large Language Models,arxiv-pdf:2503.22821,114203,b0098ad62c128f941312eefde3243d5906b073ee2a2cca72c8aa76972907eeed
+R04385,A Two-Stage GPU Kernel Tuner Combining Semantic Refactoring and Search-Based Optimization,arxiv-pdf:2601.12698,39480,d91c2cc32fd54a9ce5eb8a6ae1fb4895459bc3fe68b23d3b08540b7ff6c64ae7
+R04398,Large Language Model-Powered Evolutionary Code Optimization on a Phylogenetic Tree,arxiv-pdf:2601.14523,80929,83df91e955a75f589f3f8060328ca5afe0b625f3cb0ca245d86f122773116bce
+R04421,Enhancing Security in Industrial Firmware Code Generation via Structured Prompt Engineering,abstract-only,0,
+R04443,Generative AI-Assisted Framework for Secure and Autonomous Software Development Lifecycle Optimization,abstract-only,0,
+R04473,Chain-of-Verification for Secure Code Generation Using Iterative Self-Review,abstract-only,0,
+R04484,"Autoregressive, Yet Revisable: In Decoding Revision for Secure Code Generation",arxiv-pdf:2602.01187,76465,d58e3e44dc8edfb10090731dab07032ae17ba9f6f9e99271eb8a2b9f67648f6d
+R04507,Synthesis: A Federated Capability Ecosystem for Safe AI Self-Extension Through Test-Driven Development and Graduated Trust,abstract-only,0,
+R04526,LAAFD: LLM-based Agents for Accelerated FPGA Design,arxiv-pdf:2602.06085,48111,5735a7d23a0d25858f35e2e6ac144f69e56e1d7f656a933df8555abcd7c2739a
+R04543,"Clean Code, Better Models: Enhancing LLM Performance with Smell-Cleaned Dataset",arxiv-pdf:2508.11958,117288,3697728ba7e7529310bf83358b78de4de6eabd54cbeebac9a1ce46e9ab5c7e2e
+R04581,A Large-Scale Empirical Evaluation of LLMs for Automated Self-Admitted Technical Debt Repayment,abstract-only,0,
+R04600,PELLI: Framework to effectively integrate LLMs for quality software generation,arxiv-pdf:2602.10808,59396,b39233200bcb67cfc10114b8041073ee53dc271b9d1e3209094ae08ee1053c89
+R04615,Intelligent code assistant using retrieval-augmented generation and Ollama framework,abstract-only,0,
+R04633,ENHANCING AUTOMATED CODE GENERATION WITH TRANSFORMER MODELS AND REINFORCEMENT LEARNING: A DEEP LEARNING APPROACH TO SOFTWARE DEVELOPMENT,abstract-only,0,
+R04653,"Codebase Aware Generative Agents for the SDLC: Automating Documentation, Dependency Analysis and Test Generation",abstract-only,0,
+R04667,SimulatorCoder: DNN Accelerator Simulator Code Generation and Optimization via Large Language Models,arxiv-pdf:2602.17169,20904,297bb87e5120091971eeaee96bf127ccb703c3c1aa53233cad27cea4678082ac
+R04702,AI-Assisted Programming in Practice Conceptual Foundations and Data-Informed Observations,oa-pdf:https://casjournal.ge/index.php/cas/article/download/4/5,35956,2db73175e5faa57b16f62fb897d0d481844e8603eaa7df1e6dbd8c7c5afd066a
+R04712,CUDA Agent: Large-Scale Agentic RL for High-Performance CUDA Kernel Generation,arxiv-pdf:2602.24286,75066,0cc127dad144a1cb172a21cd6e064afff70846a8a846920aa57f3dbedf2be783
+R04742,Inference-Time Safety For Code LLMs Via Retrieval-Augmented Revision,arxiv-pdf:2603.01494,40708,05e0875d2f889366abfcbb36fa03a277f4cbf4e5fc6101c99733e984dcb8cfb7
+R04759,A Dual‐Helix Governance Approach Towards Reliable Agentic Artificial Intelligence for WebGIS Development,arxiv-pdf:2603.04390,128352,cbc92c995fdc61871f3514a179ed63f9e97bf8d8417c03b114958461a59027b0
+R04803,An Empirical Study of Interaction Smells in Multi-Turn Human-LLM Collaborative Code Generation,arxiv-pdf:2603.09701,83224,18e4b1962af46cbdefbd0cf79c802d4e7aa72547a1483c91c019365ec76500a3
+R04821,Security-by-Design for LLM-Based Code Generation: Leveraging Internal Representations for Concept-Driven Steering Mechanisms,arxiv-pdf:2603.11212,97648,2fa260ee729b45a79703df7f02755f5454f165ccdcab2ef66bb09610fc98cdd8
+R04832,A Domain-Specific Language for LLM-Driven Trigger Generation in Multimodal Data Collection,arxiv-pdf:2604.13046,36392,07eeb16451274e5f866faabb0f0dccdee2352777dc039fb798f6afa466f7abb2
+R04864,Beyond Local Code Optimization: Multi-Agent Reasoning for Software System Optimization,arxiv-pdf:2603.14703,35114,17b31eaa2dc8e50fccaaff023dcdfa4dfad975441aa4b3eeab55d2a297be1be4
+R04875,Can LLMs Keep Up with Library Changes? An Exploratory Study on LLM-Generated Code,abstract-only,0,
+R04889,Toward Reliable Code De-Obfuscation with Large Language Models,abstract-only,0,
+R04905,HCAG: Hierarchical Abstraction and Retrieval-Augmented Generation on Theoretical Repositories with LLMs,arxiv-pdf:2603.20299,49363,3e17a10baaa003acc19d9a7ccc2154580c5d4cc5d07412dcbf3b59a1efdcfdbc
+R04937,"Detect--Repair--Verify for LLM-Generated Code: A Multi-Language, Multi-Granularity Empirical Study",arxiv-pdf:2603.23633,106324,6a70ce2b7103112f8e51801db7ee1239a072c6c6a6cec733f1169b185bdcdefd
+R04960,AVDA: Autonomous Vibe Detection Authoring for Cybersecurity,arxiv-pdf:2603.25930,57247,e8fb9b9b8eebfff8cb68d314ebf8aabd68d1172c66b6883ca104f20fb1323d27
+R04988,ProtoMind AI: An Intelligent Multi-Agent Chatbot for End-to-End Application Prototyping and Devel-opment,oa-pdf:https://doi.org/10.22214/ijraset.2026.78718,31411,b17514797e9355bf312465e494e6c21b679ce717b1fc83b94ec219f20fe55676
+R05002,C2RustXW: Program-Structure-Aware C-to-Rust Translation via Program Analysis and LLM,arxiv-pdf:2603.28686,74604,52c4ae37a2640f73be2c5518a6aa43429395c9554531e611687018f6341c2bb4
+R05036,Beyond Functional Correctness: Training-Time and Inference-Time Approaches to Improving Non-Functional Quality of LLM-Generated Code,abstract-only,0,
+R05058,Quality assurance of LLM-generated code: Addressing non-functional quality characteristics,arxiv-pdf:2511.10271,128171,f1ccbdef880eaee6c73aaa2d86728bb67d8567d8110e7a7b26d0e7a4a22e42d2
+R05068,EffiPair: Improving the Efficiency of LLM-generated Code with Differential Execution Feedback,arxiv-pdf:2604.05137,57478,6264f83051b826fd41b8395e70778df4891e409cbe65d29653228c06ced291d8
+R05080,QiMeng-PRepair: Precise Code Repair via Edit-Aware Reward Optimization,arxiv-pdf:2604.05963,60949,be8914a79bd11d576fb66614e4c908e4d7b73a2bf748b4d7320f03840f29209c
+R05108,DCR-Code: A Difficulty-Aware Multi-Agent Framework for Code Generation Via Decompose-Compose-Refine,abstract-only,0,
+R05128,Agentic AI Architecture for Evaluating and Improving Reinforcement Learning Pipelines,abstract-only,0,
+R05145,Enterprise-Scale COBOL-to-Java Translation: LLMs Augmented with Program Analysis,abstract-only,0,
+R05162,Leveraging Mathematical Reasoning of LLMs for Efficient GPU Thread Mapping,arxiv-pdf:2604.10387,47553,4b6852456eebe9395b8c5342ad6434978ace1fd34591b95971fdfd5dcc53bd2c
+R05175,Repairing LLM Executions for Secure Automatic Programming,abstract-only,0,
+R05186,Technical Optimizations on Textbook-Efficient Code with LLMs,abstract-only,0,
+R05204,EcoAssist: Embedding Sustainability into AI-Assisted Frontend Development,arxiv-pdf:2604.04332,84292,e6982223b7336083bdf8f06445ff97b929c009c57e4698d87a9ed416fb25597f
+R05236,COEVO: Co-Evolutionary Framework for Joint Functional Correctness and PPA Optimization in LLM-Based RTL Generation,arxiv-pdf:2604.15001,56060,0474fca2437e96d3a57c9381b8dee87162ded921a9c2c228c28d4b0c64a3f1d1
+R05256,Multi-Agent AI-Assisted Design and Validation of Complex Microservices Architectures: An Empirical Study,abstract-only,0,
+R05268,Adversarial Arena: Crowdsourcing Data Generation through Interactive Competition,arxiv-pdf:2604.17803,78898,050e660b2e409e634c13f6236b827b5c8db450b14be8ff58c235d187cb165c0b
+R05306,NewGen UI: The UI Component Library,oa-pdf:https://doi.org/10.22214/ijraset.2026.80231,20564,9c64ae5773a9d3d3c08a3b27de4fab926fe60fe7888fdcd05486e813fc41777f
+R05359,RAG-Enhanced Kernel-Based Heuristic Synthesis (RKHS): A Structured Methodology Using Large Language Models for Hardware Design,arxiv-pdf:2604.26153,19348,9bbfaffe1cd4a78afe368830911546c9dfb53bb98bd6e8adfd3c5ded6db584ba
+R05381,Design of a Source Code Vulnerability Patch Verification Agent using an Iterative Self-Verifying Architecture with Large Language Models,abstract-only,0,
+R05406,Generating Statistical Charts with Validation-Driven LLM Workflows,arxiv-pdf:2605.00800,31014,b072f882c217d43e80066780cad30314608127533144c97ccdea44f86c68c77b
+R05423,Towards Reliable Large Language Models for COBOL through Compiler-Guided Feedback and Domain,abstract-only,0,
+R05456,KEET: Explaining Performance of GPU Kernels Using LLM Agents,arxiv-pdf:2605.04467,59820,a70403ed4b76a11a9277d464695fea81c4c73697654bbde066a47ed1a154f011
+R05489,SecureForge: Finding and Preventing Vulnerabilities in LLM-Generated Code via Prompt Optimization,arxiv-pdf:2605.08382,75868,487a00344aea7914a1bcdc9d17ac821f967fda90b7a0b6fe528b9e733ae03198
+R05525,Software Generation for Embedded Systems with Low-Cost LLMs: An Energy Evaluation Discussion,abstract-only,0,
+R05536,HLS-Seek: QoR-Aware Code Generation for High-Level Synthesis via Proxy Comparative Reward Reinforcement Learning,arxiv-pdf:2605.13536,55492,04525d202d37b8c5f71782ce66b06d1c3b4e7fb7fc056a4004fdeee2f67968dc
+R05569,Beyond Execution: Static-Analysis Rewards and Hint-Conditioned Diffusion RL for Code Generation,arxiv-pdf:2605.17174,71400,94dc66a455c83c7a03fa849f68a5277ce4cb02b10c1df5bdb887460dd994ac40
+R05603,Prior Knowledge or Search? A Study of LLM Agents in Hardware-Aware Code Optimization,arxiv-pdf:2605.19782,70731,b069dd3a8a9a3917729b0a8da32fd7e6ba7c56aadcc093107b46bceff8453bce
+R05633,An Empirical Evaluation of LLM-Generated Code Security Across Prompting Methods,arxiv-pdf:2605.24298,117249,f13f38e33ed4162f0410465f1b4ddfae02bc29e75dcf527c3e87f972394eeac6
+R05653,Mapo: Performance model driven GPU memory access code optimization,abstract-only,0,
+R05664,Specification-Based Code-Text-Code Reengineering for LLM-Mediated Software Evolution,arxiv-pdf:2605.25232,80713,3c95e221583f130b0f9379c4215bff46ebe14cda5e72f378b86dc7653288e98a
+R05679,Trustworthy and Secure LLM-Assisted Code Generation for Enterprise Software Development,abstract-only,0,
+R05692,Wily: High-Performance Complexity Gated-Feedback for AI Coding Agents,abstract-only,0,
+R05724,How Generation Architecture Shapes Code Complexity in Multi-Agent LLM Systems: A Paired Study on HumanEval,arxiv-pdf:2606.00308,81883,b867924a0e2fea0b79a4ea18f09d12724feafcf88ebbaad7baa30ee8ebfb9918
+R05759,Can AI Agents Generate Microservices? How Far are We?,arxiv-pdf:2603.09004,64692,59903932f64c207c341180a2225772214a7c3afde0aab2b14406fa00af93ff2e
+R05787,Reinforcement Learning Approaches for Code Generation: a Comparative Analysis,abstract-only,0,
+R05816,"A structured LLM prompt engineering framework for generating quality, performant simulation code for classical and quantum computing",abstract-only,0,
+R05850,RANCANG BANGUN SISTEM GENERATOR ANTARMUKA PENGGUNA BERBASIS ATOMIC DESIGN,abstract-only,0,
+R05869,When LLMs Invent Rust Crates: An Empirical Study of Hallucination Patterns and Mitigation,arxiv-pdf:2606.08444,69865,0a803ef7152cf3b1603ae212701d71769049239dfca417f8aa420a4b83363475
+R05897,Secure Code Generation and Software Engineering With Generative AI,abstract-only,0,
+R05915,Evaluation and Distillation of Source Code Generation Tasks by Large Language Models,abstract-only,0,
+R05928,A Generative AI Tool for Constructing Web Frontend with Integration of Quality Feedback Loop,abstract-only,0,
+R05960,Replication Package - The Language of Security: How Prompt Syntax Shapes Secure Code Generation in Open LLMs,abstract-only,0,
+R05983,MKEvolve: A Modular Multi-Agent Framework for Kernel Code Generation,arxiv-pdf:2607.20501,115896,636546b2730616745a0e2b963be88b5383a6956499992be4047df00c1006a521
+R06009,A comprehensive analysis of security risks and productivity impacts of AI-generated code,abstract-only,0,
+R06035,An empirical study of LLM-based refactoring consistency,abstract-only,0,
+R06052,An Empirical Study of Waterfall-style Multi-Agent Workflows for Class-Level Code Generation,abstract-only,0,
+R06071,CertiCoder: Towards MISRA-Compliant C Code Generation with LLMs,abstract-only,0,
+R06082,Reward-Free Code Alignment from Pretrained or Fine-Tuned LLM: Unpacking the Trade-offs for Code Generation,arxiv-pdf:2606.28998,86865,a7695f249ec9bc619aa3bc60c3a1025f12097ef6cc437df12204c49e17f5f222
+R06099,ATeam: Governance-Aware LLM-Assisted Software Sustaining Engineering for Enterprise Systems,abstract-only,0,
+R06135,Securing LLM-Generated Code with Iterative Static Analysis and LLM Review,abstract-only,0,
+R06154,An Evaluation of Role-Based Multi-Agent Code Generation on Repository-Scale Problems,arxiv-pdf:2607.04212,33730,9da97febd81941c4d1e3a19ea2752605418a3d3dfb37dc76213baec1da90119f
+R06176,Beyond the Need for Speed: Energy-Aware Code Generation via Simulation-Guided Reinforcement Learning,arxiv-pdf:2607.04577,157204,49d991a66f7a15c9327e4e0b50e70fa124806e1086bf023ce7b5273772eb2450
+R06193,From Custom-Fit to Portable: Bridging the Gap Between Synthesized and Engineered GPU Query Execution,arxiv-pdf:2607.07632,84880,7b0a19dd45eddbf57dc4c11ece7d8c85e3042af85f7e421d1926651030fff27c
+R06216,Toward Stronger Code Watermarking: A Grammar-Driven Approach to Optimizing the Trade-off Between Quality and Detectability,arxiv-pdf:2607.10210,71690,82b0f8cf3707ff6cfe19c3ccdbd60e32fc9ddbf9923c85fd9a40593f934693ad
+R06248,From Interpretation to Compilation: Compilation-Based Execution of Semantic Operators [Vision],arxiv-pdf:2607.13407,34034,88b690a38aadc04fd1692d1ce995d0b31f5580daab5b4a8f91649160f08252f1
+R06265,The Language of Security: How Prompt Syntax Shapes Secure Code Generation in Open LLMs,arxiv-pdf:2607.15937,67822,8c42ee19638f90b42730c8a10562d05a74af7c21a89002b0de84913ebfadd448
+R06301,Learning to Detect UI Principle Violations via Reinforcement Learning,arxiv-pdf:2607.20690,76497,35ef5310cbb400ac2dc96acadf0decc57556d911a2987523bc4805262935b954
+R06311,Multi-turn RL with Structural and Performance Aware Rewards for CUDA Kernel Generation,arxiv-pdf:2607.20908,51019,a20b35cdeed4283af40464e046def12b75b6d64f6d90101858ca4c22d0ea5320
+R06329,Cross-Model Cross-Language AI Coding Agent Performance: Accuracy and Speed of Parallel CLRS Algorithms,arxiv-pdf:2607.26083,33200,7f88b09e47ece2e58b950bcea4cf29ef41a3ea85b820b2e58de9013dd4aea6b3
+R06339,VPR-Evolve: Multi-Agent-Driven Algorithm Evolution for FPGA Place and Route,arxiv-pdf:2607.24998,41638,49b77e284b1cdc9a7ab9156fc5734913226a004b5b78431955e7450939ec93ed
+R06348,RLPF: Reinforcement Learning from Performance Feedback for Code Generation,arxiv-pdf:2607.27271,66802,cc630d979bc367860e0ac5b190ab8fd1e8e56983ba19c4823ac3ef2b443b2fe6
+R06356,Designing for all? Accessibility of native android interfaces from large language models,oa-pdf:https://www.researchsquare.com/article/rs-7744912/latest.pdf,109950,c89b7c4042597b644c82c776e0e8149100ea1185ad89829bdce82ac11c1198d9
+R06377,EduPluginBench: Executable Assurance for AI-Generated Educational Plugins,arxiv-pdf:2608.00739,93009,a232354618ed95256f3ea38b64bd4c1a4c74edb549d62f2ad7bfda3dd2291f5e
+R06405,From Billion-Scale to Million-Scale Language Models: Operational Capabilities for Embedded Post-Exploitation,abstract-only,0,
+R06424,"AdaptAgent: A Multi-agent, Domain-Guided Reasoning Framework for Code Adaptation",arxiv-pdf:2608.04459,93579,68545f7ed29e3accc3b02d0a3bd411ac86922117625b8498663222059c523e99
+R06444,Understanding and Improving Model Editing for Secure Code Generation,arxiv-pdf:2608.06848,101488,14a1838e0531bc7ada3fd5556ae907eb43d8ef099cd86aa0d83b3da8ca6b8dba
+R06466,EvoMem: Memory-Augmented Evolution for Code Optimization,arxiv-pdf:2608.10795,60270,4480171e0bc83449c4d04ce4b6eba83035ddf897342a57b9325401e937993400
+R06482,Does ISO-Grounded NFR Specification Improve LLM Code Generation? A Comparison of Rich and Structured Interventions against a Natural-Language Baseline,arxiv-pdf:2608.13742,60949,cc9bd97a98f6ff8607f69fc5fba3a36a1086d4156a3b547d7c5144978fbb40c4
+R06508,Hybrid Multi-Agent Framework for Enterprise Web Application Generation,abstract-only,0,
+R06534,Evaluating Inference-Time Defenses Against Package Hallucination in LLM-Generated Code,arxiv-pdf:2608.22652,84524,e91c4f2910b9748ae30ae1dac9aa67637f21637d80a4e8fcd59732d238debfef
+R06550,"AI-as-a-Judge for software quality assessment: Consistency, attitude effects, and complexity sensitivity in multi-agent code evaluation",abstract-only,0,
+R06562,MACGen: Toward Functionally Correct and Secure Code Generation via Multi-Agent Collaboration,arxiv-pdf:2608.25457,89655,a3432257200aac77e791e150255b7e46fa4d6995d7b56449141bbb88eab02538
+R06585,Interpreting and Steering for Safe and Correct Code Generation,arxiv-pdf:2608.30025,81632,7f88cede35687e95c6de5942492c8b253012140faa82a48641119c1a43836cb8
+R06594,"Prompt Framing and the Coverage Gap in Automated Security Analysis of Code Generated by Small, Locally Run Language Models",abstract-only,0,
+R06620,CROCODIL: Cross-Model Code Editing with LLMs,arxiv-pdf:2609.03894,71713,7b0476182eca13a74d09b2e14c731e4f4159e0e65404ee1a12b8d3f11539fee8
+R06636,Diffs vs. Whole Files: An Empirical Comparison of Iterative Edit-Based and Direct Generation for Flutter/Dart Code Models,arxiv-pdf:2609.05779,47445,99a5e7389ca3036885a8e0c3fa413d172eea0284088dac280a4698287445ee4c
+R06668,AMDKernelVault: Large-Scale Datasets and Agentic Training for AMD GPU Kernel Optimization,arxiv-pdf:2609.12471,90613,1a36781f8cba7be4f314c64899addc79c81aeb66f8668a80bb4e5165f6800254
+R06688,Generative File Systems: Specification-Driven Synthesis and Evolution via LLMs,abstract-only,0,
+R06696,Agentic Cryptographic Debt: Repository-Level Measurement of Post-Quantum Migration Regression Under Autonomous AI Software Development,abstract-only,0,
+R06723,Exploring Potential Vulnerabilities in LLM-Generated Code,abstract-only,0,
+R06741,"CODE REVIEW ASSISTANT (SPOTS BUGS, SUGGESTS FIXES)",oa-pdf:https://ijerst.org/index.php/ijerst/article/download/4665/4307,25564,136912fdee11150383f29784de563ba0899b2fd6b0e25a4728587e8eb4586bbb
+R06771,JevVibe: Efficient Classification-Guided Secure Code Generation,arxiv-pdf:2609.34963,44546,47545d7c807f11e72e318e5a9ccc5d40efded67fbcbeed0d67e61b008b81af02
+R06803,Self-Evolving Coding Rules for AI Coding Agents,arxiv-pdf:2610.00650,58993,a61c6df07b2bc15817a0837e68e40c1b558bae4a3a79e1a4d98d99035ea03a28
+R06814,Improving the Energy-Efficiency of the Code Generated by LLMs through Effective Prompting,arxiv-pdf:2610.02571,81161,b039bac924f144d4680b1891dcd4ec561c8b05a395e9b038c3796b479d70fbc9
+R06841,When Talk Isn't Code: Comparing LLM Agents That Simulate and Develop Software,arxiv-pdf:2610.04639,83043,d47372b310af32fcece21ab693199da092f9ed6b1fcdfae8c2c97c48a34c9df1
+R06858,Tokenization matters for GEE code generation: a multidimensional tokenization benchmark,abstract-only,0,
+R06885,From Vibe to Spec: An Empirical Study to Demystify Specifications in Code Generation,abstract-only,0,
+R06904,From Code to Knowledge: Enhancing Coding Agents via Reverse-Engineered Software Knowledge,abstract-only,0,
+R06912,Universal Textual Teaching for LLMs,arxiv-pdf:2610.12114,84538,183ac65af352bb977b539902ae5f52fdbcf59616e63803a14529794dcac37e3e
+R06927,SecReason: Vulnerability Detection and In-Stream Self-Repair for LLM Code Generation,arxiv-pdf:2610.14453,77603,b6207644b391190c820d98a1242cfe8ebd80cae601ee434aa38ba18f5ed09263
+V00005,Analyzing and fixing code generation errors of foundation large language models,abstract-only,0,
+V00018,Socratic Human Feedback (SoHF): Expert Steering Strategies for LLM Code Generation,oa-pdf:https://aclanthology.org/2024.findings-emnlp.908.pdf,38184,e356305743a35fbb70e40ea624e93e2fc868b88725d1d61fb4a1201803460136
+V00051,Rethinking Repetition Problems of LLMs in Code Generation,arxiv-pdf:2505.10402,71547,d114b95cbc195b63ce98bf46db8edde2096508669c306b4f801ae25f1fe7940e
+V00096,Evaluating LLMs in ROS robotic software code generation,abstract-only,0,

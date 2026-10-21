@@ -1,0 +1,19 @@
+tid,rule,reason
+R01180#0,E1,benchmark paper; NPI filter is a secondary add-on
+R06627#1,E1,mainly a study of over-editing; SFT is a probe
+R01168#0,E1,mainly an empirical study; repair tool is an add-on
+V00117#0,E1,lightweight mitigation inside an empirical study
+V00117#1,E1,lightweight mitigation inside an empirical study
+R03232#0,E1,mainly a measurement study
+R05268#0,E1,mainly a crowdsourced data-collection framework
+R02406#0,E2,five self-made tasks; one run
+R06634#0,E2,single custom task; n=5 per condition
+R00766#0,E2,five functions; Copilot only
+R06788#0,E3,agent jailbreak defense; code security incidental
+R03345#0,E3,detection and reporting; effect on generated code unclear
+R04778#0,E4,reviewer flagged low credibility; implausible claims
+R03075#0,E4,reviewer flagged low credibility; no metrics reported
+R03314#0,E4,reviewer flagged low credibility; simulated results
+R00766#1,E2,five functions; Copilot only (same study as R00766#0)
+R00766#2,E2,five functions; Copilot only (same study as R00766#0)
+R06874#0,E5,verification found a correctness decline (pass@1 42.4% to 33.9%)

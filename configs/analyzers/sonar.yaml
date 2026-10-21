@@ -1,0 +1,4 @@
+url: http://localhost:9000
+token_env: SONAR_TOKEN
+image: sonarsource/sonar-scanner-cli:11.3
+quality_profile: Sonar way
