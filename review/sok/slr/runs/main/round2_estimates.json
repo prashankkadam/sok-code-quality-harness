@@ -1,12 +1,12 @@
 {
  "_note": "Placeholders used only until round2.sh has run; synth.py ignores this file once snow_pending_ids.txt is empty.",
- "openalex_r1_hits": 5396,
- "openalex_r2_hits": 6184,
- "openalex_new": 912,
- "openalex_forward": 164,
- "openalex_included": 46,
- "manual_records": 1847,
- "manual_new": 238,
- "manual_forward": 41,
- "manual_included": 12
+ "openalex_r1_hits": 4971,
+ "openalex_r2_hits": 5636,
+ "openalex_new": 995,
+ "openalex_forward": 149,
+ "openalex_included": 45,
+ "manual_records": 1743,
+ "manual_new": 256,
+ "manual_forward": 38,
+ "manual_included": 11
 }
