@@ -106,7 +106,7 @@ def prisma_tex(c) -> None:
 \begin{{tikzpicture}}[font=\scriptsize, node distance=4mm and 6mm,
   b/.style={{draw, rounded corners=1pt, fill=black!4, align=center, text width=52mm, inner sep=3pt}},
   r/.style={{b, text width=56mm}}, a/.style={{-{{Latex[length=1.6mm]}}, thin}}]
-\node[b] (id) {{Records identified (database search)\\ OpenAlex \cnt{{nHitsOpenAlex}}; Semantic Scholar \cnt{{nHitsSS}};\\ arXiv \cnt{{nHitsArxiv}} (raw hits, overlapping)}};
+\node[b] (id) {{Records identified (database search)\\ OpenAlex \cnt{{nHitsOpenAlex}}; Semantic Scholar \cnt{{nHitsSS}};\\ arXiv \cnt{{nHitsArxiv}} (records retrieved; overlapping)}};
 \node[r, right=of id] (dup) {{Removed before screening:\\ duplicates \cnt{{nDuplicates}}}};
 \node[b, below=of id] (scr) {{Records screened (title/abstract)\\ \cnt{{nScreened}}}};
 \node[r, right=of scr] (tax) {{Excluded at title/abstract\\ \cnt{{nTaExcluded}}}};
@@ -169,9 +169,12 @@ def prisma_counts(run):
         p = rd / f"queries_{s}.json"
         if p.exists():
             q[s] = json.loads(p.read_text())
-    c["hits_openalex"] = sum(v.get("openalex", {}).get("raw_hits", 0) or 0 for v in q.values())
-    c["hits_s2"] = sum(v.get("s2", {}).get("raw_hits", 0) or 0 for v in q.values())
-    c["hits_arxiv"] = sum(v.get("arxiv", {}).get("raw_hits", 0) or 0 for v in q.values())
+    # records retrieved per source (arXiv queries ran in chunks, so its raw hits count a paper once per chunk)
+    got = lambda m: m.get("retrieved_unique") or m.get("retrieved") or m.get("raw_hits") or 0  # noqa: E731
+    c["hits_openalex"] = sum(got(v.get("openalex", {})) for v in q.values())
+    c["hits_s2"] = sum(got(v.get("s2", {})) for v in q.values())
+    c["hits_arxiv"] = sum(got(v.get("arxiv", {})) for v in q.values())
+    c["hits_arxiv_raw"] = sum(v.get("arxiv", {}).get("raw_hits", 0) or 0 for v in q.values())
     st = json.loads((rd / "dedup_all_stats.json").read_text())
     c["records_in"] = st["records_in"]
     c["duplicates"] = st["duplicates_removed"]
@@ -610,6 +613,7 @@ def counts_tex(c, rows, studies, extra):
             dims[d] += 1
     m = {
         "nHitsOpenAlex": c["hits_openalex"], "nHitsSS": c["hits_s2"], "nHitsArxiv": c["hits_arxiv"],
+        "nHitsArxivRaw": c["hits_arxiv_raw"],
         "nRecordsIn": c["records_in"], "nDuplicates": c["duplicates"], "nScreened": c["screened_db"],
         "nTaExcluded": c["ta_excluded_db"], "nTaForward": c["ta_forward_db"], "nOtherIdentified": c["other_identified"],
         "nOtherForward": c["other_forward"],

@@ -1,4 +1,4 @@
-"""Metric definitions used in Tables E2-E10."""
+"""Metric definitions used in Tables E2-E9."""
 from __future__ import annotations
 
 from math import comb

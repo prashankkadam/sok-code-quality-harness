@@ -1,4 +1,4 @@
-"""E7 head-to-head: one model (Gemma 4 31B IT), each technique in its published configuration, at most 16 calls per task."""
+"""E12 head-to-head: one model (Gemma 4 31B IT), each technique in its published configuration, at most 16 calls per task."""
 from __future__ import annotations
 
 import time
@@ -21,7 +21,7 @@ def h2h(cls):
 
 @dataclass
 class Ctx:
-    """What a technique may use. llm: the E7 model behind the API. lm(): the same weights loaded locally (white-box access).
+    """What a technique may use. llm: the E12 model behind the API. lm(): the same weights loaded locally (white-box access).
     tuned(name): the LLM serving a LoRA adapter trained by prepare(). Components that call another LLM use `llm`."""
     llm: LLM
     model_key: str = "g31"

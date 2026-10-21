@@ -1,4 +1,4 @@
-"""Experiment drivers: main grid (E2-E6, E8, E9), extended grid (E10 and its technique and agent tables), E7, its
+"""Experiment drivers: main grid (E2-E8), extended grid (E9 and its technique and agent tables), E12, its
 budget-matched best-of-n references and the fidelity check."""
 from __future__ import annotations
 
@@ -235,7 +235,7 @@ def h2h(hids: list[str] | None = None, seeds: list[int] | None = None, exp: str 
 
 
 def matched_budgets(exp: str = "h2h", key: str = "g31") -> dict[str, int]:
-    """Per family: the median over its techniques of the mean calls per task in the stored E7 runs, rounded to the nearest
+    """Per family: the median over its techniques of the mean calls per task in the stored E12 runs, rounded to the nearest
     integer, at least 2 and at most the ceiling."""
     from .h2h import load_all
     from .h2h.base import CEILING, H2H
@@ -277,8 +277,8 @@ def _fidelity_value(bench: Benchmark, metric: str, rows: list[dict]) -> float:
 
 
 def fidelity_check(hid: str, key: str = "g31", seeds: list[int] | None = None, exp: str = "fidelity") -> Path:
-    """Runs one E7 technique in each original setting of lit_h2h.csv that names one of our benchmarks (benchmark, split,
-    metric; the model is `key`, the paper's model when it is configured, else the E7 model, and is recorded) and writes
+    """Runs one E12 technique in each original setting of lit_h2h.csv that names one of our benchmarks (benchmark, split,
+    metric; the model is `key`, the paper's model when it is configured, else the E12 model, and is recorded) and writes
     runs/fidelity/<hid>.json. A setting on a benchmark we do not have is recorded as needing the original harness."""
     from .h2h.base import H2H
     from .stats import lit_rows, setting_spec

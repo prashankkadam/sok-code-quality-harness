@@ -1,5 +1,5 @@
-"""E7 retrieval family (H37-H46). Corpora are built in prepare() from the authors' released data (or by their recipe when
-not released), decontaminated against every E7 task with 13-gram overlap, and stored under ctx.dir(hid)."""
+"""E12 retrieval family (H37-H46). Corpora are built in prepare() from the authors' released data (or by their recipe when
+not released), decontaminated against every E12 task with 13-gram overlap, and stored under ctx.dir(hid)."""
 from __future__ import annotations
 
 import ast

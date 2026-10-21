@@ -1,4 +1,4 @@
-"""E7 tool-feedback family, H11-H20. Every tool signal comes from the public examples only; trained parts are retrained in prepare()."""
+"""E12 tool-feedback family, H11-H20. Every tool signal comes from the public examples only; trained parts are retrained in prepare()."""
 from __future__ import annotations
 
 import ast

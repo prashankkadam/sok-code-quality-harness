@@ -1,4 +1,4 @@
-"""E7 multi-agent family (H27-H36). Every agent role is the E7 model `ctx.llm`; every role's call counts toward the ceiling."""
+"""E12 multi-agent family (H27-H36). Every agent role is the E12 model `ctx.llm`; every role's call counts toward the ceiling."""
 from __future__ import annotations
 
 import ast
@@ -15,14 +15,13 @@ from functools import lru_cache, partial
 from pathlib import Path
 
 import httpx
-import numpy as np
 
 from .. import sandbox as S
 from ..llm import BudgetExceeded, current_scope, scope
 from ..tasks import Task, Test
 from ..techniques import common as C
 from .base import Ctx, H2HTechnique, h2h
-from .retrieval import decontaminate, draft, embed, fetch, load_index, save_index, top_k
+from .retrieval import draft
 
 TIMING_REPEATS = 5
 TAVILY_URL = "https://api.tavily.com/search"
@@ -618,7 +617,7 @@ IND_EXEC_TIMEOUT = 120
 class INDICT(H2HTechnique):
     """Three outer rounds as in the released script; per round: act, preemptive debate (safety then helpfulness critic,
     each grounded by one tool query: query and snippet generation, a model-knowledge answer, web search and Wikipedia),
-    summary, act, then for Python an executed post-hoc debate and a final act. The model-knowledge tool is the E7 model;
+    summary, act, then for Python an executed post-hoc debate and a final act. The model-knowledge tool is the E12 model;
     Tavily stands in for the Yahoo scraper. A Python round needs 21 calls, so the run stops at the ceiling."""
     hid, name, family, target = "H29", "INDICT", "multiagent", ("SEC",)
     code_url = "https://github.com/SalesforceAIResearch/indict_code_gen"
@@ -1181,7 +1180,7 @@ LL_NOT_COMPILABLE = ("The following are two codes. Code B attempts to improve th
 class LessonL(H2HTechnique):
     """The ParEval code-optimization configuration (3 agents, 4 rounds, k=4, temperature 0.2) ported to Python tasks: the
     source is the model's initial solution, correctness is the public examples and speedup is their wall time. All three
-    agents are the E7 model. The configuration needs 25 calls, so the run stops at the ceiling (inside round 2)."""
+    agents are the E12 model. The configuration needs 25 calls, so the run stops at the ceiling (inside round 2)."""
     hid, name, family, target = "H32", "LessonL", "multiagent", ("EFF",)
     code_url = "https://github.com/MITIBM-FastCoder/LessonL"
     ported = True
@@ -2064,632 +2063,191 @@ def _acc_report(ref: dict, res: dict) -> str:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H36 MACGen: planner, security advisor (attack-surface triage, CWE groups, standards KB RAG, code-based quick wins,
-# validation), coder and perspective-separated reviewer, passing artifacts only. Prompts from the repository (commit f3339f2).
-
-MG_COMMIT = "f3339f2fcb29e33f4d38300a039a64e8c852ad51"
-MG_RAW = f"https://raw.githubusercontent.com/Mishuni/macgen-secure-code/{MG_COMMIT}/data/rag_databases/"
-MG_KB = {"asvs": "ASVS_faiss/ASVS.json", "python": "Python_faiss/python_refined.json", "c": "CERT_C_faiss/CERT_C_refined.json",
-         "cpp": "CERT_CPP_faiss/CERT_CPP_refined.json", "go": "Go_faiss/Go_refined.json",
-         "javascript": "JavaScript_faiss/JavaScript_refined.json",
-         "owasp": "OWASP_CheatSheets_faiss/owasp_cheatsheet_docs_refined.json"}
-MG_STORES = {"c": ("c", "asvs"), "cpp": ("cpp",), "python": ("python", "asvs"), "javascript": ("javascript", "owasp", "asvs"),
-             "go": ("go", "asvs")}
-MG_EMBED = "jina"
-MG_TEMP, MG_MAX_TOKENS = 0.0, 1500
-MG_RAG_K, MG_SNIPPET_CHARS = 2, 7000
-MG_REFINE_ATTEMPTS, MG_SYNTAX_FIXES, MG_PLAN_RETRIES, MG_CWE_TRIES = 2, 2, 3, 2
-MG_OS = "linux"
-MG_NO_COMPILE = ("go", "javascript", "php", "rust", "ruby")
-MG_FENCE_TAGS = {"python", "py", "c", "cpp", "c++", "js", "jsx", "javascript", "go", "java", "ruby", "rust", "php", "csharp"}
-MG_PLAN_MARKERS = ("### plan", "###plan", "##plan", "## plan", "## new plan", "### functional plan", "### final plan",
-                   "functional plan", "final plan")
-MG_GUIDE_MARKERS = ("### security guidelines", "### security_guidelines", "### security guideline", "### security_guideline",
-                    "security guidelines", "security_guidelines")
-
-MG_HEADER_CWEVAL = ("Your response should include all dependencies, headers and function declaration to be directly usable.\n"
-                    "You should NOT call or test the function and should NOT implement a main function in your response."
-                    "\nDo NOT include any print statements, logging. Do NOT add authentication unless explicitly required."
-                    "\nHere's the code in a single code block (wrap in ```{language})")
-MG_HEADER_LLMSECEVAL = "Based on the above analysis, here's the updated version of the code in a single code block (wrap in ```):\n"
-MG_PRESETS = {"cweval": (MG_HEADER_CWEVAL, 3), "humaneval_plus": ("", 2), "mbpp_plus": ("", 2),
-              "llmseceval": (MG_HEADER_LLMSECEVAL, 3)}
-
-MG_PLAN = """{task}
-You are a programmer tasked with generating appropriate plan to solve a given problem using the **{language}** programming language.
-
-**Expected Output:**
-Your response must be structured as follows:
-
-### Problem Understanding
-- Think about the original problem. Develop an initial understanding about the problem.
-
-### Recall Example Problem
-Recall a relevant and distinct problems (different from problem mentioned above) and
-- Describe it
-- Generate {language} code step by step to solve that problem
-- Discuss the algorithm to solve this problem
- within 5 bullet points
-
-### Algorithm to solve the original problem
-- Write down the algorithm that is well suited for the original problem
-- Give some tutorials to about the algorithm for example:
-    - How to approach this type of algorithm
-    - Important things to consider
-
-### Plan
-- Write down a step-by-step plan to solve the original problem with bullet points.
-- Do not consider testing, deployment, document and future maintenance in your plan.
-
---------
-**Important Instruction:**
-- Strictly follow the instructions.
-- Do not generate code.
-"""
-
-MG_DRAFT = """{task_description}
-{action_prompt_header}
-
- **Important Instructions:**
-- Do not add any explanation.
-- Write secure code.
-- You MUST strictly follow the function signature specified in the problem."""
-
-MG_SURFACE = """
-You are a security engineer. You will be given a problem statement and draft code.
-
-Goal:
-- Skip simple code with no external interaction.
-- Only flag code that clearly exposes an attack surface.
-
-Decision rules (IMPORTANT):
-- Judge based on the **Draft Code only**.
-- If the code is simple logic, or uses only constants → NO_ATTACK_SURFACE.
-- If there is an attack surface BUT it appears already safely handled → NO_ATTACK_SURFACE.
-- Only flag when there is an attack surface AND it is not clearly handled safely.
-
-Categories (ONLY IF the code includes one of):
-- Untrusted Input (user, request, file, env)
-- Network/API (HTTP, sockets)
-- Database/Storage (SQL, queries)
-- File System (open, write, path join)
-- Exec/Deserialization/rendering (subprocess, eval, pickle, yaml)
-- Auth/Session/Secrets (hard-coded keys, debug flags, session, logging)
-- Memory/Resources (buffers, unsafe ops, regax, DoS)
-- Crypto (hash, verify flags, random generators)
-
-Output format:
-### Attack Surface
-- [Category] Evidence: ... — Candidate: ...
-
-### Overall
-HAS_ATTACK_SURFACE | NO_ATTACK_SURFACE
----
-
-## Problem:
-{problem}
-
-## Draft Code:
-{draft_code}
-"""
-
-MG_SEC_ENGINEER = ("You are a security engineer."
-                   "Your task is to identify the most likely CWE vulnerabilities that the following function might introduce.")
-
-MG_CWE = """Use the provided context and guidelines to output a list of group of probable cause-effect CWE(s) pair(s). For each, provide a concise explanation, a likelihood score in [0, 1].
-Reasoning levels:
-1. **Cause (fine-grained CWE(s))**: the direct insecure practice or action(s).
-2. **Effect (broad CWE(s))**: all higher-level security consequence(s).
-
-## Context
-- Language: {language}
-- Problem: {problem_with_planning}
-
-### Guidelines
-1. Read the problem and plan carefully.
-2. Define rules for identifying vulnerabilities groups.
-3. For each vulnerability:
-   - Map to cause CWE(s).
-   - Map to effect CWEs.
-   - Group similar categories.
-4. Rank and return AT MOST {max_limit} groups. (Do NOT pad to {max_limit})
-
-Output format:
-* plan understanding: a short summary of the plan
-* extract keywords: APIs, inputs(trust level), credential info, auth/cryptography(for what), memory/logic (include only if present, few lines).
-* JSON array of objects. Each object must contain: (in wrap ```json)
-  - `group_name` : string, <group_name>
-  - `why`: short rationale (1-2 sentences)
-  - `cause_cwes`: ["CWE-###", ...],
-  - `effect_cwes`: ["CWE-###", ...],
-  - `likelihood`: float ∈ [0, 1]
-"""
-
-MG_GUIDE_SYSTEM = ("You are a security agent."
-                   "Using the retrieved secure-coding practices, write concise, actionable "
-                   "security guidelines tailored to THIS problem.")
-MG_GUIDE = """Retrieved practices (ranked, deduplicated):
-{retrieved_snippets}
-
----
-Context:
-- Language/Os: {language}, {os_platform}
-- Problem (with plan): {problem_with_planning}
-{input}
-
-{prompt_4_sec_tail}"""
-MG_GUIDE_TAIL = """Output format:
-### security guidelines
-- Provide 1-3 clear guidelines that leave no room for error. (if needed, with at most one minimal code line as an example).
-- Keep it precise; no fluff, no generic advice.
-- Preserving functionality.
-- Do NOT include (logging, audit trail) unless the problem explicitly asks for it.
-"""
-MG_FINDINGS = """
-Findings (CWE groups):
-{cwe_list}"""
-
-MG_QUICK_WINS = """Your task is to:
-- Review the draft code and identify up to **2 small, lightweight security analysis and one-line advices** that are *not already covered*.
-- Focus on **direct, code-evident quick wins** (single-line changes or flags).
-- If there are no new lightweight guidelines, return exactly: "No additional guideline needed."
-
-Evidence-first rule:
-- Prefer findings that are **directly visible in the draft code** (e.g., hard-coded secrets, debug/dev flags, unsafe API options).
-- Deprioritize infrastructure-only guidance (e.g., “use HTTPS”) unless the code explicitly sets/assumes insecure behavior.
-
-Priorities (apply in order; only include items that actually appear in code):
-P0 (must-check quick wins):
-  - Hard-coded credentials/secrets/keys (e.g., API keys in literals) → advise using environment variables or secret manager.
-  - Development/test toggles in production path (e.g., `debug=True`) → advise disabling (`debug=False`) for production.
-P1:
-  - API call flags that need safe defaults
-P2:
-  - Other one-line configuration hardening directly observable in the code. (unsafe API usage, missing safe flags, etc.)
-
-Constraints:
-- Suggestions must be **minimal and actionable with a single line** of advice or configuration.
-- Do NOT suggest heavy-weight practices (logging/auditing/compliance frameworks/large refactors).
-- Do NOT include broad infra advice unless **explicitly evidenced in code**.
-
-Output format (exactly):
-- Advice 1: <one-line advice>
-- Advice 2: <one-line advice>
-
-## Code (draft):
-{draft_code}"""
-
-MG_VALIDATE = """You are a security agent. Your task is to carefully review and refine the provided Security Guidelines for the given problem.
-
-Steps:
-1. Think about the original problem and functional requirements which must be preserved.
-2. Check if any security guideline conflicts with the functional constraints (e.g., removing an argument when signature must be preserved).
-   - If conflict exists, modify or drop the guideline so that functional constraints are preserved.
-   - If there are over-engineering which destroy functionality, modify or drop them.
-3. If duplicate or overlapping guidelines exist, merge them into a single, coherent detailed guideline.
-
-## Language/Os: {language}, {os_platform}
-## Problem:
-{question}
-
-## Security Guidelines (draft):
-{security_guidelines}
-
-Output format:
-### Functional Requirements
-- Summarize must have to keep from the problem.
-### Conflicting Identified
-- List any security guidelines that conflict with functional constraints, and how you modified them to preserve Functional Requirements.
-### Security Guidelines
-- Provide improved guidelines for code engineers.
-- Keep it ultra concise; include only essentials; no filler.
-- Do NOT include (logging, audit trail) unless the problem explicitly asks for it."""
-
-MG_CODE = """Your task is to write secure and functional code for the following problem in {language}.
-### Problem Statement:
-{task_description}
-
-{implementation_plan}
-### Security Guidelines:
-{security_requirements}
-
-Requirements:
-- You MUST strictly follow the function signature specified in the problem. (e.g. do not change function name, its arguments and return type)
-- Keep it simple. Avoid unnecessary complexity or over-engineering.
-
-### Output format:
-{action_prompt_header}"""
-
-MG_SYNTAX_SYSTEM = ("You are given a programming task, a code snippet containing syntax errors, and compiler feedback. Your task "
-                    "is to correct the code strictly according to the compiler feedback. Respond only with the corrected code, "
-                    "nothing else.")
-MG_SYNTAX = """## Task : {question}
-## The code is
-```{language}
-{code}
-```
-## The feedback from compiler is
-{compiler_feedback}
-
-Your solution should be in the form of a code snippet with prefix code.
-Wrap the code snippet in (wrap in ```{language}). """
-
-MG_FUNC = """### Problem Statement:
-{task_description}
-{action_header}
-
-### Current Code:
-```{language}
-{current_code}
-```
----
-You are a software engineer. You are given a problem statement and a implementation called the current code.
-Goal: Decide whether the Current Code correctly implements the REQUIRED core functionalities in the Problem Statement.
-
-Output format:
-### Problem Understanding
-Summarize the core task and goals of the problem.
-Keywords and definitions that are critical to the problem and test case inputs. (what is it, specific things to consider)
-
-### Example Scenarios
-Describe a concrete example user-scenario that illustrates the problem requirements and expected behavior.
-Describe how to handle these scenarios on the code.
-
-### Current Code Analysis
-For each core function or block:
-Step-by-step explanation of logic
-Highlight any missing logic or unclear behavior (e.g., return type, format, false positive/negative on edge cases etc.)
-Your opinion on whether it fulfills the requirements correctly from the the scenario
-
-### Final Opinion
-- Provide your overall assessment of the current code’s functional completeness.
-- If you find no issue, output ONLY the 'THE CODE IS FUNCTIONAL'.
-"""
-
-MG_SEC_REVIEW = """You are a security engineer. You are given a problem statement and an implementation called the **current code**.
-Goal: Decide whether the code is safe related to the security guidelines.
-Minimize false positives:
-- Do NOT modify the provided function signature (including prefix/header, parameter names, order, or types).
-- If you cannot provide a minimal concrete reproducer (input/test-case) for an issue, do NOT report it as a concern.
----
-### Problem Statement:
-{task_description}
-{action_header}
-
-### Current Code:
-```{language}
-{current_code}
-```
-
-### Security guidelines:
-{security_requirements}
-- other security issues when the code touches predefined risk categories (input, network, storage, FS, exec, auth, memory, crypto).
-
-Output format:
-### Current Code Analysis
-Step-by-step explanation of logic and security mechanisms
-### Final Opinion
-- Provide your overall assessment of the current code’s security concerns.
-- If you find no issue, output ONLY the ‘THE CODE IS SAFE’.
-"""
-
-MG_FIX = """You are a software engineer. Given the Problem and Feedback, produce the SMALLEST possible code change as ONE line (prefer 1 line; max 3 lines).
-First, think step-by-step about the root cause and the minimal fix.
-
-Constraints:
-- Strictly follow the provided docstring and function signature; do not alter names, order, types, headers, or imports.
-- No refactors, no scaffolding, no placeholders.
-- If the Feedback asks to change the prefix/header, function signature, parameter list/order/types, return type, DROP and ignore those parts and proceed with an in-scope fix only.
-
-Inputs:
-[Problem]
-{problem}
-
-[Feedback]
-{feedback}
-
-Output (STRICT):
-### Conflicts Identified
-- Enumerate any Feedback items that (a) conflict with the Problem/docstring/signature (e.g., prefix/header/signature/import changes) or (b) would break Functional Requirements.
-- State how you modified or dropped them to preserve functionality and constraints.
-### Fix Approaches
-- For **each identified issue**:
-    - IdentifiedIssue: <max 2 sentences describing what the feedback flags (after dropping out-of-scope items)>
-    - FixApproach: <max 2 sentences explaining how we will fix the issues>
-    - CodeExampleLines({language}):
-        <line 1>
-        <line 2> (optional)
-        <line 3> (optional)
-
-Rules:
-- Maximum 3 lines.
-- Functionality is the top priority; do not break it.
-- CodeExampleLines must be the final section and compile/parse correctly in {language}.
-"""
-
-MG_JUDGE_SYSTEM = """You will be provided with an analysis result of a code snippet.
-If the analysis confirms that the code snippet correctly implements the **core functionalities** as required by the problem statement, output: "Yes". Otherwise, output: "No".
-"""
-MG_JUDGE_USER = 'Analysis Result:"""\n{MISTAKES}\n"""\n'
-MG_JUDGE_PREFILL = "Final Answer (Yes or No):\n"
-
-MG_REFINE = """You are a S/W engineer. Improve the code into a functional and secure implementation.
-
-Problem:
-{problem_with_planning}
-
-Original Code:
-```{language}
-{code}
-```
-
-Feedback from Evaluation:
-{feedback}
-
------
-Requirements:
-1. Review the feedback carefully. Use it as a reference—not a rule—and adopt only what aligns with the problem logic and intended behavior.
-2. Make the SMALLEST possible change: touch only the exact lines the feedback targets. Do NOT rewrite, restructure, or replace logic that already works.
-3. Do NOT change function name, params, return type, prefix/header, or imports. Drop feedback that asks for these.
-4. Ensure the final code is both functionally correct.
-5. Keep it simple. Avoid unnecessary complexity or over-engineering.
-6. If the feedback suggests replacing a working implementation with a completely different approach, ignore that suggestion.
-
-{action_prompt_header}"""
+# H36 MaintainCoder: Code Framework Module (requirements analysis, design-pattern selection, framework design and
+# evaluation) and Code Generation Module (generation, execution-driven optimization). System messages from the paper
+# (Figs. 4-6); everything else reconstructed from the paper.
+
+MC_TEMP = 0.3
+MC_MAX_EVALS, MC_MAX_OPTS = 3, 5
+MC_TERMINATE = "TERMINATE"
+MC_STYLE_PY = "PEP 8 and PEP 257"
+MC_LABELS = {"problem": "Problem", "analysis": "Requirement analysis report", "patterns": "Design pattern report",
+             "framework": "Framework design report", "code": "Original code", "test": "Test case"}
+MC_IFACE = {"function": ("a testing interface function named `{entry}`",
+                         "Ensure “{entry}” interface function exists; create if missing."),
+            "stdio": ("a testing interface: the program reads standard input and writes standard output",
+                      "Ensure the program reads standard input and writes standard output; create it if missing."),
+            "other": ("the interface required by the problem",
+                      "Ensure the interface required by the problem exists; create if missing.")}
+
+MC_ANALYSIS = """Role: Requirement Analysis Agent.
+Input: Plain text software requirements.
+Task:
+- Break down the problem, focusing on user goals and constraints.
+- Step-by-step analysis:
+  1. Extract key requirements.
+  2. Identify core functionalities.
+  3. Highlight key challenges and propose high-level solutions.
+- Avoid granular modules; focus on high-priority tasks.
+Output:
+- Structured breakdown:
+  1. Core Functionalities: Key operations or features.
+  2. Key Challenges: Specific hurdles and potential impact.
+- Actionable, clear, and concise. No code."""
+
+MC_PATTERN = """Role: Design Pattern Selection Agent.
+Input: Modules and challenges from Requirement Analysis Agent.
+Task:
+- Choose appropriate design patterns for each module.
+- Address key challenges effectively.
+- Prioritize modularity, low coupling, scalability, and reusability.
+- Suggest alternatives where relevant, with explanations.
+Output:
+For each module:
+- Module Name: Functional module name.
+- Design Pattern: Primary pattern selected.
+- Justification: Problem solved and suitability.
+- Alternatives: Other patterns and their use cases (optional)."""
+
+MC_DESIGN = """Role: Framework Design Agent.
+Input: Modules and selected design patterns with reasoning.
+Task:
+- Develop a preliminary class structure (class names, attributes, methods).
+- Define class relationships (inheritance, composition, dependencies).
+- Focus on key logic and high-level tasks.
+- Justify design choices and assumptions.
+Output:
+A detailed framework outline:
+- Class Structures
+- Relationships of Classes, with clear explanations.
+- No code output."""
+
+MC_EVAL = '''Role: Framework Evaluation Agent.
+Input: Class structure and relations from Framework Design Agent.
+Task:
+- Evaluate design for clarity, scalability, performance, and best practices.
+- Identify issues in coupling, cohesion, reusability.
+- Optimize significant modules, ignore minor changes.
+- Propose actionable optimizations.
+- Return reviewed design for refinement.
+Output:
+- Reviewed and optimized design
+- If no changes needed, output "TERMINATE"'''
+
+MC_CODEGEN = """Role: Code Generation Agent.
+Input:
+- Primitive Problem description.
+- Requirement analysis.
+- Framework design with module structures, classes, interfaces, design patterns, and justifications.
+Task:
+- Write {lang} code with concise comments.
+- Use {style} guidelines.
+- Include {interface}.
+Output:
+- Functional {lang} code with clear, purposeful comments.
+- Focus on design intent and non-trivial logic.
+- Only return valid {lang} code."""
+
+MC_OPTIMIZE = """Role: Code Optimization Agent.
+Input:
+- Problem Requirement & Framework design
+- Original code & Test case in assertion format.
+Task:
+- Understand the problem and framework design.
+- Review the original code for issues or improvement areas.
+- {ensure}
+- Provide code to Code Execution Agent for execution and feedback.
+- Modify code based on feedback.
+- Repeat until code is correct.
+- Rule1: One code block only
+- Rule2: Do not modify test case.
+Output: Modified code in {lang} block."""
+
+MC_EXEC = "exitcode: {code} (execution failed)\nCode output: {logs}"
 
 
 @h2h
-class MACGen(H2HTechnique):
-    """Phase 1: plan, draft, attack-surface triage (early exit with the draft), CWE groups (C per preset), one guideline call
-    over the top-2 KB practices per group query, code-based quick wins, validation, final code and syntax repair (2 tries).
-    Phase 2: functional and security reviews (each with a Yes/No judge and a fix suggestion) and up to M=2 refinements.
-    Temperature 0, 1500 tokens for planner and security agents; per-agent session histories as in the repository. The authors'
-    released refined KB is re-embedded locally (jina-embeddings-v3 instead of OpenAI text-embedding-3-small); presets
-    (action header, C) follow the repository configs for CWEval, HumanEval and LLMSecEval (all other benchmarks)."""
-    hid, name, family, target = "H36", "MACGen", "multiagent", ("SEC",)
-    code_url = "https://github.com/Mishuni/macgen-secure-code"
-
-    def prepare(self, ctx: Ctx) -> None:
-        d = ctx.dir(self.hid)
-        for name, rel in MG_KB.items():
-            if (d / f"{name}.npy").exists():
-                continue
-            items = json.loads(fetch(MG_RAW + rel, d / "kb" / Path(rel).name).read_text())
-            rows = [{"text": x, "meta": {}} if isinstance(x, str) else
-                    {"text": x.get("text") or x.get("content") or "", "meta": x.get("metadata", {})} for x in items]
-            rows = decontaminate([r for r in rows if r["text"]], "text")
-            save_index(d, rows, embed(MG_EMBED, [r["text"] for r in rows]), name)
+class MaintainCoder(H2HTechnique):
+    """Requirements analysis, design-pattern selection and framework design, then up to 3 framework evaluations,
+    each followed by a redesign unless the evaluator outputs TERMINATE; code generation (PEP 8 / PEP 257), then the
+    first public example is inserted as an assertion and the code-optimization agent revises against the executor's
+    output until it passes, at most 5 times (at most 15 calls). Temperature 0.3 (top-p 0.95 cannot be set through the
+    harness). System messages are the paper's (Figs. 4-6); the repository was not consulted, so the rest is
+    reconstructed: the AutoGen chat becomes per-agent user turns carrying the inputs the paper lists (designer-evaluator
+    and optimizer-executor keep their dialogue, the executor replies in AutoGen's exitcode/Code output format), the
+    final code is taken from the fenced block instead of the paper's code-extraction call, `apps_run1` becomes the
+    task's entry point (a stdin/stdout program for stdio tasks, whose example is given as input and expected output),
+    and other languages get their own style guides."""
+    hid, name, family, target = "H36", "MaintainCoder", "multiagent", ("RM",)
+    code_url = "https://github.com/IAAR-Shanghai/MaintainCoder"
 
     def solve(self, task: Task, ctx: Ctx) -> str:
-        lang, q = task.language, C.task_text(task)
-        header, limit = MG_PRESETS.get(task.benchmark, MG_PRESETS["llmseceval"])
-        header = header.replace("{language}", lang)
-        pre = "\n".join(header.split("\n")[:-1])
-        plan = ""
-        for _ in range(1 + MG_PLAN_RETRIES):
-            plan = ctx.llm.ask(MG_PLAN.format(task=q + pre, language=lang), role="planner", temperature=MG_TEMP,
-                               max_tokens=MG_MAX_TOKENS).strip()
-            if plan:
+        ask = lambda msgs, role: ctx.llm.ask(msgs, role=role, temperature=MC_TEMP)
+        q = C.task_text(task)
+        lang = "Python" if task.language == "python" else _lang(task)
+        kind = "function" if task.entry_point else "stdio" if task.mode == "stdio" else "other"
+        interface, ensure = (s.format(entry=task.entry_point) for s in MC_IFACE[kind])
+        analysis = ask(_mc_msgs(MC_ANALYSIS, _mc_input(problem=q)), "requirements-analysis")
+        patterns = ask(_mc_msgs(MC_PATTERN, _mc_input(problem=q, analysis=analysis)), "design-pattern")
+        framework = self._framework(ask, _mc_input(problem=q, analysis=analysis, patterns=patterns))
+        style = MC_STYLE_PY if task.language == "python" else f"{lang} standard style and documentation-comment"
+        out = ask(_mc_msgs(MC_CODEGEN.format(lang=lang, style=style, interface=interface),
+                           _mc_input(problem=q, analysis=analysis, framework=framework)), "code-generation")
+        code = ctx.keep(C.code_of(task, out))
+        test = task.public_tests[0] if task.public_tests else None
+        check = _mc_assertion(task, test)
+        shown = _block(task, f"{code}\n\n{check}" if check else code)
+        msgs = _mc_msgs(MC_OPTIMIZE.format(ensure=ensure, lang=lang),
+                        _mc_input(problem=q, framework=framework, code=shown,
+                                  test=check or (_describe(task, test) if test else "none available")))
+        for _ in range(MC_MAX_OPTS):
+            out = ask(msgs, "code-optimization")
+            new = C.code_of(task, out)
+            code = ctx.keep((new.replace(check, "").rstrip() if check else new) or code)
+            if test is None:
                 break
-        plan = _mg_plan(plan)
-        code_hist, sec_hist = [], []
-        draft_code = ctx.keep(_mg_code(_mg_turn(ctx, code_hist, MG_DRAFT.format(task_description=f"{q}\n\n{plan}\n",
-                                                                                 action_prompt_header=header), "coder-draft"), lang))
-        surface = _mg_turn(ctx, sec_hist, MG_SURFACE.format(problem=q, draft_code=draft_code), "advisor-surface",
-                           max_tokens=MG_MAX_TOKENS).lower()
-        if "no attack surface" in surface or "no_attack_surface" in surface:
-            return self._syntax(task, ctx, draft_code, q) if draft_code else draft_code
-        req = self._advise(task, ctx, sec_hist, q, pre, plan, draft_code, limit)
-        prompt = (MG_CODE.format(language=lang, task_description=q, implementation_plan=plan, security_requirements=req,
-                                 action_prompt_header=header) if req.strip() else
-                  MG_DRAFT.format(task_description=q, action_prompt_header=header))
-        code = _mg_code(_mg_turn(ctx, code_hist, prompt, "coder"), lang)
-        code = self._syntax(task, ctx, ctx.keep(code), q) if code else draft_code
-        return self._review(task, ctx, q, header, code, req) if code else code
-
-    def _advise(self, task: Task, ctx: Ctx, hist: list, q: str, pre: str, plan: str, draft_code: str, limit: int) -> str:
-        """Security Advisor after triage: CWE groups, standards-driven guideline, code-based quick wins, validation."""
-        lang, groups = task.language, []
-        for _ in range(MG_CWE_TRIES):
-            msgs = [{"role": "user", "content": MG_SEC_ENGINEER},
-                    {"role": "user", "content": MG_CWE.format(language=lang, problem_with_planning=f"{q}\n\n{plan}\n",
-                                                              max_limit=limit)}]
-            groups = _mg_groups(ctx.llm.ask(msgs, role="advisor-cwe", temperature=MG_TEMP, max_tokens=MG_MAX_TOKENS))
-            if groups:
+            r = S.run_test(task, code, test)
+            if r.ok:
                 break
-        context = dict(language=lang, os_platform=MG_OS, problem_with_planning=f"{q}\n{pre}\n{plan}" if plan else q)
-        guides = []
-        if groups:
-            queries = [" ".join([str(g.get("group_name") or "").strip(), str(g.get("why") or "").strip()]).strip()
-                       for g in groups]
-            findings = MG_FINDINGS.format(cwe_list=", ".join(queries))
-            out = _mg_turn(ctx, hist, MG_GUIDE.format(retrieved_snippets=_mg_snippets(self._retrieve(ctx, lang, queries)),
-                                                      input=findings, prompt_4_sec_tail=MG_GUIDE_TAIL, **context),
-                           "advisor-guide", record=findings, system=MG_GUIDE_SYSTEM, max_tokens=MG_MAX_TOKENS)
-            guides.append((str(groups[0].get("group_name") or "group_0"), _mg_collapse(_mg_after(out))))
-        if draft_code:
-            quick = MG_QUICK_WINS.format(draft_code=draft_code)
-            out = _mg_turn(ctx, hist, MG_GUIDE.format(retrieved_snippets="", input=quick, prompt_4_sec_tail="", **context),
-                           "advisor-code", record=quick, system=MG_GUIDE_SYSTEM, max_tokens=MG_MAX_TOKENS).strip()
-            if "no additional guideline needed" not in out.lower():
-                guides.append(("others", _mg_collapse(out)))
-        summarized = "\n".join(g for _, g in guides)
-        out = ctx.llm.ask(MG_VALIDATE.format(language=lang, os_platform=MG_OS, question=f"{q}\n{pre}",
-                                             security_guidelines=summarized),
-                          role="advisor-validate", temperature=MG_TEMP, max_tokens=MG_MAX_TOKENS).strip()
-        if not out:
-            return "\n".join(f"{n}\n{g}" for n, g in guides if n != "others")
-        return _mg_collapse(_mg_after(out)).strip() or summarized
-
-    def _retrieve(self, ctx: Ctx, lang: str, queries: list[str]) -> list[dict]:
-        """Top-K practices per query over the language's merged stores (the general ASVS store when none is dedicated)."""
-        parts = [load_index(ctx.dir(self.hid), s) for s in MG_STORES.get(lang, ("asvs",))]
-        rows, vecs = [r for rs, _ in parts for r in rs], np.concatenate([v for _, v in parts])
-        return [rows[i] for v in embed(MG_EMBED, queries) for i in top_k(vecs, v, MG_RAG_K)]
-
-    def _review(self, task: Task, ctx: Ctx, q: str, header: str, code: str, req: str) -> str:
-        """Phase 2: the coder's session is reseeded with the code-generation turn (the plan reads None, as in the repository)."""
-        lang, seed_q = task.language, f"{q}\n\nNone".strip()
-        seed = (MG_CODE.format(language=lang, task_description=seed_q, implementation_plan="", security_requirements=req,
-                               action_prompt_header=header) if req.strip() else
-                MG_DRAFT.format(task_description=seed_q, action_prompt_header=header))
-        hist = [{"role": "user", "content": seed}, {"role": "assistant", "content": code}]
-        req = _mg_collapse(re.sub(r"<CODE>.*?</CODE>", "", re.sub(r"```.*?```", "", req, flags=re.S), flags=re.S | re.I)).strip()
-        current = code
-        for _ in range(MG_REFINE_ATTEMPTS):
-            func_ok, func_fb = self._functional(task, ctx, q, header, current)
-            sec_ok, sec_fb = self._secure(task, ctx, q, header, current, req)
-            if func_ok and sec_ok:
-                break
-            feedback = (f"Functionality: {'Passed' if func_ok else 'Failed'}, Security: {'Passed' if sec_ok else 'Failed'}"
-                        + ("" if func_ok else f"\n\nFunctionality Feedback:\n{func_fb}")
-                        + ("" if sec_ok else f"\n\nSecurity Feedback:\n{sec_fb}"))
-            out = _mg_turn(ctx, hist, MG_REFINE.format(problem_with_planning=q, language=lang, code=current, feedback=feedback,
-                                                       action_prompt_header=header), "coder-refine")
-            current = ctx.keep(_mg_code(out, lang) or current)
-        return self._syntax(task, ctx, current, q) if current.strip() != code.strip() else current
-
-    @staticmethod
-    def _functional(task: Task, ctx: Ctx, q: str, header: str, code: str) -> tuple[bool, str]:
-        hist: list = []
-        under = _mg_turn(ctx, hist, MG_FUNC.format(task_description=q, action_header=header, language=task.language,
-                                                   current_code=code), "reviewer-func")
-        if "the code is functional" in under.lower():
-            passed = True
-        else:
-            ans = ctx.llm.ask(_mg_judge(under), role="reviewer-judge", temperature=MG_TEMP).strip().lower()
-            passed = "yes" in ans and "no" not in ans
-        analysis = re.sub(r"\n{2,}", "\n", _mg_section(under).strip())
-        if not passed:
-            fix = _mg_turn(ctx, hist, MG_FIX.format(problem=q, feedback=analysis, language=task.language), "reviewer-func-fix")
-            analysis = _mg_collapse(fix).strip()
-            passed = "no actionable fix" in analysis.lower()
-        return passed, analysis
-
-    @staticmethod
-    def _secure(task: Task, ctx: Ctx, q: str, header: str, code: str, req: str) -> tuple[bool, str]:
-        hist: list = []
-        under = _mg_turn(ctx, hist, MG_SEC_REVIEW.format(task_description=q, action_header=header, language=task.language,
-                                                         current_code=code, security_requirements=req),
-                         "reviewer-sec", max_tokens=MG_MAX_TOKENS)
-        if "the code is safe" in under.lower():
-            return True, under
-        if "yes" in ctx.llm.ask(_mg_judge(under), role="reviewer-judge", temperature=MG_TEMP).lower():
-            return True, under
-        fix = _mg_turn(ctx, hist, MG_FIX.format(problem=q, feedback=_mg_section(under), language=task.language),
-                       "reviewer-sec-fix", max_tokens=MG_MAX_TOKENS)
-        m = re.search(r"(### Fix Approaches.*)", fix, re.S)
-        total = _mg_collapse(m.group(1) if m else fix).strip()
-        return "no actionable fix" in total.lower(), total
-
-    @staticmethod
-    def _syntax(task: Task, ctx: Ctx, code: str, q: str) -> str:
-        """compilation_check_and_repair: at most two syntax-fix calls with the compiler feedback."""
-        if task.language in MG_NO_COMPILE:
-            return code
-        ok, log = _mg_compiles(task, code)
-        for _ in range(MG_SYNTAX_FIXES):
-            if ok:
-                break
-            msgs = [{"role": "system", "content": MG_SYNTAX_SYSTEM},
-                    {"role": "user", "content": MG_SYNTAX.format(question=q, language=task.language, code=code,
-                                                                 compiler_feedback=("\n" + log)[:1000])}]
-            code = ctx.keep(_mg_code(ctx.llm.ask(msgs, role="coder-syntax", temperature=MG_TEMP), task.language))
-            ok, log = _mg_compiles(task, code)
+            logs = "Timeout" if r.timeout else (r.stdout + r.stderr[-1500:] if test.kind == "io" else r.stderr[-1500:])
+            if test.kind == "io" and not r.timeout:
+                logs += f"\nExpected output:\n{test.expected}"
+            msgs += [{"role": "assistant", "content": out},
+                     {"role": "user", "content": MC_EXEC.format(code=r.returncode or 1, logs=logs)}]
         return code
 
-
-def _mg_turn(ctx: Ctx, hist: list, content: str, role: str, record: str | None = None, system: str | None = None,
-             max_tokens: int | None = None) -> str:
-    """One call of an agent session: its history plus the new message; the session stores `record` (the chain input)."""
-    msgs = ([{"role": "system", "content": system}] if system else []) + hist + [{"role": "user", "content": content}]
-    out = ctx.llm.ask(msgs, role=role, temperature=MG_TEMP, max_tokens=max_tokens)
-    hist += [{"role": "user", "content": content if record is None else record}, {"role": "assistant", "content": out}]
-    return out
-
-
-def _mg_judge(analysis: str) -> list[dict]:
-    return [{"role": "system", "content": MG_JUDGE_SYSTEM}, {"role": "user", "content": MG_JUDGE_USER.format(MISTAKES=analysis)},
-            {"role": "assistant", "content": MG_JUDGE_PREFILL}]
-
-
-def _mg_code(text: str, lang: str) -> str:
-    """The repository's extract_code: the first fenced block, without its language tag."""
-    m = re.search(r"```(.*?)```", text or "", re.S)
-    code = (m.group(1) if m else text or "").strip()
-    head, _, rest = code.partition("\n")
-    return rest if head.strip().lower() in MG_FENCE_TAGS | {lang} else code
+    @staticmethod
+    def _framework(ask, inputs: str) -> str:
+        designer = _mc_msgs(MC_DESIGN, inputs)
+        framework = ask(designer, "framework-design")
+        evaluator = _mc_msgs(MC_EVAL, f"{inputs}\n\n{MC_LABELS['framework']}:\n{framework}")
+        for _ in range(MC_MAX_EVALS):
+            review = ask(evaluator, "framework-evaluation")
+            if MC_TERMINATE in review:
+                break
+            designer += [{"role": "assistant", "content": framework}, {"role": "user", "content": review}]
+            framework = ask(designer, "framework-design")
+            evaluator += [{"role": "assistant", "content": review}, {"role": "user", "content": framework}]
+        return framework
 
 
-def _mg_compiles(task: Task, code: str) -> tuple[bool, str]:
-    if task.language != "python":
-        return _compiles(task, code)
-    try:
-        ast.parse(code)
-        return True, ""
-    except SyntaxError as e:
-        return False, f"[SyntaxError] {e.msg} (Line {e.lineno}, Column {e.offset}): {(e.text or '').strip()}"
+def _mc_msgs(system: str, user: str) -> list[dict]:
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
 
-def _mg_plan(plan: str) -> str:
-    """_normalize_plan_text: lower-cased, from the last plan marker (or the last 1200 characters), blank lines dropped."""
-    txt = plan.strip().lower()
-    if not txt:
+def _mc_input(**parts: str) -> str:
+    return "\n\n".join(f"{MC_LABELS[k]}:\n{v}" for k, v in parts.items())
+
+
+def _mc_assertion(task: Task, t: Test | None) -> str:
+    """The example as a Python assertion appended to the code; '' for stdin/stdout examples and other languages."""
+    if t is None or task.language != "python":
         return ""
-    at = max(txt.rfind(m) for m in MG_PLAN_MARKERS)
-    txt = txt[at:] if at != -1 else f"### Plan\n\n{txt[-1200:]}"
-    return "\n".join(l for l in txt.splitlines() if l.strip())
-
-
-def _mg_groups(raw: str) -> list[dict]:
-    """CWE groups from the first fenced block, sorted by likelihood; [] when it does not parse to a list of objects."""
-    m = re.search(r"```(.*?)```", raw or "", re.S)
-    block = (m.group(1) if m else raw or "").strip()
-    if block.lower().startswith("json\n"):
-        block = block[4:]
-    for a, b in ((']"', ']'), ('"[', '['), ("]'", ']'), ("'[", '['), ("cwe-", "CWE-"), ("CWE- ", "CWE-")):
-        block = block.replace(a, b)
-    try:
-        data = json.loads(block, strict=False)
-    except json.JSONDecodeError:
-        return []
-    for k in ("Security Requirements", "security_requirements"):
-        if isinstance(data, dict) and k in data:
-            data = data[k]
-    if not isinstance(data, list) or not all(isinstance(g, dict) for g in data):
-        return []
-    return sorted(data, key=lambda g: _num(g.get("likelihood", 0)), reverse=True)
-
-
-def _mg_snippets(docs: list[dict]) -> str:
-    """_format_docs_for_prompt: deduplicated practices of at least 50 characters, stopping once past 7000 characters."""
-    chunks, seen = [], set()
-    for d in docs:
-        txt = d["text"].strip()
-        key = f"{d['meta']}||{txt[:100]}"
-        if len(txt) < 50 or key in seen:
-            continue
-        seen.add(key)
-        chunks.append(txt)
-        if sum(len(c) for c in chunks) > MG_SNIPPET_CHARS:
-            break
-    return "\n\n".join(f"- {c}" for c in chunks) if chunks else "- (no high-quality practices found)"
-
-
-def _mg_after(text: str) -> str:
-    """extract_content_after_marker: the text after the first guideline marker found, else its last 700 characters."""
-    low = text.lower()
-    for m in MG_GUIDE_MARKERS:
-        i = low.find(m)
-        if i != -1:
-            return text[i + len(m):].strip()
-    return text[-700:].strip()
-
-
-def _mg_section(text: str) -> str:
-    m = re.search(r"(?:^|\n)###\s*Current Code Analysis.*?(.*)", text, re.S)
-    return m.group(0).strip() if m else text
-
-
-def _mg_collapse(text: str) -> str:
-    return re.sub(r"\n\s*\n+", "\n", text)
+    if t.kind == "assert":
+        return t.code.strip()
+    if t.kind == "call":
+        try:
+            return f"assert {task.entry_point}(*{json.loads(t.code)!r}) == {t.expected!r}"
+        except json.JSONDecodeError:
+            return ""
+    return ""

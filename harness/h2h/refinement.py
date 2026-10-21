@@ -1,4 +1,4 @@
-"""E7 self-refinement family, H21-H26. The critic and the reviser are the E7 model itself; tools appear only where the paper uses them."""
+"""E12 self-refinement family, H21-H26. The critic and the reviser are the E12 model itself; tools appear only where the paper uses them."""
 from __future__ import annotations
 
 import ast

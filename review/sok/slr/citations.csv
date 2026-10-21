@@ -617,3 +617,213 @@ V00036,Planning with Large Language Models for Code Generation,2023,272,,semanti
 V00051,Rethinking Repetition Problems of LLMs in Code Generation,2025,15,,semantic-scholar
 V00100,SolSearch: An LLM-Driven Framework for Efficient SAT-Solving Code Generation,2025,6,2,semantic-scholar
 V00117,LLMs Meet Library Evolution: Evaluating Deprecated API Usage in LLM-Based Code Completion,2024,60,12,semantic-scholar
+S00144,Can You Really Trust Code Copilots? Evaluating Large Language Models from a Code Security Perspective,2025,9,,semantic-scholar
+S00248,GTC: Architecture exploration for generation-in-time computing paradigm,2026,0,,semantic-scholar
+S00303,Idioms: A Simple and Effective Framework for Turbo-Charging Local Neural Decompilation with Well-Defined Types,2026,10,,semantic-scholar
+S00339,Learning from Failures: Error Notebook-guided Secure Code Generation,2026,0,,semantic-scholar
+S00374,QiMeng-MuPa: Mutual-Supervised Learning for Sequential-to-Parallel Code Translation,2025,3,,semantic-scholar
+S00686,Controlling Conditional Language Models without Catastrophic Forgetting,2021,44,,semantic-scholar
+S01244,ChipGPT: How far are we from natural language hardware design,2023,205,,semantic-scholar
+S01329,HPC-Coder: Modeling Parallel Programs using Large Language Models,2023,22,,semantic-scholar
+S01401,RTLLM: An Open-Source Benchmark for Design RTL Generation with Large Language Model,2023,308,,semantic-scholar
+S01471,GPT4AIGChip: Towards Next-Generation AI Accelerator Design Automation via Large Language Models,2023,143,,semantic-scholar
+S01536,Enhancing Genetic Improvement Mutations Using Large Language Models,2023,33,,semantic-scholar
+S01630,"Advanced Large Language Model (LLM)-Driven Verilog Development: Enhancing Power, Performance, and Area Optimization in Code Synthesis",2023,19,,semantic-scholar
+S01664,MoTCoder: Elevating Large Language Models with Modular of Thought for Challenging Programming Tasks,2023,19,,semantic-scholar
+S01747,BetterV: Controlled Verilog Generation with Discriminative Guidance,2024,185,,semantic-scholar
+S01754,Make Every Move Count: LLM-based High-Quality RTL Code Generation Using MCTS,2024,63,,semantic-scholar
+S01832,Comparing Large Language Models and Human Programmers for Generating Programming Code,2024,59,,semantic-scholar
+S01996,VERT: Verified Equivalent Rust Transpilation with Large Language Models as Few-Shot Learners,2024,53,,semantic-scholar
+S02074,Time to Separate from StackOverflow and Match with ChatGPT for Encryption,2024,11,,semantic-scholar
+S02093,LLM-Vectorizer: LLM-Based Verified Loop Vectorizer,2024,46,,semantic-scholar
+S02134,Code-Optimise: Self-Generated Preference Data for Correctness and Efficiency,2024,28,,semantic-scholar
+S02158,Efficacy of Various Large Language Models in Generating Smart Contracts,2024,9,,semantic-scholar
+S02165,LASSI: An LLM-Based Automated Self-Correcting Pipeline for Translating Parallel Scientific Codes,2024,20,,semantic-scholar
+S02298,RTLRewriter: Methodologies for Large Models aided RTL Code Optimization,2024,59,,semantic-scholar
+S02400,Improving Parallel Program Performance with LLM Optimizers via Agent-System Interfaces,2024,15,,semantic-scholar
+S02431,Multi-Programming Language Sandbox for LLMs,2024,13,,semantic-scholar
+S02469,Chain-of-Programming (CoP) : Empowering Large Language Models for Geospatial Code Generation,2024,7,,semantic-scholar
+S02498,C2HLSC: Leveraging Large Language Models to Bridge the Software-to-Hardware Design Gap,2024,40,,semantic-scholar
+S02535,Assessing ChatGPT’s Code Generation Capabilities with Short vs Long Context Programming Problems,2024,8,,semantic-scholar
+S02592,C2SaferRust: Transforming C Projects Into Safer Rust With NeuroSymbolic Techniques,2025,51,,semantic-scholar
+S02612,Adaptive Self-improvement LLM Agentic System for ML Library Development,2025,16,,semantic-scholar
+S02634,KernelBench: Can LLMs Write Efficient GPU Kernels?,2025,280,,semantic-scholar
+S02707,AutoIOT: LLM-Driven Automated Natural Language Programming for AIoT Applications,2025,50,,semantic-scholar
+S02710,TPU-Gen: LLM-Driven Custom Tensor Processing Unit Generator,2025,7,,semantic-scholar
+S02711,Generation of Optimized Solidity Code for Machine Learning Models using LLMs,2025,7,,semantic-scholar
+S02752,A Preliminary Study on the Robustness of Code Generation by Large Language Models,2025,8,,semantic-scholar
+S02765,MaintainCoder: Maintainable Code Generation Under Dynamic Requirements,2025,18,,semantic-scholar
+S02771,Smart contract generation model based on code annotation and AST-LSTM tuning,2025,5,,semantic-scholar
+S02804,QiMeng-GEMM: Automatically Generating High-Performance Matrix Multiplication Code by Exploiting Large Language Models,2025,11,,semantic-scholar
+S02890,Raw Pointer Rewriting with LLMs for Translating C to Safer Rust,2025,11,,semantic-scholar
+S02964,CoQuIR: A Comprehensive Benchmark for Code Quality-Aware Information Retrieval,2025,6,,semantic-scholar
+S02982,"Deployability-Centric Infrastructure-as-Code Generation: Fail, Learn, Refine, and Succeed through LLM-Empowered DevOps Simulation",2025,9,,semantic-scholar
+S02985,CompilerGPT: Leveraging Large Language Models for Analyzing and Acting on Compiler Optimization Reports,2025,3,,semantic-scholar
+S02992,CUDA-LLM: LLMs Can Write Efficient CUDA Kernels,2025,43,,semantic-scholar
+S03012,AlphaEvolve: A coding agent for scientific and algorithmic discovery,2025,1075,,semantic-scholar
+S03052,GPU Kernel Scientist: An LLM-Driven Framework for Iterative Kernel Optimization,2025,27,,semantic-scholar
+S03055,EvoVerilog: Large Langugage Model Assisted Evolution of Verilog Code,2025,4,,semantic-scholar
+S03061,Comparative Analysis of the Code Generated by Popular Large Language Models (LLMs) for MISRA C++ Compliance,2025,2,,semantic-scholar
+S03068,ChatHLS: Towards Systematic Design Automation and Optimization for High-Level Synthesis,2025,7,,semantic-scholar
+S03084,HLStrans: Dataset for C-to-HLS Hardware Code Synthesis,2025,5,,semantic-scholar
+S03086,AutoTriton: Automatic Triton Programming with Reinforcement Learning in LLMs,2025,49,,semantic-scholar
+S03100,When Developer Aid Becomes Security Debt: A Systematic Analysis of Insecure Behaviors in LLM Coding Agents,2025,12,,semantic-scholar
+S03111,Kevin: Multi-Turn RL for Generating CUDA Kernels,2025,91,,semantic-scholar
+S03114,AlgoTune: Can Language Models Speed Up General-Purpose Numerical Programs?,2025,30,,semantic-scholar
+S03116,MultiKernelBench: A Multi-Platform Benchmark for Kernel Generation,2025,44,,semantic-scholar
+S03141,A2H-MAS: An Algorithm-to-HLS Multi-Agent System for Automated and Reliable FPGA Implementation,2025,1,,semantic-scholar
+S03160,CRINN: Contrastive Reinforcement Learning for Approximate Nearest Neighbor Search,2025,0,,semantic-scholar
+S03188,TRACE: Evaluating Execution Efficiency of LLM-Based Code Translation,2025,8,,semantic-scholar
+S03211,SwizzlePerf: Hardware-Aware LLMs for GPU Kernel Performance Optimization,2025,12,,semantic-scholar
+S03222,POLO: An LLM-Powered Project-Level Code Performance Optimization Framework,2025,11,,semantic-scholar
+S03223,SecV: LLM-based Secure Verilog Generation with Clue-Guided Exploration on Hardware-CWE Knowledge Graph,2025,10,,semantic-scholar
+S03240,"LLM-VeriPPA: Power, Performance, and Area Optimization aware Verilog Code Generation with Large Language Models",2025,6,,semantic-scholar
+S03253,Securing LLM-Generated Embedded Firmware Through AI Agent-Driven Validation and Patching,2025,5,,semantic-scholar
+S03256,EfficientUICoder: A Bidirectional Token Compression Framework for Efficient MLLM-Based UI Code Generation,2025,6,,semantic-scholar
+S03257,From Legacy Fortran to Portable Kokkos: An Autonomous Agentic AI Workflow,2025,6,,semantic-scholar
+S03263,"Towards Robust Agentic CUDA Kernel Benchmarking, Verification, and Optimization",2025,72,,semantic-scholar
+S03282,"Code once, Run Green: Automated Green Code Translation in Serverless Computing",2025,3,,semantic-scholar
+S03343,Barbarians at the Gate: How AI is Upending Systems Research,2025,69,,semantic-scholar
+S03347,ConCuR: Conciseness Makes State-of-the-Art Kernel Generation,2025,15,,semantic-scholar
+S03357,IntrinTrans: LLM-based Intrinsic Code Translator for RISC-V Vector,2025,3,,semantic-scholar
+S03362,Project-Level C-to-Rust Translation via Pointer Knowledge Graphs,2025,4,,semantic-scholar
+S03378,TritonRL: Training LLMs to Think and Code Triton Without Cheating,2025,31,,semantic-scholar
+S03391,From Large to Small: Transferring CUDA Optimization Expertise via Reasoning Graph,2025,11,,semantic-scholar
+S03403,"SwiftSolve: A Self-Iterative, Complexity-Aware Multi-Agent Framework for Competitive Programming",2025,0,,semantic-scholar
+S03419,The FM Agent,2025,22,,semantic-scholar
+S03452,PRAGMA: A Profiling-Reasoned Multi-Agent Framework for Automatic Kernel Optimization,2025,14,,semantic-scholar
+S03482,AccelOpt: A Self-Improving LLM Agentic System for AI Accelerator Kernel Optimization,2025,32,,semantic-scholar
+S03486,Optimizing PyTorch Inference with LLM-Based Multi-Agent Systems,2025,3,,semantic-scholar
+S03490,KernelBand: Steering LLM-based Kernel Optimization via Hardware-Aware Multi-Armed Bandits,2025,2,,semantic-scholar
+S03493,QiMeng-Kernel: Macro-Thinking Micro-Coding Paradigm for LLM-Based High-Performance GPU Kernel Generation,2025,24,,semantic-scholar
+S03494,Translating Large-Scale C Repositories to Idiomatic Rust,2025,14,,semantic-scholar
+S03509,CUDA-L2: Surpassing cuBLAS Performance for Matrix Multiplication through Reinforcement Learning,2025,14,,semantic-scholar
+S03537,TritonForge: Profiling-Guided Framework for Automated Triton Kernel Optimization,2025,21,,semantic-scholar
+S03556,cuPilot: A Strategy-Coordinated Multi-agent Framework for CUDA Kernel Evolution,2025,8,,semantic-scholar
+S03565,PEAK: A Performance Engineering AI-Assistant for GPU Kernels Powered by Natural Language Transformations,2025,6,,semantic-scholar
+S03567,Comment Traps: How Defective Commented-Out Code Augment Defects in AI-Assisted Code Generation,2025,2,,semantic-scholar
+S03615,Code Evolution for Control: Synthesizing Policies via LLM-Driven Evolutionary Search,2026,5,,semantic-scholar
+S03622,TerraFormer: Automated Infrastructure-as-Code with LLMs Fine-Tuned via Policy-Guided Verifier Feedback,2026,11,,semantic-scholar
+S03651,EvolVE: Evolutionary Search for LLM-based Verilog Generation and Optimization,2026,11,,semantic-scholar
+S03666,AscendCraft: Automatic Ascend NPU Kernel Generation via DSL-Guided Transcompilation,2026,9,,semantic-scholar
+S03723,KernelCraft: Benchmarking for Agentic Close-to-Metal Kernel Generation on Emerging Hardware,2026,11,,semantic-scholar
+S03724,LLM4PQC - Accurate and Efficient Synthesis of PQC Cores by Feedback-Driven LLMs,2026,5,,semantic-scholar
+S03736,An end-to-end agentic pipeline for smart contract translation and quality evaluation,2026,0,,semantic-scholar
+S03753,K-Search: LLM Kernel Generation via Co-Evolving Intrinsic World Model,2026,27,,semantic-scholar
+S03754,From Prompts to Performance: Evaluating LLMs for Task-based Parallel Code Generation,2026,1,,semantic-scholar
+S03755,PackMonitor: Towards Zero Package Hallucinations via Decoding-Time Monitoring,2026,2,,semantic-scholar
+S03772,Detect-Repair-Verify for Securing LLM-Generated Code: A Multi-Language Empirical Study,2026,1,,semantic-scholar
+S03781,Bespoke OLAP: Synthesizing Workload-Specific One-size-fits-one Database Engines,2026,21,,semantic-scholar
+S03782,CUCo: An Agentic Framework for Compute and Communication Co-design,2026,3,,semantic-scholar
+S03783,"GenDB: The Next Generation of Query Processing - Synthesized, Not Engineered",2026,11,,semantic-scholar
+S03785,An Initial Exploration of Contrastive Prompt Tuning to Generate Energy-Efficient Code,2026,0,,semantic-scholar
+S03786,His2Trans: A Knowledge-Guided Agentic Framework for Project-Level C-to-Rust Migration,2026,1,,semantic-scholar
+S03788,ParEVO: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution,2026,0,,semantic-scholar
+S03801,KernelSkill: A Multi-Agent Framework for GPU Kernel Optimization,2026,15,,semantic-scholar
+S03806,Towards Cold-Start Drafting and Continual Refining: A Value-Driven Memory Approach with Application to NPU Kernel Synthesis,2026,5,,semantic-scholar
+S03808,KernelFoundry: Hardware-aware evolutionary GPU kernel optimization,2026,17,,semantic-scholar
+S03809,The Perfection Paradox: From Architect to Curator in AI-Assisted API Design,2026,0,,semantic-scholar
+S03814,SemRep: Generative Code Representation Learning with Code Transformations,2026,0,,semantic-scholar
+S03845,DRTriton: Large-Scale Synthetic Data Driven Reinforcement Learning for Triton Kernel Generation,2026,2,,semantic-scholar
+S03848,AscendOptimizer: Episodic Agent for Ascend NPU Operator Optimization,2026,4,,semantic-scholar
+S03850,AVO: Agentic Variation Operators for Autonomous Evolutionary Search,2026,27,,semantic-scholar
+S03855,Agent Factories for High Level Synthesis: How Far Can General-Purpose Coding Agents Go in Hardware Optimization?,2026,2,,semantic-scholar
+S03866,Improving Efficiency of GPU Kernel Optimization Agents using a Domain-Specific Language and Speed-of-Light Guidance,2026,10,,semantic-scholar
+S03867,Kernel-Smith: A Unified Recipe for Evolutionary Kernel Optimization,2026,10,,semantic-scholar
+S03881,CuTeGen: An LLM-Based Agentic Framework for Generation and Optimization of High-Performance GPU Kernels using CuTe,2026,9,,semantic-scholar
+S03891,InCoder-32B-Thinking: Industrial Code World Model for Thinking,2026,5,,semantic-scholar
+S03892,PAFT: Preservation-Aware Fine-Tuning for Minimal-Edit Program Repair,2026,3,,semantic-scholar
+S03896,ENCRUST: Encapsulated Substitution and Agentic Refinement on a Live Scaffold for Safe C-to-Rust Translation,2026,3,,semantic-scholar
+S03933,Record-Remix-Replay: Hierarchical GPU Kernel Optimization using Evolutionary Search,2026,1,,semantic-scholar
+S03947,Ave: Guiding Agentic GPU Optimization Using Data-Flow Invariants,2026,3,,semantic-scholar
+S03953,Xe-Forge: Multi-Stage LLM-Powered Kernel Optimization for Intel GPU,2026,2,,semantic-scholar
+S03954,AdaExplore: Failure-Driven Adaptation and Diversity-Preserving Search for Efficient Kernel Generation,2026,5,,semantic-scholar
+S03961,A Quasi-Experimental Developer Study of Security Training in LLM-Assisted Web Application Development,2026,0,,semantic-scholar
+S03962,AutoPPA: Automated Circuit PPA Optimization via Contrastive Code-based Rule Library Learning,2026,0,,semantic-scholar
+S03998,FACT: Compositional Kernel Synthesis with a Three-Stage Agentic Workflow,2026,0,,semantic-scholar
+S04041,CuBridge: An LLM-Based Framework for Understanding and Reconstructing High-Performance Attention Kernels,2026,4,,semantic-scholar
+S04044,On Fixing Insecure AI-Generated Code through Model Fine-Tuning and Prompting Strategies,2026,1,,semantic-scholar
+S04045,VibeServe: Can AI Agents Build Bespoke LLM Serving Systems?,2026,5,,semantic-scholar
+S04048,CUDAHercules: Benchmarking Hardware-Aware Expert-level CUDA Optimization for LLMs,2026,3,,semantic-scholar
+S04049,GEAR: Genetic AutoResearch for Agentic Code Evolution,2026,5,,semantic-scholar
+S04070,A3D: Agentic AI flow for autonomous Accelerator Design,2026,0,,semantic-scholar
+S04071,Adapting AlphaEvolve to Optimize Fully Homomorphic Encryption on TPUs,2026,1,,semantic-scholar
+S04081,Constrained Code Generation with Discrete Diffusion,2026,2,,semantic-scholar
+S04087,CPPL: A Circuit Prompt Programming Language,2026,2,,semantic-scholar
+S04092,Lean Refactor: Multi-Objective Controllable Proof Optimization via Agentic Strategy Search,2026,2,,semantic-scholar
+S04102,"KernelBrain: Coarse-to-Fine, Budget-Aware Search for Agentic GPU Kernel Optimization",2026,0,,semantic-scholar
+S04117,Agentic Kernel Optimization: Generating State-of-the-Art GPU Kernels Without Hand-Written CUDA,2026,4,,semantic-scholar
+S04119,Heimdall: Formally Verified Automated Migration of Legacy eBPF Programs to Rust,2026,1,,semantic-scholar
+S04124,Towards Feedback-to-Plan Decisions for Self-Evolving LLM Agents in CUDA Kernel Generation,2026,0,,semantic-scholar
+S04125,Verilog-Evolve: Feedback-Driven and Skill-Evolving Verilog Generation,2026,0,,semantic-scholar
+S04129,From Human Guidance to Autonomy: Agent Skill System for End-to-End LLM Deployment on Spatial NPUs,2026,2,,semantic-scholar
+S04130,KLineage: Recovering the Missing When of Kernel Optimization by Deoptimizing Experts,2026,0,,semantic-scholar
+S04135,HTAM: Hierarchical Transition-Attended Memory for Operator Optimization,2026,2,,semantic-scholar
+S04137,PassNet: Scaling Large Language Models for Graph Compiler Pass Generation,2026,1,,semantic-scholar
+S04141,From Retrieved Evidence to Security Outcomes: A Data-Driven Analysis of Java Security API Misuse in LLM-Generated Code,2026,1,,semantic-scholar
+S04142,GPU Forecasters: Language Models as Selective Surrogates for Kernel Runtime Optimization,2026,1,,semantic-scholar
+S04145,Specification-Driven Development Benchmark: Security Knowledge Transition,2026,4,,semantic-scholar
+S04163,KernelEvolve: Scaling Agentic Kernel Coding for Heterogeneous AI Accelerators at Meta,2026,2,,semantic-scholar
+S04176,Kernel Forge: An Agent Harness for LLM-based Generation and Optimization of CUDA Kernels,2026,2,,semantic-scholar
+S04181,Alpha-RTL: Test-Time Training for RTL Hardware Optimization,2026,2,,semantic-scholar
+S04182,Diff-SQL: SQL Efficiency Optimization via Patch Generation and Constraint Alignment,2026,0,,semantic-scholar
+S04183,RTLScout: Joint Agentic Code and Synthesis Optimization for Efficient Digital Circuits,2026,2,,semantic-scholar
+S04187,LLM-Based Porting of Optimized C++ to CUDA Through Deoptimization and Reoptimization,2026,0,,semantic-scholar
+S04207,Arbor: Tree Search as a Cognition Layer for Autonomous Agents,2026,0,,semantic-scholar
+S04213,Beyond Correctness: Enhancing Architectural Reasoning in Code LLMs via Scalable Labeling with Agentic Judgment,2026,1,,semantic-scholar
+S04225,"daVinci-kernel: Co-Evolving Skill Selection, Summarization, and Utilization via RL for GPU Kernel Optimization",2026,3,,semantic-scholar
+S04226,Bridging Functional Correctness and Runtime Efficiency Gaps in LLM-Based Code Translation,2026,1,,semantic-scholar
+S04228,SpecGen: Accelerating Agentic Kernel Optimization with Speculative Generation,2026,0,,semantic-scholar
+S04257,EGG: An Expert-Guided Agent Framework for Kernel Generation,2026,2,,semantic-scholar
+S04269,AdaTrans: Automated C to Rust Transformation via Error-Adaptive Repair,2026,0,,semantic-scholar
+S04305,Decomposer: Learning to Decompile Symbolic Music to Programs,2026,0,,semantic-scholar
+S04308,Hawk: Harnessing Hardware-Aware Knowledge for High-Performance NPU Kernel Generation,2026,2,,semantic-scholar
+S04332,PERFOPT-Bench: Evaluating Coding Agents on Software Performance Optimization,2026,1,,semantic-scholar
+S04356,TRIM: Reducing AI-Generated CodeSlop via Agent Trajectory Minimization,2026,0,,semantic-scholar
+S04357,KernelGenBench: Can LLMs and Agents Write Efficient Kernels Across Operator Sources and Hardware Platforms?,2026,2,,semantic-scholar
+S04365,Compiler-Grounded Hierarchical Diagnosis for LLM-Based Triton Kernel Optimization,2026,0,,semantic-scholar
+S04378,ARES: Adaptive Reasoning-Effort Steering for PPA- and Cost-Aware RTL Optimization with LLM Agents,2026,0,,semantic-scholar
+S04380,From C to Idiomatic Rust: A Ship-of-Theseus Agentic Translation,2026,0,,semantic-scholar
+S04384,Do Uncertainty Signals Help? A Systematic Study of Uncertainty-Aware Decoding with Rollback Mechanisms,2026,0,,semantic-scholar
+S04404,Rethinking Agentic Kernel Generation for Emerging Accelerators,2026,1,,semantic-scholar
+S04427,RepoOMP: Repository-Aware Hotspot OpenMP Parallelization via Dependency-Aware Context Reduction,2026,0,,semantic-scholar
+S04429,"Can AI Write Compliant Code, and to What Extent? Evaluating SOC 2 Compliance of Claude Fable 5, Claude Opus 4.8, and Claude Opus 5 Across Four Use Cases",2026,0,,semantic-scholar
+S04431,HLSmith: An Expert-Guided Agentic Framework for C/C++-to-HLS Translation,2026,0,,semantic-scholar
+S04434,OSFoundry: Building and Evolving Operating Systems with Specification-Guided Agents,2026,0,,semantic-scholar
+S04443,Pseudo2CodeQA: A Benchmark for LLM-Based Structured Algorithmic Reasoning in Code Generation,2026,0,,semantic-scholar
+S04449,CAKE: Compiler-Agent Co-Design for Frontier Kernel Evolution,2026,9,,semantic-scholar
+S04452,IaC-Guard-V: A Verification Framework for LLM-Generated Infrastructure-as-Code Repairs,2026,0,,semantic-scholar
+S04460,KernelArc: A Multi-Agent Framework for GPU Kernel Optimization,2026,1,,semantic-scholar
+S04463,SkillEffect: Checked Lowering for Memory-Bounded Agent Tools,2026,0,,semantic-scholar
+S04465,PTXBench: Benchmarking and Adapting LLMs for GPU Kernel Optimization with Architecture-specific PTX,2026,2,,semantic-scholar
+S04475,AsmEvo: Agentic Assembly-Level Optimization of AMD GPU Kernels with Functional Equivalence Verification,2026,0,,semantic-scholar
+S04476,HIERA: Workload-Aware Planning Across Implementation Spaces for GPU Kernel Optimization,2026,1,,semantic-scholar
+S04478,Vibe Coding and Web Application Security: A Twin-Prompt Study,2026,0,,semantic-scholar
+S04480,Architecture as Capability Equalizer for Coding Agents,2026,1,,semantic-scholar
+S04481,LLM4LLM: Bridging Kernel Benchmarks and Real Deployment via Closed-Loop Agentic Optimization,2026,0,,semantic-scholar
+S04489,DataKernelBench: Can LLMs Optimize Database Queries on GPUs?,2026,1,,semantic-scholar
+S04490,FABRICA: Agentic CUDA-to-CSL Translation and Optimization for Wafer-Scale Systems,2026,0,,semantic-scholar
+S04495,Beyond Scaling: Self-Evolving LLM Agents for Hardware Kernel Optimization via an Experience-Driven Workflow and Experience Graph Memory,2026,0,,semantic-scholar
+S04509,Super Library Agent: Joint Generation and Maintenance of Multiple Applications Beyond the Single Codebase,2026,0,,semantic-scholar
+S04547,Argus: Orchestrating Cross-Layer GPU Performance Measurements around Semantic Regions,2026,0,,semantic-scholar
+S04549,ForgeMegakernel: A General Framework for Efficient Auto-Regressive Model Decode Megakernels,2026,1,,semantic-scholar
+S04558,FlashVector: Agent for Hierarchical Model Serving Stack Optimization,2026,0,,semantic-scholar
+S04568,Can Agents Design Better Chips with a Higher Level Abstraction?,2026,0,,semantic-scholar
+S04573,"Specification Before Generation: A Pre-Registered, Five-Model Paired Evaluation of a Specification Frame for LLM-Generated Code in Money, Time, Idempotency, and Access Tasks",2026,0,,semantic-scholar
+S04574,TicTacBench: Benchmarking Timing Closure Capabilities of Coding Agents,2026,0,,semantic-scholar
+S04575,ChipMEM: Verification-Grounded Memory for EDA Agents,2026,0,,semantic-scholar
+S04576,CliffCompaction: Cost-Efficient Compaction for Long-Horizon Coding Agents,2026,0,,semantic-scholar
+S04579,KernelOPT: Dispatch-Aware Agentic Search for GPU Kernel Optimization,2026,0,,semantic-scholar
+S04586,Groupwise Agentic Grading and Advantage Redistribution for Code Agent RL,2026,1,,semantic-scholar
+S04590,From Experience to Expertise: Adoption-Aware Memory Learning for Data-Scarce NPU Kernel Synthesis,2026,0,,semantic-scholar
+S04597,AI as a Compiler: Compiling Triton kernels without the Triton compiler,2026,0,,semantic-scholar
+S04598,Can Agents Design Libraries for Agents?,2026,0,,semantic-scholar
+S04603,SecureVibe: Making Vibe Coding More Secure,2026,0,,semantic-scholar
+S04609,Self-Evolving Algorithm-Design Agents: Escaping In-Context Evolutionary Stagnation via Population-Curated Policy Optimization,2026,0,,semantic-scholar
+S04611,Understanding and Mitigating Library-Related Issues in LLM-Generated Code,2026,0,,semantic-scholar
+S04625,WAMJET: A Harness for World Action Model Acceleration,2026,0,,semantic-scholar
+S04628,D2K-Bench: Can LLM Agents Turn Expert Designs into Efficient GPU Kernels?,2026,0,,semantic-scholar
+S04637,MetaKernelBench: Measuring GPU Kernel Knowledge Transfer Beyond Code,2026,0,,semantic-scholar
+S04639,SparseCraft: Agentic Hardware-Software Co-Optimization for Sparse Computing,2026,0,,semantic-scholar
+S04665,"Conserved amount, negotiable placement. Prompting perturbs one architecture, an AI reviewer both",2026,0,,semantic-scholar
+S04670,TileCas: Cascading Kernel Development Across Programming Abstractions,2026,0,,semantic-scholar

@@ -18,3 +18,83 @@ R00766#1,E2,five functions; Copilot only (same study as R00766#0)
 R00766#2,E2,five functions; Copilot only (same study as R00766#0)
 R06874#0,E5,verification found a correctness decline (pass@1 42.4% to 33.9%)
 R01618#0,E2,Evaluated on 11 test cases (aggregated SecurityEval/LLMSecEval data-leakage scenarios).
+S04163#0,E2,"Efficiency gains are reported only on about ten internal production kernels (plus six ATen fitness trajectories), single runs, with public benchmarks used for correctness only."
+S04124#0,E1,"Feedback-grounded planning is a condition inside an empirical attribution study (CUDAnalyst analysis layer), not a proposed method evaluated for its own gain."
+S04124#1,E1,CuGEdit is an appendix add-on (App. E case study) to an empirical attribution study whose contribution is the CUDAnalyst analysis layer.
+S03012#0,E2,"Code-efficiency evaluation consists of a handful of single-run, proprietary case studies (one tiling heuristic, one FlashAttention configuration, Borg, a TPU circuit) with no variance."
+S03114#0,E1,"AlgoTuner is presented as a baseline agent inside the AlgoTune benchmark paper; the contribution is the benchmark, and the technique has no LLM-without-agent comparison."
+S04434#0,E2,"Efficiency is evaluated on only three self-made performance intents (per-CPU allocator, COW fork, batched pipe), each a single before/after measurement against the unoptimized system."
+S03788#1,E2,"ECA efficiency results rest on a handful of problems (7 and 4 DMOJ problems in Tables 8-9, 6 PBBS/RPB problems in Table 2, unspecified small reserved set in Table 3), single runs."
+S03782#0,E2,"Evaluation uses only four self-constructed workloads (about 16 configurations) with a single stochastic search run per workload, best-found solution reported."
+S00686#0,E3,"The paper's purpose is a general fine-tuning method for controlling conditional language models without catastrophic forgetting; PEP8 compliance is one of four control objectives across three tasks (translation, summarization, code) used as a testbed, functional correctness of the generated code is never measured, and the code-quality outcome is reported only in a figure, so code quality is incidental to the paper's purpose."
+S03419#0,E2,"The code-efficiency evaluation uses an unnamed clustered subset of KernelBench Level 3 (about a dozen kernels per Figure 6), with no per-task numbers, no correctness rates and no repeated runs."
+S03482#0,E2,Main evaluation is 14 self-built NKIBench kernels with single runs per configuration (the 24 Triton kernels appear only in an appendix figure).
+S04045#0,E2,"Seven self-defined serving scenarios, each reported from essentially a single run."
+S02431#0,E1,"The code-smell refinement is a demonstration add-on inside an infrastructure/tool paper, reported only as comment-line deltas for one model with no absolute values or compared methods."
+S01996#0,E2,"The only non-functional (readability/idiomaticity) evaluation is on 14 hand-selected and customized C snippets, compared against rule-based tools."
+S03256#0,E3,The paper's purpose is reducing MLLM inference cost for UI2Code; code redundancy reduction is a secondary outcome.
+S04611#0,E3,"Code quality is incidental: the target is library/import correctness, and the only NF outcome (unused imports) is one error category in a library-error count."
+S03565#0,E2,"Evaluation is a single kernel (MatMul) in 5 device-precision configurations and 2 sizes, with one human-guided run per configuration."
+S03084#0,E1,SFT is an add-on evaluation inside a dataset/benchmark paper (HLStrans).
+S03084#1,E1,Retrieval prompting is an add-on evaluation inside a dataset/benchmark paper; Table 3 also appears to duplicate the CoT rows.
+S03084#2,E2,"Comparison to the prior method uses only 12 Rodinia applications (5 in the main figure), single runs."
+S03781#0,E2,"Evaluation is one synthesis run on each of two workloads (TPC-H, CEB)."
+S04609#0,E2,Code-efficiency outcome rests on 4 KernelBench Level-1 tasks (4 runs); main experiment is chip placement quality.
+S02400#0,E2,Evaluation uses 9 Legion benchmarks (plus 3 for the feedback ablation and 10 self-written strategies for the DSL ablation) on one node.
+S04549#0,E2,"14 decode cells, each forged in a single agent campaign; milestone ablation is one campaign on one cell."
+S04228#0,E3,Primary purpose is end-to-end search time and GPU utilization of the agent loop; kernel speedup is reported to show performance is not sacrificed.
+S04465#0,E1,Fixit is an adaptation add-on inside the PTXBench benchmark paper (also only 5 primary workloads on one GPU kernel domain).
+S02469#0,E3,The paper targets code hallucination and executability; readability is a secondary expert-rated metric raised mainly by adding comments.
+S04145#1,E2,Evaluation is one self-made application (one backend task) with one model and three runs per condition.
+S03651#0,E2,"The NF (PPA) result rests on 6 IC-RTL problems, single run, one model, against human references."
+S04431#1,E2,"The efficiency gain rests on a four-kernel diagnostic (two ties, CI includes one); GRPO has no paired efficiency result."
+S02964#0,E1,CoQuIR is a benchmark paper; the quality-aware retriever training is an add-on section (Sec. 5) whose downstream code-quality effect is reported only in a figure.
+S03257#0,E2,"Evaluation is five kernels (CG, EP, MG, FT, DGEMM) with a single pipeline execution per kernel-model-hardware configuration and no variance."
+S01471#0,E2,"Efficiency is measured on six networks at two resolutions and the prompt ablations use a single HLS module (output-stationary computing unit) with Pass@10, i.e. a handful of self-made tasks."
+S00248#0,E2,"Evaluation covers only three workloads (LLM-A*, BFS, TinyEKF); the efficiency comparison is a single instance per workload against a generic precompiled baseline."
+S03736#0,E4,"The security gain is measured only by the same LLM Auditor whose approval stops the refine loop (circular, self-assessed; no independent analyzer), so the headline reduction is not credible evidence."
+S04449#0,E2,The only controlled technique-vs-no-technique comparison is one Flash-KMeans shape with three runs per arm; the remaining results are a handful of kernels against expert libraries.
+S04308#0,E4,"Several headline numbers do not match the body: the abstract's 'up to 2.2x speedup over state-of-the-art baselines' appears nowhere in the results, the RQ3 summary box gives different accuracy and speedup figures than the RQ3 text for the same experiment, the ablation table's Hawk-Full accuracy (0.84) differs from the overall result (0.80), and the Top-K analysis compares 'K=6 ... over K=6'."
+S04213#0,E4,"The headline architectural improvement is measured by AQJ, the very judge used to pick the training data, and it is never checked against human experts; against the strongest baseline (unfiltered fine-tuning) the architectural conformance is equal or lower on two of three model sizes, so the claimed quality effect of the filtering does not survive its own strongest comparison."
+S02093#0,E1,"The paper is framed as an evaluation of GPT-4's vectorization ability plus formal verification, and the speedup headline is a property of the model's output against compilers; the multi-agent FSM is an add-on evaluated only on plausibility counts and LLM-call savings, with no efficiency comparison of the technique against generation without it."
+S03509#0,E2,"The whole evaluation is one operator (HGEMM) swept over a self-constructed set of 1,000 matrix shapes on a single GPU, not a benchmark of distinct tasks, and no correctness rate or no-technique LLM baseline is reported."
+S03055#0,E3,"The paper's purpose and headline are functional correctness (pass@10 on VerilogEval); resource efficiency is a side analysis restricted to the hard subsets, with no baseline count, rare Pareto-optimal designs, and a large pass@1 correctness drop alongside it."
+S03753#0,E2,"Evaluation covers only 4 kernels (152 workload traces) plus one TriMul task, i.e. about five tasks."
+S03222#0,E2,"Only 6 projects (3 private), single reported result per project."
+S02298#0,E2,"Self-made benchmarks: 14 of 55 short cases reported plus 5 long cases, one run each."
+S04452#0,E1,The verify-loop is one of three strategies compared inside a benchmark/empirical study of LLM IaC repair verification.
+S01244#0,E2,"Only 8 self-made hardware workloads, single run."
+S03998#0,E2,"The whole evaluation is five workloads: three KernelBench Level 1 GEMM problems (1, 3, 6) and two Level 3 transformer blocks (MiniGPT, Llama 3 8B)."
+S04460#0,E2,"Only one representative task per SOL-ExecBench category is evaluated (L1-030, L2-025, L2-053, Quant-031, FI-014) plus one fixed-shape GEMM campaign, and the controlled ablation uses a single workload (FI-014)."
+S04460#1,E2,"The arm is evaluated on a single fixed-shape 4096x4096 BF16 GEMM campaign (plus one L1-030 plateau comparison), i.e. one self-selected task."
+S04207#0,E3,"The paper's purpose is an agent cognition layer for serving-throughput campaigns; the quality of generated code is one lever among configuration, parallelism and dispatch changes rather than the object of study."
+S03783#0,E2,"The whole evaluation is eleven queries (five representative TPC-H queries and six SQLSmith-sampled SEC-EDGAR queries on a self-constructed benchmark), single runs."
+S03253#0,E4,"Headline metrics (VRR, SCI, TMCS, IEI) are custom, reported without any task, program or vulnerability counts; the agents' underlying models are never identified, and the paper reads partly as an experimental plan, so the numbers cannot be verified."
+S04558#0,E2,"Evaluation is a handful of in-house production case studies (six models in Table 1, one preprocessor, four models for tuning) with no benchmark or repeated runs."
+S04380#0,E2,"Single case study (one project, iodine) with one run and no benchmark or baseline comparison beyond the c2rust starting point."
+S01747#0,E2,Non-functional evaluation uses only 18 selected VerilogEval problems (nodes) and 5 designs (SAT time) with a single model.
+S04102#0,E2,"Only 6 kernel benchmarks (3 shapes each), single run per method."
+S04087#0,E3,"The paper targets functional correctness of LLM hardware generation; the circuit-size reduction comes from deterministic compiler passes, so code quality is incidental to the LLM technique."
+S04574#0,E1,TicTacBench is primarily a benchmark paper; TicTacSkill is an add-on evaluated in a small ablation.
+S03282#0,E2,Evaluation uses 14 self-collected/self-made serverless functions with 4 tests each.
+S04125#0,E2,Efficiency (hardware quality) is evaluated on only 3 GEMM tasks.
+S02992#0,E4,"The speedup baseline is described as human-written CUDA in the abstract/setup but as directly generated kernels in the results, which changes the meaning of the 179x headline."
+S04117#0,E2,"Only 3 kernels (Fused MoE, DSA TopK Indexer, DSA Sparse Attention), single run each."
+S02710#0,E4,The 92%/96% PPA headline is stated only in abstract/conclusion with no supporting numbers and is relative to manual reference values rather than an LLM baseline.
+S04049#2,E3,"The paper targets ML research progress (validation bpb); memory use of the edited script is a side effect, and the evaluation is a single task with one run per variant."
+S04625#0,E2,"Evaluation covers six WAMs (four per agent, twelve agent-model entries) with a single run each."
+S03141#0,E2,"Evaluation is two wireless systems with a comparative ablation on only two modules, single runs."
+S04378#0,E2,"The test set is three held-out RTL designs (plus one MAC case), with the SotA comparison on a single design."
+S03850#0,E2,"Evaluation is a single task (attention forward kernel, MHA plus GQA adaptation) from one evolutionary run."
+S02804#0,E2,Evaluation covers a single task (GEMM) at several matrix sizes on three platforms.
+S03403#0,E4,"Efficiency metrics are defined but not reported, baseline per-dataset rates do not reproduce the headline 52.6%, and the 16 'BigO(Bench)' tasks are generic algorithm names profiled with an input generator that only writes n."
+S03855#0,E2,Evaluation uses twelve HLS kernels.
+S03211#0,E2,Evaluation uses ten GPU kernels.
+S04568#0,E2,Evaluation uses an 11-task benchmark suite with each experiment run once.
+S03240#0,E2,"PPA optimization evaluated on only 4 hand-picked RTLLM designs (Table VII), single run each."
+S03052#0,E2,Evaluated on a single kernel task (AMD Developer Challenge FP8 GEMM) with one reported result.
+S04443#0,E3,Paper targets correctness and pseudocode faithfulness; clarity is incidental to its purpose.
+S01754#0,E2,"Evaluation on 15 self-made Verilog problems, single run, ADP comparable on only 4 modules."
+S04071#0,E2,"Only three FHE workloads, one run each."
+S04129#0,E2,"The headline efficiency gain rests on a single human-guided deployment (Llama-3.2-1B), and the eight autonomous deployments are single runs without a baseline technique."
+S04639#0,E2,Evaluation is one 15-iteration run on a single sparse-DNN layer workload with one model.

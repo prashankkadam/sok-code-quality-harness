@@ -140,7 +140,7 @@ def judge_table(agree: dict) -> str:
 
 def h2h_table(R: S.Results, techs: dict[str, tuple[str, str]], model: str = "g31", B: int = 16,
               matched: dict[str, int] | None = None) -> str:
-    """E7 body. techs: hid -> (family, name), in table order; each family block opens with its budget-matched best-of-n."""
+    """E12 body. techs: hid -> (family, name), in table order; each family block opens with its budget-matched best-of-n."""
     def row(hid, name, label):
         return f"{label} & {name} & " + " & ".join(f(R.cell(m, model, hid, B)) for m in S.H2H) + f" & {f(R.calls(model, hid, B))}" + r"\\"
     out = [row("T0", "T0 single shot (reference)", "--"), row("BoN", r"best-of-$n$ (reference)", "--")]
@@ -156,7 +156,7 @@ def h2h_table(R: S.Results, techs: dict[str, tuple[str, str]], model: str = "g31
 
 
 def h2h_ci_table(iv: dict, hids: list[str], ref: str) -> str:
-    """E7 intervals against one reference: per technique and column, difference [95% bootstrap interval]."""
+    """E12 intervals against one reference: per technique and column, difference [95% bootstrap interval]."""
     return "\n".join(f"{h} & " + " & ".join(f"{f(iv[(h, ref, m.label)][0])} [{f(iv[(h, ref, m.label)][1])}, "
                                              f"{f(iv[(h, ref, m.label)][2])}]" for m in S.H2H) + r"\\" for h in hids)
 

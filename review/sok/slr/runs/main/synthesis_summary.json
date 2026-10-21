@@ -1,394 +1,376 @@
 {
  "prisma": {
-  "hits_openalex": 13376,
+  "hits_openalex": 2770,
   "hits_s2": 7777,
-  "hits_arxiv": 4663,
-  "records_in": 25271,
-  "duplicates": 17334,
-  "screened_db": 7937,
-  "ta_excluded_db": 6546,
-  "ta_forward_db": 1391,
-  "other_identified": 420,
-  "other_forward": 67,
-  "other_excluded_ta": 353,
+  "hits_arxiv": 4117,
+  "hits_arxiv_raw": 4663,
+  "records_in": 14664,
+  "duplicates": 7722,
+  "screened_db": 6942,
+  "ta_excluded_db": 5700,
+  "ta_forward_db": 1242,
+  "other_identified": 164,
+  "other_forward": 29,
+  "other_excluded_ta": 135,
   "snow_identified": 4580,
   "snow_forward": 506,
-  "ft_sought": 1964,
-  "ft_not_retrieved": 759,
-  "ft_assessed": 1205,
-  "snow_pending": 283,
-  "ft_excluded": 448,
+  "ft_sought": 1777,
+  "ft_not_retrieved": 687,
+  "ft_assessed": 1090,
+  "snow_pending": 0,
+  "ft_excluded": 462,
   "ft_excluded_by": {
-   "EC5": 197,
-   "IC3": 94,
-   "IC1": 41,
-   "EC4": 25,
+   "EC5": 205,
+   "IC3": 115,
+   "IC1": 56,
+   "EC4": 45,
+   "IC2": 12,
    "EC3": 11,
-   "IC2": 7,
    "EC8": 5,
-   "IC4": 2,
-   "other": 2,
+   "IC4": 4,
    "EC6": 2,
+   "other": 2,
+   "EC2": 2,
    "EC1": 2,
-   "EC2": 1,
-   "new records (estimate)": 59
+   "EC7": 1
   },
-  "side_context": 49,
-  "side_adjacent": 32,
-  "side_correctness": 236,
-  "side_secondary": 2,
-  "included": 418,
+  "side_context": 59,
+  "side_adjacent": 62,
+  "side_correctness": 252,
+  "side_secondary": 3,
+  "included": 628,
   "included_db": 406,
   "included_other": 12,
-  "included_snow": 0,
-  "snow_pending_included_est": 147,
-  "round2": {
-   "_note": "Placeholders used only until round2.sh has run; synth.py ignores this file once snow_pending_ids.txt is empty.",
-   "openalex_r1_hits": 4971,
-   "openalex_r2_hits": 5636,
-   "openalex_new": 995,
-   "openalex_forward": 149,
-   "openalex_included": 45,
-   "manual_records": 1743,
-   "manual_new": 256,
-   "manual_forward": 38,
-   "manual_included": 11
-  },
-  "round2_included_est": 56
+  "included_snow": 210,
+  "snow_pending_included_est": 0,
+  "round2": {},
+  "round2_included_est": 0
  },
  "counts": {
-  "nHitsOpenAlex": 13376,
+  "nHitsOpenAlex": 2770,
   "nHitsSS": 7777,
-  "nHitsArxiv": 4663,
-  "nRecordsIn": 25271,
-  "nDuplicates": 17334,
-  "nScreened": 7937,
-  "nTaExcluded": 6546,
-  "nTaForward": 1391,
-  "nOtherIdentified": 420,
-  "nOtherForward": 67,
+  "nHitsArxiv": 4117,
+  "nHitsArxivRaw": 4663,
+  "nRecordsIn": 14664,
+  "nDuplicates": 7722,
+  "nScreened": 6942,
+  "nTaExcluded": 5700,
+  "nTaForward": 1242,
+  "nOtherIdentified": 164,
+  "nOtherForward": 29,
   "nSnowIdentified": 4580,
   "nSnowForward": 506,
-  "nFtSought": 1964,
-  "nFtNotRetrieved": 759,
-  "nFtAssessedRetrieved": 1205,
-  "nSnowIncluded": 147,
-  "nFtExcluded": 584,
-  "nIncluded": 621,
-  "nRtwoOpenalexR1Hits": 4971,
-  "nRtwoOpenalexR2Hits": 5636,
-  "nRtwoOpenalexNew": 995,
-  "nRtwoOpenalexForward": 149,
-  "nRtwoOpenalexIncluded": 45,
-  "nRtwoManualRecords": 1743,
-  "nRtwoManualNew": 256,
-  "nRtwoManualForward": 38,
-  "nRtwoManualIncluded": 11,
+  "nFtSought": 1777,
+  "nFtNotRetrieved": 687,
+  "nFtAssessedRetrieved": 1090,
+  "nSnowIncluded": 210,
+  "nFtExcluded": 462,
+  "nIncluded": 628,
   "nIncludedDb": 406,
   "nIncludedOther": 12,
-  "nStudies": 418,
-  "nTechRows": 483,
-  "nExclEc5": 197,
-  "nExclIc3": 94,
-  "nExclIc1": 41,
-  "nExclEc4": 25,
+  "nStudies": 628,
+  "nTechRows": 737,
+  "nExclEc5": 205,
+  "nExclIc3": 115,
+  "nExclIc1": 56,
+  "nExclEc4": 45,
+  "nExclIc2": 12,
   "nExclEc3": 11,
-  "nExclIc2": 7,
   "nExclEc8": 5,
-  "nExclIc4": 2,
-  "nExclOther": 2,
+  "nExclIc4": 4,
   "nExclEc6": 2,
+  "nExclOther": 2,
+  "nExclEc2": 2,
   "nExclEc1": 2,
-  "nExclEc2": 1,
-  "nExclNewRecords": 59,
-  "nExclSnowPending": 136,
-  "nSideContext": 49,
-  "nSideAdjacent": 32,
-  "nSideCorrectness": 236,
-  "nSideSecondary": 2,
-  "nFamPrompting": 86,
-  "nFamFeedback": 67,
-  "nFamSelfRefine": 13,
-  "nFamMultiAgent": 46,
-  "nFamRetrieval": 31,
-  "nFamDecoding": 12,
-  "nFamTraining": 92,
-  "nFamOther": 115,
-  "nDimRM": 100,
-  "nDimEff": 187,
-  "nDimSec": 149,
-  "nNonTargetedMeasured": 52,
-  "nCorrectnessMeasured": 353,
-  "nLowConfidence": 104,
-  "nPreprint": 226,
-  "nPeerReviewed": 192,
-  "pctPreprint": 54,
-  "pctAllTargetUp": 74.9,
-  "pctAllCorrNR": 26.3,
-  "pctAllCorrDown": 9.3,
-  "pctAllNonTarg": 12,
+  "nExclEc7": 1,
+  "nExclSnowPending": 0,
+  "nSideContext": 59,
+  "nSideAdjacent": 62,
+  "nSideCorrectness": 252,
+  "nSideSecondary": 3,
+  "nFamPrompting": 113,
+  "nFamFeedback": 124,
+  "nFamSelfRefine": 17,
+  "nFamMultiAgent": 75,
+  "nFamRetrieval": 37,
+  "nFamDecoding": 18,
+  "nFamTraining": 124,
+  "nFamOther": 191,
+  "nDimRM": 130,
+  "nDimEff": 335,
+  "nDimSec": 182,
+  "nNonTargetedMeasured": 70,
+  "nCorrectnessMeasured": 526,
+  "nLowConfidence": 161,
+  "nPreprint": 372,
+  "nPeerReviewed": 256,
+  "pctPreprint": 59,
+  "pctAllTargetUp": 76.1,
+  "pctAllCorrNR": 28.5,
+  "pctAllCorrDown": 7.5,
+  "pctAllNonTarg": 11,
   "qaMedAll": 6.0,
   "pctPeerTargetUp": 74.8,
-  "pctPeerCorrNR": 26.1,
-  "pctPeerCorrDown": 9.0,
+  "pctPeerCorrNR": 27.2,
+  "pctPeerCorrDown": 7.8,
   "pctPeerNonTarg": 12,
   "qaMedPeer": 6.0,
-  "nNonTargPrompting": 12,
-  "nCorrPrompting": 60,
-  "nNonTargFeedback": 8,
-  "nCorrFeedback": 48,
+  "nNonTargPrompting": 15,
+  "nCorrPrompting": 79,
+  "nNonTargFeedback": 12,
+  "nCorrFeedback": 94,
   "nNonTargSelfRefine": 1,
-  "nCorrSelfRefine": 7,
-  "nNonTargMultiAgent": 8,
-  "nCorrMultiAgent": 42,
+  "nCorrSelfRefine": 10,
+  "nNonTargMultiAgent": 10,
+  "nCorrMultiAgent": 66,
   "nNonTargRetrieval": 4,
-  "nCorrRetrieval": 23,
-  "nNonTargDecoding": 1,
-  "nCorrDecoding": 12,
-  "nNonTargTraining": 11,
-  "nCorrTraining": 87,
-  "nNonTargOther": 11,
-  "nCorrOther": 106
+  "nCorrRetrieval": 28,
+  "nNonTargDecoding": 2,
+  "nCorrDecoding": 18,
+  "nNonTargTraining": 15,
+  "nCorrTraining": 114,
+  "nNonTargOther": 16,
+  "nCorrOther": 173
  },
  "effects": {
-  "+|+": 162,
-  "+|0": 2,
-  "+|-": 0,
-  "+|mixed": 16,
-  "+|NR": 12,
-  "0|+": 32,
+  "+|+": 257,
+  "+|0": 3,
+  "+|-": 3,
+  "+|mixed": 26,
+  "+|NR": 20,
+  "0|+": 51,
   "0|0": 2,
   "0|-": 0,
   "0|mixed": 2,
-  "0|NR": 0,
-  "-|+": 24,
+  "0|NR": 1,
+  "-|+": 27,
   "-|0": 1,
   "-|-": 4,
-  "-|mixed": 16,
+  "-|mixed": 23,
   "-|NR": 0,
-  "mixed|+": 54,
+  "mixed|+": 65,
   "mixed|0": 1,
   "mixed|-": 1,
-  "mixed|mixed": 25,
-  "mixed|NR": 2,
-  "NR|+": 90,
-  "NR|0": 2,
+  "mixed|mixed": 37,
+  "mixed|NR": 3,
+  "NR|+": 161,
+  "NR|0": 3,
   "NR|-": 3,
-  "NR|mixed": 28,
-  "NR|NR": 4
+  "NR|mixed": 37,
+  "NR|NR": 6
  },
  "nontargeted": {
   "prompting": [
-   86,
-   12,
-   60
+   113,
+   15,
+   79
   ],
   "feedback-loop": [
-   67,
-   8,
-   48
+   124,
+   12,
+   94
   ],
   "self-refinement": [
-   13,
+   17,
    1,
-   7
+   10
   ],
   "multi-agent": [
-   46,
-   8,
-   42
+   75,
+   10,
+   66
   ],
   "retrieval": [
-   31,
+   37,
    4,
-   23
+   28
   ],
   "decoding": [
-   12,
-   1,
-   12
+   18,
+   2,
+   18
   ],
   "training": [
-   92,
-   11,
-   87
+   124,
+   15,
+   114
   ],
   "other": [
-   115,
-   11,
-   106
+   191,
+   16,
+   173
   ]
  },
  "qa": {
   "prompting": {
-   "n": 86,
+   "n": 113,
    "median_qa": 6.5,
-   "compute": 38.372093023255815,
-   "contamination": 37.2093023255814,
-   "human": 32.55813953488372,
-   "artifacts": 70.93023255813954
+   "compute": 38.05309734513274,
+   "contamination": 30.97345132743363,
+   "human": 31.858407079646017,
+   "artifacts": 72.56637168141593
   },
   "feedback-loop": {
-   "n": 67,
+   "n": 124,
    "median_qa": 6.0,
-   "compute": 58.208955223880594,
-   "contamination": 35.82089552238806,
-   "human": 14.925373134328359,
-   "artifacts": 64.17910447761194
+   "compute": 69.35483870967742,
+   "contamination": 31.451612903225808,
+   "human": 8.870967741935484,
+   "artifacts": 65.3225806451613
   },
   "self-refinement": {
-   "n": 13,
-   "median_qa": 6.5,
-   "compute": 23.076923076923077,
-   "contamination": 46.15384615384615,
-   "human": 30.76923076923077,
-   "artifacts": 61.53846153846154
+   "n": 17,
+   "median_qa": 6.0,
+   "compute": 23.529411764705884,
+   "contamination": 47.05882352941177,
+   "human": 29.41176470588235,
+   "artifacts": 64.70588235294117
   },
   "multi-agent": {
-   "n": 46,
+   "n": 75,
    "median_qa": 5.0,
-   "compute": 60.869565217391305,
-   "contamination": 19.565217391304348,
-   "human": 10.869565217391305,
-   "artifacts": 47.82608695652174
+   "compute": 65.33333333333333,
+   "contamination": 17.333333333333332,
+   "human": 8.0,
+   "artifacts": 53.333333333333336
   },
   "retrieval": {
-   "n": 31,
-   "median_qa": 5.5,
-   "compute": 35.483870967741936,
-   "contamination": 41.935483870967744,
-   "human": 29.032258064516128,
-   "artifacts": 64.51612903225806
+   "n": 37,
+   "median_qa": 6.0,
+   "compute": 40.54054054054054,
+   "contamination": 45.945945945945944,
+   "human": 29.72972972972973,
+   "artifacts": 62.16216216216216
   },
   "decoding": {
-   "n": 12,
-   "median_qa": 6.25,
-   "compute": 50.0,
-   "contamination": 25.0,
-   "human": 16.666666666666668,
-   "artifacts": 83.33333333333333
+   "n": 18,
+   "median_qa": 6.5,
+   "compute": 66.66666666666667,
+   "contamination": 22.22222222222222,
+   "human": 11.11111111111111,
+   "artifacts": 77.77777777777777
   },
   "training": {
-   "n": 92,
+   "n": 124,
    "median_qa": 6.5,
-   "compute": 58.69565217391305,
-   "contamination": 56.52173913043478,
-   "human": 23.91304347826087,
-   "artifacts": 70.65217391304348
+   "compute": 56.45161290322581,
+   "contamination": 54.83870967741935,
+   "human": 20.967741935483872,
+   "artifacts": 67.74193548387096
   },
   "other": {
-   "n": 115,
-   "median_qa": 5.5,
-   "compute": 63.47826086956522,
-   "contamination": 31.304347826086957,
-   "human": 18.26086956521739,
-   "artifacts": 58.26086956521739
+   "n": 191,
+   "median_qa": 6.0,
+   "compute": 68.06282722513089,
+   "contamination": 29.319371727748692,
+   "human": 13.612565445026178,
+   "artifacts": 58.638743455497384
   },
   "ALL": {
-   "n": 418,
+   "n": 628,
    "median_qa": 6.0,
-   "compute": 53.588516746411486,
-   "contamination": 36.36363636363637,
-   "human": 21.5311004784689,
-   "artifacts": 62.44019138755981
+   "compute": 58.59872611464968,
+   "contamination": 33.12101910828026,
+   "human": 17.356687898089174,
+   "artifacts": 62.261146496815286
   }
  },
  "map_family": {
   "prompting": [
-   30,
-   25,
-   32
+   35,
+   36,
+   44
   ],
   "feedback-loop": [
-   9,
-   32,
-   27
+   16,
+   76,
+   33
   ],
   "self-refinement": [
    3,
-   4,
-   10
+   7,
+   11
   ],
   "multi-agent": [
-   5,
-   28,
-   12
+   8,
+   52,
+   14
   ],
   "retrieval": [
-   6,
-   10,
-   13
+   7,
+   13,
+   17
   ],
   "decoding": [
    3,
-   1,
-   8
+   3,
+   11
   ],
   "training": [
-   26,
-   40,
-   32
+   33,
+   58,
+   36
   ],
   "other": [
-   25,
-   59,
-   39
+   35,
+   120,
+   46
   ]
  },
  "map_signal": {
   "none": [
-   25,
-   20,
-   32
+   32,
+   28,
+   41
   ],
   "self": [
-   18,
-   37,
-   38
+   25,
+   85,
+   46
   ],
   "other-LLM": [
-   22,
-   60,
-   32
+   31,
+   106,
+   39
   ],
   "static-analyzer": [
-   40,
-   30,
-   67
+   51,
+   63,
+   79
   ],
   "compiler": [
-   17,
-   75,
-   24
+   27,
+   186,
+   34
   ],
   "test-execution": [
-   29,
-   136,
-   28
+   42,
+   268,
+   39
   ],
   "profiler": [
    4,
-   109,
-   3
+   215,
+   4
   ],
   "retrieved-knowledge": [
-   24,
-   58,
-   54
+   32,
+   125,
+   64
   ],
   "human": [
-   8,
-   10,
-   18
+   12,
+   19,
+   25
   ],
   "learned-verifier": [
-   3,
-   8,
-   11
+   4,
+   13,
+   15
   ],
   "reward-model": [
-   5,
    6,
+   9,
    3
   ]
  },
@@ -396,66 +378,66 @@
   "prompting": [
    0,
    0,
-   2,
-   19,
-   29,
-   30
+   3,
+   21,
+   33,
+   44
   ],
   "feedback-loop": [
    0,
    0,
    6,
-   7,
-   13,
-   26
+   10,
+   26,
+   57
   ],
   "self-refinement": [
    0,
    0,
    1,
-   1,
    3,
-   2
+   3,
+   3
   ],
   "multi-agent": [
    0,
    0,
    0,
-   5,
-   18,
-   22
+   6,
+   28,
+   38
   ],
   "retrieval": [
    0,
    0,
    3,
    3,
-   14,
-   9
+   16,
+   11
   ],
   "decoding": [
    0,
    0,
    1,
-   2,
    3,
-   5
+   4,
+   8
   ],
   "training": [
+   1,
    0,
-   0,
-   3,
-   15,
-   28,
-   38
+   5,
+   16,
+   38,
+   52
   ],
   "other": [
    0,
    0,
-   6,
-   19,
-   40,
-   45
+   10,
+   24,
+   59,
+   92
   ]
  },
  "benchmarks": {
@@ -463,33 +445,73 @@
    0,
    0,
    4,
-   26,
-   20,
-   27
+   27,
+   22,
+   32
   ],
   "MBPP(+)": [
    0,
    0,
    2,
-   13,
-   9,
-   14
+   14,
+   10,
+   16
   ],
   "APPS": [
    0,
    0,
-   3,
-   3,
-   8,
-   7
+   4,
+   4,
+   9,
+   9
   ],
   "LeetCode": [
    0,
    0,
    2,
-   8,
+   10,
    5,
-   5
+   7
+  ],
+  "SWE-bench": [
+   0,
+   0,
+   0,
+   1,
+   2,
+   12
+  ],
+  "CyberSecEval": [
+   0,
+   0,
+   0,
+   2,
+   6,
+   7
+  ],
+  "CWEval": [
+   0,
+   0,
+   0,
+   0,
+   4,
+   11
+  ],
+  "CodeContests": [
+   0,
+   0,
+   4,
+   4,
+   3,
+   4
+  ],
+  "LiveCodeBench": [
+   0,
+   0,
+   0,
+   1,
+   2,
+   11
   ],
   "SecurityEval": [
    0,
@@ -499,22 +521,6 @@
    6,
    2
   ],
-  "CyberSecEval": [
-   0,
-   0,
-   0,
-   2,
-   5,
-   7
-  ],
-  "CWEval": [
-   0,
-   0,
-   0,
-   0,
-   4,
-   10
-  ],
   "PIE": [
    0,
    0,
@@ -523,47 +529,23 @@
    5,
    3
   ],
-  "LiveCodeBench": [
-   0,
-   0,
-   0,
-   1,
-   2,
-   9
-  ],
   "LLMSecEval": [
    0,
    0,
    1,
    1,
    6,
-   4
-  ],
-  "EffiBench": [
-   0,
-   0,
-   0,
-   4,
-   2,
-   6
-  ],
-  "CodeContests": [
-   0,
-   0,
-   2,
-   3,
-   2,
-   4
+   5
   ]
  },
  "peer_reviewed_only": {
   "effects": {
-   "+|+": 76,
+   "+|+": 102,
    "+|0": 0,
    "+|-": 0,
-   "+|mixed": 10,
-   "+|NR": 5,
-   "0|+": 12,
+   "+|mixed": 14,
+   "+|NR": 10,
+   "0|+": 18,
    "0|0": 1,
    "0|-": 0,
    "0|mixed": 1,
@@ -571,136 +553,136 @@
    "-|+": 12,
    "-|0": 1,
    "-|-": 1,
-   "-|mixed": 6,
+   "-|mixed": 9,
    "-|NR": 0,
-   "mixed|+": 26,
+   "mixed|+": 30,
    "mixed|0": 0,
    "mixed|-": 1,
-   "mixed|mixed": 12,
-   "mixed|NR": 0,
-   "NR|+": 40,
+   "mixed|mixed": 13,
+   "mixed|NR": 1,
+   "NR|+": 58,
    "NR|0": 1,
    "NR|-": 2,
-   "NR|mixed": 11,
-   "NR|NR": 4
+   "NR|mixed": 13,
+   "NR|NR": 6
   },
   "nontargeted": [
    {
     "prompting": [
-     50,
+     58,
      9,
-     35
+     40
     ],
     "feedback-loop": [
-     30,
-     3,
-     21
+     43,
+     4,
+     32
     ],
     "self-refinement": [
-     4,
+     6,
      1,
-     3
+     5
     ],
     "multi-agent": [
-     13,
+     20,
+     1,
+     17
+    ],
+    "retrieval": [
+     15,
      1,
      12
     ],
-    "retrieval": [
-     12,
-     1,
-     10
-    ],
     "decoding": [
-     5,
+     6,
      0,
-     5
+     6
     ],
     "training": [
-     47,
-     4,
-     43
+     56,
+     7,
+     51
     ],
     "other": [
-     51,
-     6,
-     48
+     77,
+     11,
+     72
     ]
    },
-   22
+   31
   ],
   "qa": {
    "prompting": {
-    "n": 50,
+    "n": 58,
     "median_qa": 6.5,
-    "compute": 36.0,
-    "contamination": 38.0,
-    "human": 34.0,
-    "artifacts": 82.0
+    "compute": 31.03448275862069,
+    "contamination": 34.48275862068966,
+    "human": 34.48275862068966,
+    "artifacts": 79.3103448275862
    },
    "feedback-loop": {
-    "n": 30,
-    "median_qa": 6.0,
-    "compute": 40.0,
-    "contamination": 36.666666666666664,
-    "human": 30.0,
-    "artifacts": 66.66666666666667
+    "n": 43,
+    "median_qa": 6.5,
+    "compute": 48.83720930232558,
+    "contamination": 32.55813953488372,
+    "human": 23.25581395348837,
+    "artifacts": 74.4186046511628
    },
    "self-refinement": {
-    "n": 4,
-    "median_qa": 7.5,
-    "compute": 25.0,
-    "contamination": 75.0,
-    "human": 25.0,
-    "artifacts": 75.0
-   },
-   "multi-agent": {
-    "n": 13,
-    "median_qa": 5.5,
-    "compute": 30.76923076923077,
-    "contamination": 23.076923076923077,
-    "human": 15.384615384615385,
-    "artifacts": 53.84615384615385
-   },
-   "retrieval": {
-    "n": 12,
-    "median_qa": 6.0,
-    "compute": 50.0,
-    "contamination": 50.0,
-    "human": 41.666666666666664,
+    "n": 6,
+    "median_qa": 5.75,
+    "compute": 16.666666666666668,
+    "contamination": 66.66666666666667,
+    "human": 33.333333333333336,
     "artifacts": 66.66666666666667
    },
-   "decoding": {
-    "n": 5,
+   "multi-agent": {
+    "n": 20,
+    "median_qa": 5.5,
+    "compute": 45.0,
+    "contamination": 15.0,
+    "human": 10.0,
+    "artifacts": 60.0
+   },
+   "retrieval": {
+    "n": 15,
     "median_qa": 6.0,
-    "compute": 60.0,
-    "contamination": 20.0,
+    "compute": 53.333333333333336,
+    "contamination": 53.333333333333336,
     "human": 40.0,
+    "artifacts": 60.0
+   },
+   "decoding": {
+    "n": 6,
+    "median_qa": 6.25,
+    "compute": 66.66666666666667,
+    "contamination": 16.666666666666668,
+    "human": 33.333333333333336,
     "artifacts": 100.0
    },
    "training": {
-    "n": 47,
-    "median_qa": 7.0,
-    "compute": 48.93617021276596,
-    "contamination": 68.08510638297872,
-    "human": 29.78723404255319,
-    "artifacts": 76.59574468085107
+    "n": 56,
+    "median_qa": 6.5,
+    "compute": 46.42857142857143,
+    "contamination": 62.5,
+    "human": 30.357142857142858,
+    "artifacts": 73.21428571428571
    },
    "other": {
-    "n": 51,
+    "n": 77,
     "median_qa": 5.5,
-    "compute": 68.62745098039215,
-    "contamination": 29.41176470588235,
-    "human": 29.41176470588235,
-    "artifacts": 68.62745098039215
+    "compute": 67.53246753246754,
+    "contamination": 27.272727272727273,
+    "human": 23.376623376623378,
+    "artifacts": 64.93506493506493
    },
    "ALL": {
-    "n": 192,
+    "n": 256,
     "median_qa": 6.0,
-    "compute": 47.916666666666664,
-    "contamination": 41.666666666666664,
-    "human": 30.208333333333332,
-    "artifacts": 71.875
+    "compute": 50.390625,
+    "contamination": 37.109375,
+    "human": 26.5625,
+    "artifacts": 69.921875
    }
   }
  }

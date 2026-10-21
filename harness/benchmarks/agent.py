@@ -41,11 +41,11 @@ ACTION_REGEX = r"```mswea_bash_command\s*\n(.*?)\n```"
 VISIBLE_DEFAULT = {"python": ["python -m pytest -q -p no:cacheprovider"], "go": ["go test ./..."], "rust": ["cargo test"],
                    "javascript": ["npm test --silent"], "typescript": ["npm test --silent"]}
 
-DEEPSWE_LAYOUT = """$HARNESS_DATA/deepswe/tasks/<task_id>/   the authors' v1.1 release, Harbor task format, one directory per task
+DEEPSWE_LAYOUT = """$HARNESS_DATA/deepswe/tasks/<task_id>/   the public v1.1 release (github.com/datacurve-ai/deep-swe), Harbor task format
   task.toml       [environment] docker_image (pinned image), cpus, memory_mb; [agent] timeout_sec;
                   [verifier] timeout_sec, env, optional environment.docker_image; [metadata] language, optional workdir
                   and visible_tests (commands running the repository's own tests)
-  instruction.md  task statement, read into memory only
+  instruction.md  task statement
   tests/test.sh   the authors' verifier entry point; writes /logs/verifier/reward.json or reward.txt
   solution/       reference solution, never read"""
 
@@ -511,12 +511,12 @@ def _key(o: Output) -> str:
 
 @register
 class DeepSWE(Benchmark):
-    """DeepSWE v1.1 (Huang et al. 2026), private tasks run in the authors' pinned containers; see DEEPSWE_LAYOUT.
-    Nothing task-derived is written to disk here: scores carry only task id and pass/fail."""
-    name, dims, metrics, mode, language, private = "deepswe", ("COR",), {"pass@1": True}, "repo", "multi", True
+    """DeepSWE v1.1 (Huang et al. 2026, Datacurve), public tasks run in the benchmark's pinned containers with its
+    official verifiers; see DEEPSWE_LAYOUT. Patches and scores are stored like any public benchmark."""
+    name, dims, metrics, mode, language, private = "deepswe", ("COR",), {"pass@1": True}, "repo", "multi", False
 
     def load(self) -> list[Task]:
-        ts = _harbor_tasks(DATA / "deepswe", self.name, "mini", private=True)
+        ts = _harbor_tasks(DATA / "deepswe", self.name, "mini", private=False)
         if missing := [t.id for t in ts if not t.meta["image"]]:
             raise ValueError(f"deepswe tasks without a pinned image: {missing}")
         return ts

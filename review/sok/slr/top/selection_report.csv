@@ -1,8 +1,8 @@
 family,eligible_general,eligible_domain,selected,landmarks,recent,notes
-prompting,15,10,10,5,5,
-feedback-loop,29,26,10,5,5,
-self-refinement,6,0,6,5,1,only 6 eligible general-purpose techniques
-multi-agent,13,24,10,5,5,
-retrieval,19,21,10,5,5,
-decoding,11,2,10,5,5,
-training,45,23,10,5,5,
+prompting,15,14,10,5,5,
+feedback-loop,30,50,10,5,5,
+self-refinement,6,1,6,5,1,only 6 eligible general-purpose techniques
+multi-agent,14,32,10,5,5,
+retrieval,20,34,10,5,5,
+decoding,12,4,10,5,5,
+training,50,39,10,5,5,

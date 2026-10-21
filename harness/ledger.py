@@ -1,6 +1,6 @@
 """Compute ledger: calls, tokens and dollars per experiment and provider from runs/<exp>/calls.jsonl, plus fine-tuning
 dollars and GPU-hours from runs/train/*/jobs.jsonl. Judge calls (role "judge") are counted under the judge row whatever
-experiment made them; E7 training jobs (names starting with "e7-" or adapters under the h2h data) under h2h."""
+experiment made them; E12 training jobs (names starting with "e7-" or adapters under the h2h data) under h2h."""
 from __future__ import annotations
 
 import json

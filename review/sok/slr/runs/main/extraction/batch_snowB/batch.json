@@ -1,0 +1,6 @@
+{
+ "model": "claude-opus-5-5",
+ "prompt": "extract_ft.md",
+ "runner": "Claude Code subagents, one paper per call sequence; full text read to the last line (lines_read checked against the input)",
+ "n": 283
+}

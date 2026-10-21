@@ -1,4 +1,4 @@
-"""E7 prompting family (H01-H10)."""
+"""E12 prompting family (H01-H10)."""
 from __future__ import annotations
 
 import ast

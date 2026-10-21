@@ -249,7 +249,49 @@ def cmd_table(a):
                                                       "side_list": e.get("side_list", "none"),
                                                       "eligibility_reason": "[stage A, Haiku 5.5] " + e.get("reason", ""),
                                                       "confidence": "medium"}}
-    rows, side, excl = [], [], []
+    rows, side = _rows(parsed, recs, man)
+    with open(SLR / "extraction.csv", "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=COLS)
+        w.writeheader()
+        w.writerows(rows)
+    with open(run_dir(a.run) / "side_lists.csv", "w", newline="") as fh:
+        w = csv.DictWriter(fh, fieldnames=list(side[0].keys()) if side else ["rid"])
+        w.writeheader()
+        w.writerows(side)
+    from collections import Counter
+    print(f"included studies: {len({r['rid'] for r in rows})}; technique rows: {len(rows)}; excluded at full text: {len(side)}")
+    print("families:", Counter(r["family_v0"] for r in rows))
+    print("side lists:", Counter(s["side_list"] for s in side))
+    return 0
+
+
+def cmd_append(a):
+    """Add one extraction batch to extraction.csv and side_lists.csv without rebuilding them, so corrections already
+    applied to earlier rows are kept. Full-text sources are taken from every manifest."""
+    recs = all_records(a.run)
+    man = {}
+    for p in sorted(run_dir(a.run).glob("fulltext_manifest*.csv")):
+        man.update({r["rid"]: r for r in csv.DictReader(open(p))})
+    parsed = {}
+    for l in (run_dir(a.run) / "extraction" / f"batch_{a.tag}" / "parsed.jsonl").open():
+        x = json.loads(l)
+        parsed[x["rid"]] = x
+    have = {r["rid"] for r in csv.DictReader(open(SLR / "extraction.csv"))}
+    side_p = run_dir(a.run) / "side_lists.csv"
+    side_have = list(csv.DictReader(open(side_p)))
+    parsed = {k: v for k, v in parsed.items() if k not in have and k not in {s["rid"] for s in side_have}}
+    rows, side = _rows(parsed, recs, man)
+    with open(SLR / "extraction.csv", "a", newline="") as fh:
+        csv.DictWriter(fh, fieldnames=COLS).writerows(rows)
+    fields = list(side_have[0].keys())
+    with open(side_p, "a", newline="") as fh:
+        csv.DictWriter(fh, fieldnames=fields, extrasaction="ignore").writerows(side)
+    print(f"appended {len({r['rid'] for r in rows})} included studies ({len(rows)} technique rows); {len(side)} excluded")
+    return 0
+
+
+def _rows(parsed, recs, man):
+    rows, side = [], []
     for rid, x in sorted(parsed.items()):
         e, r = x["extraction"], recs.get(rid, {})
         src = man.get(rid, {}).get("source", "abstract-only")
@@ -294,25 +336,14 @@ def cmd_table(a):
                 "qa_total": qt, "fulltext_source": src, "identified_via": via, "notes": e.get("notes", ""),
                 "extractor": f"{MODEL} (LLM-assisted, unreviewed)", "confidence": conf,
                 "needs_human_review": conf == "low"})
-    with open(SLR / "extraction.csv", "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=COLS)
-        w.writeheader()
-        w.writerows(rows)
-    with open(run_dir(a.run) / "side_lists.csv", "w", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(side[0].keys()) if side else ["rid"])
-        w.writeheader()
-        w.writerows(side)
-    from collections import Counter
-    print(f"included studies: {len({r['rid'] for r in rows})}; technique rows: {len(rows)}; excluded at full text: {len(side)}")
-    print("families:", Counter(r["family_v0"] for r in rows))
-    print("side lists:", Counter(s["side_list"] for s in side))
-    return 0
+    return rows, side
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name, fn in (("fetch", cmd_fetch), ("submit", cmd_submit), ("collect", cmd_collect), ("table", cmd_table)):
+    for name, fn in (("fetch", cmd_fetch), ("submit", cmd_submit), ("collect", cmd_collect), ("table", cmd_table),
+                     ("append", cmd_append)):
         p = sub.add_parser(name)
         p.add_argument("--run", required=True)
         p.add_argument("--ids", default="forward_ids.txt")

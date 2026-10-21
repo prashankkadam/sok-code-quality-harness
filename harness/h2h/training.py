@@ -1,7 +1,7 @@
-"""E7 training family (H57-H66). prepare() retrains Gemma 4 31B IT as each paper does (LoRA SFT or DPO on Fireworks; GRPO locally
+"""E12 training family (H57-H66). prepare() retrains Gemma 4 31B IT as each paper does (LoRA SFT or DPO on Fireworks; GRPO locally
 with TRL and the paper's reward as a Python function, the adapter then uploaded to Fireworks; local PEFT where the paper's
 token-level loss is none of these) and solve() makes the paper's inference call(s) with the tuned weights. Every training
-example sharing a 13-gram with an E7 task is dropped, and none is cut to a length limit."""
+example sharing a 13-gram with an E12 task is dropped, and none is cut to a length limit."""
 from __future__ import annotations
 
 import ast
@@ -45,7 +45,7 @@ def _rank() -> int:
 
 
 def _decon(rows: list[dict]) -> list[dict]:
-    """Drops chat (SFT, DPO or RL prompt) rows sharing a 13-gram with any E7 task."""
+    """Drops chat (SFT, DPO or RL prompt) rows sharing a 13-gram with any E12 task."""
     b = banned()
 
     def msgs(r):
@@ -591,7 +591,7 @@ def _cdpo_pairs(rec: dict) -> list[tuple[int, int]]:
 @h2h
 class CodeDPO(_Trained):
     """Self-generated, self-validated preference data (15 codes and 15 assertion sets per OSS-Instruct prompt at temperature
-    1.5, generated here by the E7 model), correctness and execution-time pairs, DPO; greedy decoding."""
+    1.5, generated here by the E12 model), correctness and execution-time pairs, DPO; greedy decoding."""
     hid, name, target = "H60", "CodeDPO", ("EFF",)
     code_url = "https://anonymous.4open.science/r/CodeDPO/"
     data_rebuilt = True
@@ -637,7 +637,7 @@ MPC_FLAKE8 = [sys.executable, "-m", "flake8", "--select=E,W,F403,N8", "--max-lin
 MPC_STYLES = {
     "IndentationCheck": (("E101", "E111", "E112", "E113", "E114", "E115", "E116", "E117", "W191"),
                          "Indentation is not four spaces per level or mixes tabs and spaces."),
-    "ContinuationLineCheck": (("E12", "E13"), "Continuation lines are not aligned with the opening bracket or hanging indent."),
+    "ContinuationLineCheck": (("E11", "E13"), "Continuation lines are not aligned with the opening bracket or hanging indent."),
     "WhitespaceAroundCheck": (("E22",), "Missing or extra whitespace around an operator."),
     "WhitespaceAfterCheck": (("E231",), "Missing whitespace after ',', ';' or ':'."),
     "ExtraneousWhitespaceCheck": (("E20", "E211"), "Whitespace inside brackets or before ',', ';', ':' or '('."),
@@ -797,7 +797,7 @@ def _mpc_pairs(codes: list[str], vecs: list[list[int]], rng: random.Random) -> t
 
 def _mpc_data(ctx: Ctx) -> dict:
     """PCIDense rebuilt on CodeNet Python 3 by the authors' recipe, each user's style conventions (attributes present in at
-    least half of their records), the PEP 8-cleanest user as the E7 target, and the residual pairs."""
+    least half of their records), the PEP 8-cleanest user as the E12 target, and the residual pairs."""
     recs, problems = _mpc_records(_mpc_codenet(ctx.dir("H61") / "codenet"))
     rng = random.Random(MPC_DATA["seed"])
     read = lambda r: Path(r["path"]).read_text(errors="ignore").strip("\n")
@@ -833,7 +833,7 @@ def _mpc_contrast(q, p, labels):
 
 
 class _MPCModel:
-    """The E7 model with MPCoder's parts: 25 style-attribute tokens with learned embeddings, 5 implicit feature vectors per
+    """The E12 model with MPCoder's parts: 25 style-attribute tokens with learned embeddings, 5 implicit feature vectors per
     user prefixed to the input, and the multi-user style adapter whose style distribution is gated into the output one."""
 
     def __init__(self, ctx: Ctx, n_users: int, state: dict | None = None):
@@ -1003,7 +1003,7 @@ class MPCoder(_Trained):
     """Explicit stage: the 25 attribute embeddings learned by attribute-residual prompts (LM frozen); implicit stage: user
     vectors, multi-user style adapter, final norm and output layer (LoRA) trained with generation + contrastive loss.
     Ported from Java/Checkstyle to Python/flake8 on CodeNet, the authors' suggested source; the benchmarks have no users,
-    so E7 generates as the training user whose code has the fewest style violations per line, with that user's
+    so E12 generates as the training user whose code has the fewest style violations per line, with that user's
     conventions in the second-stage prompt; greedy decoding on the local weights."""
     hid, name, target = "H61", "MPCoder", ("RM",)
     code_url = "https://github.com/455849940/MPCoder"
@@ -1518,7 +1518,7 @@ def _sx_reward(rm, response: str, row: dict) -> float:
 
 @h2h
 class SecCoderX(_Trained):
-    """Reasoning vulnerability reward model retrained on the E7 model (cold-start SFT, then GRPO), then online GRPO of the
+    """Reasoning vulnerability reward model retrained on the E12 model (cold-start SFT, then GRPO), then online GRPO of the
     coder on the reality-grounded vulnerability-inducing prompts against that reward model, with format, length and CodeBLEU
     terms that preserve the model's own original functionality."""
     hid, name, target = "H64", "SecCoderX", ("SEC",)

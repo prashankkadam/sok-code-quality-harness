@@ -7,7 +7,7 @@ Improving the Quality of LLM-Generated Code".
   full-text assessment, extraction data and quality assessment, plus the scripts that produce the paper's
   review counts, tables and figures. See `review/README.md`.
 - `harness/`: the controlled re-evaluation (Section "Controlled Re-evaluation"): the main grid, the extended grid,
-  the agent benchmarks and the E7 head-to-head of the 66 highlighted techniques.
+  the agent benchmarks and the E12 head-to-head of the 66 highlighted techniques.
 - `configs/`: models, benchmarks, pinned analyzer configurations, training settings.
 - `docker/`: the execution and measurement environment and a SonarQube server.
 
@@ -21,8 +21,8 @@ Improving the Quality of LLM-Generated Code".
 | `harness/benchmarks/` | Loaders and official scorers: HumanEval+, MBPP+, LiveCodeBench v6, LiveCodeBench Pro protocol, RACE, NoFunEval, PythonSecurityEval, EvalPerf, EffiBench-X, Mercury, EffiBench, CWEval, BaxBench, CyberSecEval, DeepSWE, Terminal-Bench 4.0, FrontierCode, SlopCodeBench, GSO, SWE-fficiency, SusVibes. |
 | `harness/techniques/` | T0-T10 (Table E1c), their agent versions for repository-level benchmarks, and the T6 retrieval corpus. |
 | `harness/training/` | T8-T10 data from the base model, LoRA SFT and DPO on Fireworks, GRPO with TRL, adapter upload and serving. |
-| `harness/h2h/` | E7: the T0 and best-of-n references and the 66 highlighted techniques, one module per family. |
-| `harness/run.py`, `harness/stats.py`, `harness/tables.py` | Experiment drivers, paired bootstrap half-widths, trade-off matrix, budget curves, E7 counts, manual-rating agreement, LaTeX tables. |
+| `harness/h2h/` | E12: the T0 and best-of-n references and the 66 highlighted techniques, one module per family. |
+| `harness/run.py`, `harness/stats.py`, `harness/tables.py` | Experiment drivers, paired bootstrap half-widths, trade-off matrix, budget curves, E12 counts, manual-rating agreement, LaTeX tables. |
 
 ## Setup
 
@@ -35,11 +35,10 @@ pip install -e ".[whitebox,h2h]"
 All runs execute inside the `harness` image (`docker/Dockerfile`) so tests, profiles and analyzers see the same
 pinned environment; on Linux, measurements are pinned to the cores in `HARNESS_PIN_CORES`.
 
-Data that is not public must be placed under `$HARNESS_DATA` before a run:
+Data that must be placed under `$HARNESS_DATA` before a run:
 
-- `deepswe/`: the DeepSWE v1.1 tasks, environments and scorer obtained from its authors (layout in
-  `harness/benchmarks/agent.py`, `DEEPSWE_LAYOUT`). Under the evaluation agreement no task text, patch or trajectory is
-  written to disk; only per-task pass/fail is stored.
+- `deepswe/`: the public DeepSWE v1.1 release (https://github.com/datacurve-ai/deep-swe; layout in
+  `harness/benchmarks/agent.py`, `DEEPSWE_LAYOUT`).
 - `frontiercode/`: the FrontierCode tasks, rubric and reference grader (`FRONTIERCODE_LAYOUT`).
 - `lcb_pro/<problem>/tests/`: hidden tests for the post-2026-07-01 Codeforces problems; `harness lcbpro-build`
   collects statements, limits and sample tests.
@@ -50,12 +49,12 @@ Data that is not public must be placed under `$HARNESS_DATA` before a run:
 | --- | --- |
 | T6 corpus | `harness rag-build` |
 | T8-T10 adapters | `harness train g31`, `harness train g26` |
-| E2-E6, E8, E9 (main grid) | `harness main` |
-| E10 and the extended technique table | `harness extended` |
+| E2-E8 (main grid) | `harness main` |
+| E9 and the extended technique table | `harness extended` |
 | E2b and the agent table | `harness agent` |
-| E7 head-to-head | `harness h2h` |
-| E7 budget-matched best-of-n (after `harness h2h`) | `harness h2h-bon-matched` |
-| E7 fidelity check | `harness fidelity H01,H02,...` |
+| E12 head-to-head | `harness h2h` |
+| E12 budget-matched best-of-n (after `harness h2h`) | `harness h2h-bon-matched` |
+| E12 fidelity check | `harness fidelity H01,H02,...` |
 | Manual ratings (two raters) | `harness manual-sample`, then `harness manual-agreement runs/main/manual_sample_A.csv runs/main/manual_sample_B.csv` |
 | All tables | `harness tables` |
 | Compute ledger | `harness ledger` |
@@ -75,14 +74,14 @@ model call is logged in `runs/<experiment>/calls.jsonl`.
   Codeforces contests after 2026-07-01 for every model.
 - Every output is scored on all four dimensions; effects are paired per-task differences against T7 at the same B
   (and T0 at B=1) with 95% bootstrap half-widths.
-- E7: Gemma 4 31B IT, each technique in its published configuration with a ceiling of 16 calls; components that call
+- E12: Gemma 4 31B IT, each technique in its published configuration with a ceiling of 16 calls; components that call
   another LLM use the same model; trained components are retrained for it; training-time techniques use LoRA.
 
 ## Where the implementation departs from the paper or its sources
 
-- Fireworks stopped accepting new reinforcement fine-tuning jobs on 2026-10-01, so GRPO (T10 and the E7 RL
+- Fireworks stopped accepting new reinforcement fine-tuning jobs on 2026-10-01, so GRPO (T10 and the E12 RL
   techniques) trains locally with TRL and the adapter is uploaded to Fireworks for serving.
 - Some highlighted techniques publish no prompts or code, or only an abstract; these are reconstructed from the
   paper's description and flagged in their class (`data_rebuilt`, `ported`). Techniques whose published configuration
   needs more than 16 calls run at the ceiling and are marked in the results (`capped`).
-- Mean calls per task come from the runs; they may differ from the Calls column of the E7 table.
+- Mean calls per task come from the runs; they may differ from the Calls column of the E12 table.

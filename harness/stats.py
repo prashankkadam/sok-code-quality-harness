@@ -1,6 +1,6 @@
 """Cell metrics, paired per-task effects with bootstrap half-widths (at every budget), p-values and a Benjamini-Hochberg
-correction, per-seed dispersion, the trade-off matrix, budget curves, E7 counts and intervals, the agreement of the two
-judges and of the manual ratings, and the authors' own numbers for the E7 fidelity check."""
+correction, per-seed dispersion, the trade-off matrix, budget curves, E12 counts and intervals, the agreement of the two
+judges and of the manual ratings, and the authors' own numbers for the E12 fidelity check."""
 from __future__ import annotations
 
 import csv
@@ -168,7 +168,7 @@ def paired(a: dict[str, float], b: dict[str, float]) -> list[float]:
 
 
 def halfwidths(R: Results, models: list[str], techs: list[str], B: int = 4, metrics=MAIN) -> dict[tuple[str, str], float]:
-    """Table E8: 95% half-width of the paired per-task effect against T7 at B, pooled over techniques, per metric and model."""
+    """Table E7: 95% half-width of the paired per-task effect against T7 at B, pooled over techniques, per metric and model."""
     out = {}
     for m in metrics:
         for model in models:
@@ -180,7 +180,7 @@ def halfwidths(R: Results, models: list[str], techs: list[str], B: int = 4, metr
 
 
 def halfwidths_by_budget(R: Results, models: list[str], techs: list[str], budgets=(4, 8, 16), metrics=MAIN) -> dict[int, dict]:
-    """Table E8 at every budget: B -> {(metric, model): half-width against T7 at that B}."""
+    """Table E7 at every budget: B -> {(metric, model): half-width against T7 at that B}."""
     return {B: halfwidths(R, models, techs, B, metrics) for B in budgets}
 
 
@@ -253,7 +253,7 @@ def fdr_cells(R: Results, models: list[str], techs: list[str], refs=("T0", "T7")
 
 
 def budget_curves(R: Results, models: list[str], techs: list[str], metrics=MAIN) -> dict[tuple[str, str, str, int], float]:
-    """Table E9: primary metric per dimension at B in {1,4,8,16}; T3, T4, T5, T7 and T7lo at B=1 equal T0 by construction."""
+    """Table E8: primary metric per dimension at B in {1,4,8,16}; T3, T4, T5, T7 and T7lo at B=1 equal T0 by construction."""
     primary = {"COR": "HE+", "RM": "Lint", "EFF": "DPS", "SEC": "FS"}
     out = {}
     for m in [m for m in metrics if primary.get(m.dim) == m.label]:
@@ -266,7 +266,7 @@ def budget_curves(R: Results, models: list[str], techs: list[str], metrics=MAIN)
 
 
 def h2h_summary(R: Results, techs: dict[str, tuple[str, tuple[str, ...]]], model: str = "g31", B: int = 16) -> dict:
-    """E7 counts: techniques that improve every target metric against T0, best-of-n and the family's budget-matched
+    """E12 counts: techniques that improve every target metric against T0, best-of-n and the family's budget-matched
     best-of-n (BoN-<family>), per family. techs: hid -> (family, target dims). A reference without results is skipped."""
     col = {m.label: m for m in H2H}
     tgt = {"RM": ["RM"], "EFF": ["EB", "DPS"], "SEC": ["CWE", "CSE"]}
@@ -285,7 +285,7 @@ def h2h_summary(R: Results, techs: dict[str, tuple[str, tuple[str, ...]]], model
 
 def h2h_intervals(R: Results, hids: list[str], model: str = "g31", B: int = 16, refs=("T0", "BoN"), metrics=H2H
                   ) -> dict[tuple[str, str, str], tuple[float, float, float]]:
-    """E7: per technique, reference and benchmark column, the mean paired per-task difference (technique minus reference)
+    """E12: per technique, reference and benchmark column, the mean paired per-task difference (technique minus reference)
     and its 95% bootstrap interval."""
     out = {}
     for ref in refs:
@@ -431,7 +431,7 @@ def lit_value(r: dict) -> float | None:
 
 
 def lit_rows(hid: str | None = None) -> list[dict]:
-    """lit_h2h.csv (each technique's number in its authors' own setting) with its old E7 ids mapped to the current ones
+    """lit_h2h.csv (each technique's number in its authors' own setting) with its old E12 ids mapped to the current ones
     through configs/h2h_renumber.csv; rows of removed techniques drop out."""
     new = {r["old_id"]: r["h2h_id"] for r in csv.DictReader(open(CONFIGS / "h2h_renumber.csv")) if r["old_id"]}
     rows = [r | {"old_id": r["h2h_id"], "h2h_id": new[r["h2h_id"]], "lit": lit_value(r)}

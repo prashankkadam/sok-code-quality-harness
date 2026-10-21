@@ -1,5 +1,5 @@
-"""E7 decoding family (H47-H56) on the local Gemma 4 31B IT weights: tree search, constrained and co-decoding,
-activation steering and reranking. Every locally generated sequence or rollout is charged as one call."""
+"""E12 decoding family (H47-H56) on the local Gemma 4 31B IT weights: tree search, constrained decoding, logit
+adjustment, activation steering and reranking. Every locally generated sequence or rollout is charged as one call."""
 from __future__ import annotations
 
 import ast
@@ -18,6 +18,7 @@ from ..sandbox import passes, wallclock
 from ..tasks import Task
 from ..techniques import common as C
 from .base import Ctx, H2HTechnique, h2h
+from .retrieval import decontaminate, read_jsonl, write_jsonl
 
 MAX_NEW = 2048
 
@@ -1538,169 +1539,260 @@ class SecCodePRM(H2HTechnique):
         return code
 
 
-COGATE_EXPERT = "google/gemma-4-E2B-it"
-COGATE_LORA = {"r": 16, "lora_alpha": 32, "lora_dropout": 0.05, "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"]}
-COGATE_LR, COGATE_EPOCHS = 1e-4, 2
-COGATE_DISTILL_TASKS, COGATE_DISTILL_SAMPLES = 2000, 4
-COGATE_A, COGATE_T, COGATE_TOP_P = 0.3, 0.6, 0.95
-COGATE_SIGNAL, COGATE_TAU = "entropy", 0.6
-SVEN = "https://raw.githubusercontent.com/eth-sri/sven/master/data_train_val/train/{}.jsonl"
-SVEN_CWES = ["cwe-022", "cwe-078", "cwe-079", "cwe-089", "cwe-125", "cwe-190", "cwe-416", "cwe-476", "cwe-787"]
-EXT_LANG = {".py": "python", ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp", ".cxx": "cpp", ".hpp": "cpp"}
-SECURITY_USER = "Write the {lang} function `{name}` of the file {file}."
+ROBGEN_CHECKER = "Qwen/Qwen3-0.6B"
+ROBGEN_LORA = {"r": 8, "lora_alpha": 16, "lora_dropout": 0.05, "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"]}
+ROBGEN_LR, ROBGEN_EPOCHS, ROBGEN_ACCUM, ROBGEN_VAL = 2e-5, 5, 16, 0.1
+ROBGEN_POS, ROBGEN_NEG, ROBGEN_PER_FILE = 4000, 8000, 2
+ROBGEN_CORPUS = "codeparrot/github-code-clean"
+ROBGEN_LICENSES = {"mit", "apache-2.0", "bsd-2-clause", "bsd-3-clause", "isc", "cc0-1.0", "unlicense"}
+ROBGEN_LANGS = {"python": ("Python", "tree_sitter_python", "language"), "c": ("C", "tree_sitter_c", "language"),
+                "cpp": ("C++", "tree_sitter_cpp", "language"), "java": ("Java", "tree_sitter_java", "language"),
+                "javascript": ("JavaScript", "tree_sitter_javascript", "language"), "go": ("GO", "tree_sitter_go", "language"),
+                "csharp": ("C#", "tree_sitter_c_sharp", "language"), "php": ("PHP", "tree_sitter_php", "language_php"),
+                "rust": ("Rust", "tree_sitter_rust", "language"), "ruby": ("Ruby", "tree_sitter_ruby", "language")}
+ROBGEN_FUNCS = {"function_definition", "function_declaration", "method_declaration", "constructor_declaration",
+                "method_definition", "function_expression", "generator_function_declaration", "arrow_function",
+                "func_literal", "function_item", "local_function_statement", "method", "singleton_method"}
+ROBGEN_INDENTED = {"python"}
+ROBGEN_IF = re.compile(r"if\b")
+ROBGEN_PROMPT = "{lang} code:\n{code}### Should the next line start with an `if` statement? Answer:"
+ROBGEN_TOP, ROBGEN_RQ4_TOP, ROBGEN_PCTL, ROBGEN_DEFAULT_DELTA = 3, 30, 90, 1.0
+ROBGEN_CALIB = 230
 
 
-def _lora_train(base: str, rows: list[dict], out: Path, lora: dict, lr: float, epochs: int, accum: int = 16) -> Path:
-    """LoRA fine-tuning with a per-token likelihood mask ('lm') and unlikelihood mask ('ul'); saves the merged model."""
-    import torch
-    from peft import LoraConfig, get_peft_model
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map="auto")
-    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    model.enable_input_require_grads()
-    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", **lora))
-    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=lr)
-    dev = next(model.parameters()).device
-    rng = random.Random(0)
-    model.train()
-    for _ in range(epochs):
-        rng.shuffle(rows)
-        for i, r in enumerate(rows):
-            ids = torch.tensor([r["ids"]], device=dev)
-            lp = torch.log_softmax(model(input_ids=ids).logits[0, :-1].float(), -1)
-            lp = lp.gather(1, ids[0, 1:, None])[:, 0]
-            lm_w = torch.tensor(r["lm"][1:], device=dev)
-            ul_w = torch.tensor(r["ul"][1:], device=dev)
-            loss = lp.new_zeros(())
-            if lm_w.sum() > 0:
-                loss = loss - (lp * lm_w).sum() / lm_w.sum()
-            if ul_w.sum() > 0:
-                loss = loss - (torch.log1p(-lp.exp().clamp(max=1 - 1e-6)) * ul_w).sum() / ul_w.sum()
-            (loss / accum).backward()
-            if (i + 1) % accum == 0 or i + 1 == len(rows):
-                opt.step()
-                opt.zero_grad()
-    merged = model.merge_and_unload()
-    merged.save_pretrained(out)
-    AutoTokenizer.from_pretrained(base).save_pretrained(out)
+def _quota(total: int, shares: dict[str, float]) -> dict[str, int]:
+    """Largest-remainder split of `total` by shares."""
+    q = {k: int(total * s) for k, s in shares.items()}
+    for k in sorted(shares, key=lambda k: q[k] - total * shares[k])[:total - sum(q.values())]:
+        q[k] += 1
+    return q
+
+
+@lru_cache(maxsize=1)
+def _e7_shares() -> dict[str, float]:
+    """Share of the E12 tasks in each language RobGen can parse."""
+    from collections import Counter
+    from ..benchmarks.base import get
+    from ..config import load
+    n = Counter(t.language for b in load("benchmarks")["h2h"] for t in get(b).tasks() if t.language in ROBGEN_LANGS)
+    return {k: v / sum(n.values()) for k, v in sorted(n.items())}
+
+
+@lru_cache(maxsize=None)
+def _ts_parser(lang: str):
+    from importlib import import_module
+    from tree_sitter import Language, Parser
+    _, mod, fn = ROBGEN_LANGS[lang]
+    return Parser(Language(getattr(import_module(mod), fn)()))
+
+
+def _functions(lang: str, src: bytes) -> list:
+    out, stack = [], [_ts_parser(lang).parse(src).root_node]
+    while stack:
+        n = stack.pop()
+        if n.type in ROBGEN_FUNCS:
+            out.append(n)
+        stack.extend(n.children)
     return out
 
 
-def _masked_row(tok, user: str, response: str, spans: list[tuple[int, int]] | None, offset: int, kind: str) -> dict:
-    """Tokenizes a one-turn chat. kind: 'all' (loss on the whole response), 'lm' or 'ul' (only on tokens overlapping
-    spans, which are character ranges of the code starting at `offset` inside the response)."""
-    response = response.strip()
-    text = tok.apply_chat_template([{"role": "user", "content": user}, {"role": "assistant", "content": response}],
-                                   tokenize=False)
-    r0 = text.rindex(response)
-    enc = tok(text, add_special_tokens=False, return_offsets_mapping=True)
-    lm, ul = [], []
-    for s, e in enc["offset_mapping"]:
-        in_resp = s >= r0
-        hit = in_resp if kind == "all" else in_resp and any(s < r0 + offset + ce and e > r0 + offset + cs
-                                                               for cs, ce in spans or [])
-        lm.append(1.0 if hit and kind in ("all", "lm") else 0.0)
-        ul.append(1.0 if hit and kind == "ul" else 0.0)
-    return {"ids": enc["input_ids"], "lm": lm, "ul": ul}
+def _method_blocks(lang: str, code: str) -> list[tuple[str, int]]:
+    """Paper's checker data: for each non-blank line of a function after its signature, the function from its signature
+    line up to that line (innermost function), labelled 1 if the line starts with `if`."""
+    lines = code.split("\n")
+    owner: dict[int, int] = {}
+    for n in _functions(lang, code.encode()):
+        s, e = n.start_point[0], n.end_point[0]
+        for k in range(s + 1, min(e, len(lines) - 1) + 1):
+            owner[k] = max(owner.get(k, -1), s)
+    return [("\n".join(lines[s:k]) + "\n", int(bool(ROBGEN_IF.match(lines[k].lstrip()))))
+            for k, s in sorted(owner.items()) if lines[k].strip()]
 
 
-def _security_rows(tok) -> list[dict]:
-    """SVEN training pairs: likelihood on the lines the fix added, unlikelihood on the lines it deleted."""
-    rows = []
-    for cwe in SVEN_CWES:
-        for d in _jsonl(SVEN.format(cwe)):
-            lang = EXT_LANG.get(Path(d["file_name"]).suffix, "c")
-            user = SECURITY_USER.format(lang=lang, name=d["func_name"], file=d["file_name"])
-            off = len(f"```{lang}\n")
-            for code, key, kind in ((d["func_src_after"], "added", "lm"), (d["func_src_before"], "deleted", "ul")):
-                spans = [(c["char_start"], c["char_end"]) for c in d["line_changes"][key]]
-                if spans:
-                    rows.append(_masked_row(tok, user, f"```{lang}\n{code}\n```", spans, off, kind))
-    return rows
+def _enclosing(code: str, lang: str) -> str:
+    """Checker input at decode time: the innermost function still open at the end of `code` (ending with a newline), from
+    its signature line; the whole code when no function is open."""
+    if lang not in ROBGEN_LANGS:
+        return code
+    end = len(code.encode().rstrip())
+    rows = [n.start_point[0] for n in _functions(lang, code.encode())
+            if n.end_byte >= end and (lang in ROBGEN_INDENTED or n.has_error)]
+    return "\n".join(code.split("\n")[max(rows):]) if rows else code
 
 
-def _gated_co_decode(base, expert, ids, max_new: int = MAX_NEW) -> list[int]:
-    """CoGate Algorithm 1: if c(S_t) > tau the expert proposes x ~ S_t, kept iff a < min(1, B_t(x)/S_t(x)); otherwise
-    (gate closed or rejected) x ~ B_t."""
-    torch = base.torch
+def _check_prompt(code: str, lang: str) -> str:
+    return ROBGEN_PROMPT.format(lang=C.LANG_NAME.get(lang, lang), code=code)
 
-    def dist(logits):
-        p = torch.softmax(logits.float() / COGATE_T, -1)
-        sp, si = torch.sort(p, descending=True)
-        sp[(sp.cumsum(-1) - sp) > COGATE_TOP_P] = 0
-        return torch.zeros_like(p).scatter(0, si, sp / sp.sum())
 
-    def confidence(S) -> float:
-        if COGATE_SIGNAL == "max":
-            return S.max().item()
-        nz = S[S > 0]
-        return 1.0 + (nz * nz.log()).sum().item() / math.log(S.shape[-1])
+class _Checker:
+    """Line-level intervention checker: the LoRA-tuned classifier's ' yes' vs ' no' logit after the prompt."""
 
-    out_b, out_e = base.forward(ids), expert.forward(ids.to(expert.device))
-    pb_, pe_ = out_b.past_key_values, out_e.past_key_values
-    lb, le = out_b.logits[0, -1], out_e.logits[0, -1]
-    toks, eos = [], set(base.eos_ids)
-    for _ in range(max_new):
-        V = min(lb.shape[-1], le.shape[-1])
-        B, S = dist(lb[:V]), dist(le[:V].to(lb.device))
-        x = None
-        if confidence(S) > COGATE_TAU:
-            x = int(torch.multinomial(S, 1))
-            if not COGATE_A < min(1.0, (B[x] / S[x]).item()):
-                x = None
-        if x is None:
-            x = int(torch.multinomial(B, 1))
-        toks.append(x)
-        if x in eos:
-            break
-        nxt = torch.tensor([[x]], device=base.device)
-        out_b, out_e = base.forward(nxt, pb_), expert.forward(nxt.to(expert.device), pe_)
-        pb_, pe_ = out_b.past_key_values, out_e.past_key_values
-        lb, le = out_b.logits[0, -1], out_e.logits[0, -1]
-    return toks
+    def __init__(self, path: str):
+        from ..whitebox import local_lm
+        self.lm = local_lm(ROBGEN_CHECKER, path)
+        self.yes, self.no = (self.lm.tok(a, add_special_tokens=False).input_ids[0] for a in (" yes", " no"))
+
+    def __call__(self, block: str, lang: str) -> bool:
+        logits = self.lm.forward(self.lm.encode(_check_prompt(block, lang))).logits[0, -1]
+        return bool(logits[self.yes] > logits[self.no])
+
+
+def _train_checker(rows: list[dict], out: Path) -> dict:
+    """LoRA SFT of the checker (loss on the answer token only), repo-level validation split, the epoch with the highest
+    validation accuracy kept."""
+    import torch
+    from peft import LoraConfig, get_peft_model
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    tok = AutoTokenizer.from_pretrained(ROBGEN_CHECKER)
+    model = AutoModelForCausalLM.from_pretrained(ROBGEN_CHECKER, torch_dtype=torch.float32, device_map="auto")
+    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", **ROBGEN_LORA))
+    dev = next(model.parameters()).device
+    ans = [tok(a, add_special_tokens=False).input_ids[0] for a in (" no", " yes")]
+    enc = lambda r: torch.tensor([tok(_check_prompt(r["block"], r["lang"]), add_special_tokens=False).input_ids], device=dev)
+    train, val = _split(rows, ROBGEN_VAL, key=lambda r: r["repo"])
+    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=ROBGEN_LR)
+    rng, best = random.Random(0), {"val_acc": -1.0}
+    for epoch in range(ROBGEN_EPOCHS):
+        model.train()
+        rng.shuffle(train)
+        for i, r in enumerate(train):
+            logits = model(input_ids=enc(r)).logits[:, -1].float()
+            loss = torch.nn.functional.cross_entropy(logits, torch.tensor([ans[r["label"]]], device=dev))
+            (loss / ROBGEN_ACCUM).backward()
+            if (i + 1) % ROBGEN_ACCUM == 0 or i + 1 == len(train):
+                opt.step()
+                opt.zero_grad()
+        model.eval()
+        with torch.no_grad():
+            hits = 0
+            for r in val:
+                logits = model(input_ids=enc(r)).logits[0, -1]
+                hits += int(bool(logits[ans[1]] > logits[ans[0]]) == bool(r["label"]))
+        if hits / len(val) > best["val_acc"]:
+            best = {"val_acc": hits / len(val), "epoch": epoch + 1, "train": len(train), "val": len(val)}
+            model.save_pretrained(out)
+    (out / "val.json").write_text(json.dumps(best))
+    return best
+
+
+@lru_cache(maxsize=2)
+def _if_ids(lm):
+    """Vocabulary tokens that read `if` up to surrounding whitespace."""
+    return lm.torch.tensor([i for i in range(len(lm.tok)) if lm.tok.decode([i]).strip() == "if"])
+
+
+class _RobGenProcessor:
+    """Token-level conditional logit adjustment (a transformers LogitsProcessor): at the first non-whitespace token of each
+    line of the fenced code, if the best `if` token ranks 2nd or 3rd and the checker says the line should start with `if`,
+    its logit is raised by delta * (rank - 1). With `log`, line starts are recorded instead (delta calibration)."""
+
+    def __init__(self, lm, n0: int, lang: str, checker=None, delta: float = 0.0, log: list | None = None):
+        self.lm, self.n0, self.lang, self.checker, self.delta, self.log = lm, n0, lang, checker, delta, log
+        self.ifs, self.special = _if_ids(lm), set(lm.tok.all_special_ids)
+        self.piece = lru_cache(maxsize=None)(lambda i: lm.tok.decode([i]))
+
+    def __call__(self, input_ids, scores):
+        prev = self.piece(int(input_ids[0, -1]))
+        if prev.strip() and "\n" not in prev:
+            return scores
+        s = scores[0]
+        top = int(s.argmax())
+        if top in self.special or not self.piece(top).strip():
+            return scores
+        text = self.lm.decode(input_ids[0, self.n0:])
+        nl = text.rfind("\n")
+        if text.count("```") % 2 == 0 or text[nl + 1:].strip():
+            return scores
+        code = text[text.find("\n", text.rfind("```")) + 1:nl + 1]
+        if not code.strip():
+            return scores
+        ifs = self.ifs.to(s.device)
+        v, j = s[ifs].max(0)
+        rank = int((s > v).sum()) + 1
+        if self.log is not None:
+            self.log.append((code, rank, (s[top] - v).item()))
+        elif 1 < rank <= ROBGEN_TOP and self.checker(_enclosing(code, self.lang), self.lang):
+            scores[0, ifs[j]] += self.delta * (rank - 1)
+        return scores
 
 
 @h2h
-class CoGate(H2HTechnique):
-    """CoSec+ expert (smallest same-vocabulary Gemma 4, distilled from the target, then security-trained on SVEN)
-    co-decoding with the target behind a normalized-entropy confidence gate."""
-    hid, name, family, target = "H56", "CoGate", "decoding", ("SEC",)
-    whitebox = trains = True
+class RobGen(H2HTechnique):
+    """Greedy decoding with RobGen: before the first non-whitespace token of each code line, when `if` ranks 2nd or 3rd
+    and the line-level checker (LoRA-SFT Qwen3-0.6B) predicts an `if` line, `if` gets +delta*(rank-1) on its logit.
+    Departures: the paper's checker data are 12,000 method blocks (4,000 `if`, 8,000 not) from three Java repositories
+    with over 3,000 stars; here the same counts come from permissively licensed GitHub files in the E12 languages
+    (split by E12 task share, files sharing a 13-gram with any E12 task dropped, 10% of repositories for validation), with
+    functions found by tree-sitter. At decode time the checker sees the innermost open function of the generated code
+    (the whole code when none is open), and only inside the reply's fenced code block. LoRA rank, batch and prompt are
+    not published (r=8, accumulation 16, a yes/no answer token). Delta is the 90th percentile of (top logit - `if`
+    logit) / (rank - 1) at the first line per generation where `if` is missing but ranks in the top 30, as in RQ4, but
+    on 230 greedy held-out generations (TACO training tasks, languages in E12 share) with the trained checker in place
+    of the paper's manual annotation; 1.0 when no such line occurs. Up to 2048 new tokens (paper: 1024). The checker
+    is only run when the adjustment would be non-zero, which leaves the output unchanged. Port from Java to the E12
+    languages."""
+    hid, name, family, target = "H56", "RobGen", "decoding", ("SEC",)
+    code_url = "https://anonymous.4open.science/r/RobGen-838C"
+    whitebox = trains = ported = True
     data_rebuilt = True
 
     def prepare(self, ctx: Ctx) -> None:
-        from transformers import AutoTokenizer
-        out = ctx.dir(self.hid)
-        if (out / "expert" / "config.json").exists():
+        d = ctx.dir(self.hid)
+        if (d / "delta.json").exists():
             return
-        tok = AutoTokenizer.from_pretrained(COGATE_EXPERT)
-        if tok.get_vocab() != AutoTokenizer.from_pretrained(ctx.hf_id).get_vocab():
-            raise ValueError(f"{COGATE_EXPERT} does not share the target's vocabulary")
-        aligned = out / "aligned"
-        if not (aligned / "config.json").exists():
-            _lora_train(COGATE_EXPERT, self._distill_rows(ctx, tok), aligned, COGATE_LORA, COGATE_LR, COGATE_EPOCHS)
-        _lora_train(str(aligned), _security_rows(tok), out / "expert", COGATE_LORA, COGATE_LR, COGATE_EPOCHS)
+        data = d / "checker_data.jsonl"
+        if not data.exists():
+            write_jsonl(data, self._mine())
+        if not (d / "checker" / "val.json").exists():
+            _train_checker(read_jsonl(data), d / "checker")
+        (d / "delta.json").write_text(json.dumps(self._calibrate(ctx, _Checker(str(d / "checker")))))
 
-    def _distill_rows(self, ctx: Ctx, tok) -> list[dict]:
-        """Functional-correctness alignment: the target's own test-passing solutions on training tasks."""
-        path, rows = ctx.dir(self.hid) / "distill.jsonl", []
-        if not path.exists():
-            with open(path, "w") as f:
-                for t in ctx.train_tasks[:COGATE_DISTILL_TASKS]:
-                    with scope(t.id, f"{self.hid}-distill", None):
-                        texts = ctx.llm.sample(C.messages(t), COGATE_DISTILL_SAMPLES)
-                    for x in texts:
-                        k, m = passes(t, C.code_of(t, x), t.hidden_tests)
-                        if m and k == m:
-                            f.write(json.dumps({"user": C.messages(t)[-1]["content"], "response": x}) + "\n")
-                            break
-        for l in path.read_text().splitlines():
-            d = json.loads(l)
-            rows.append(_masked_row(tok, d["user"], d["response"], None, 0, "all"))
+    @staticmethod
+    def _mine() -> list[dict]:
+        from datasets import load_dataset
+        shares, rows = _e7_shares(), []
+        need_pos, need_neg = _quota(ROBGEN_POS, shares), _quota(ROBGEN_NEG, shares)
+        for lang in shares:
+            need, pools, rng = {1: need_pos[lang], 0: need_neg[lang]}, {1: [], 0: []}, random.Random(lang)
+            stream = load_dataset(ROBGEN_CORPUS, streaming=True, split="train", languages=[ROBGEN_LANGS[lang][0]],
+                                  trust_remote_code=True)
+            for r in stream:
+                if all(len(pools[y]) >= need[y] for y in pools):
+                    break
+                if r["license"] not in ROBGEN_LICENSES or not decontaminate([r], "code"):
+                    continue
+                blocks = _method_blocks(lang, r["code"])
+                for y, k in ((1, ROBGEN_PER_FILE), (0, 2 * ROBGEN_PER_FILE)):
+                    cands = [b for b, label in blocks if label == y]
+                    for b in rng.sample(cands, max(0, min(k, len(cands), need[y] - len(pools[y])))):
+                        pools[y].append({"lang": lang, "repo": r["repo_name"], "path": r["path"], "block": b, "label": y})
+            rows += pools[1] + pools[0]
         return rows
 
+    def _calibrate(self, ctx: Ctx, checker: _Checker) -> dict:
+        import numpy as np
+        from dataclasses import replace
+        lm = ctx.lm()
+        langs = [k for k, n in _quota(ROBGEN_CALIB, _e7_shares()).items() for _ in range(n)]
+        gaps = []
+        for t, lang in zip(ctx.train_tasks, langs):
+            prompt, log = _prompt(lm, replace(t, language=lang)), []
+            _generate(lm, prompt, processors=[_RobGenProcessor(lm, prompt.shape[1], lang, log=log)])
+            for code, rank, gap in log:
+                if 1 < rank <= ROBGEN_RQ4_TOP and checker(_enclosing(code, lang), lang):
+                    gaps.append(gap / (rank - 1))
+                    break
+        delta = float(np.percentile(gaps, ROBGEN_PCTL)) if gaps else ROBGEN_DEFAULT_DELTA
+        return {"delta": delta, "positions": len(gaps), "generations": min(len(langs), len(ctx.train_tasks))}
+
     def solve(self, task: Task, ctx: Ctx) -> str:
-        from ..whitebox import local_lm
-        base, expert = ctx.lm(), local_lm(str(ctx.dir(self.hid) / "expert"))
-        ctx.charge(1, "co-decode")
-        return ctx.keep(_decode_code(base, task, _gated_co_decode(base, expert, _prompt(base, task))))
+        lm = ctx.lm()
+        if not hasattr(self, "_checker"):
+            d = ctx.dir(self.hid)
+            self._delta = json.loads((d / "delta.json").read_text())["delta"]
+            self._checker = _Checker(str(d / "checker"))
+        prompt = _prompt(lm, task)
+        proc = _RobGenProcessor(lm, prompt.shape[1], task.language, self._checker, self._delta)
+        ctx.charge(1, "robgen")
+        new, _ = _generate(lm, prompt, processors=[proc])
+        return ctx.keep(_decode_code(lm, task, new))

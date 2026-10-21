@@ -34,7 +34,7 @@ H32,R02474#0,multi-agent,LessonL (lesson solicitation-banking-selection multi-ag
 H33,R02322#0,multi-agent,MARCO (code optimizer agent + performance evaluator agent + Tavily web search),no,,H37
 H34,R06610#0,multi-agent,C3 (Controllable Competitive Collaboration) with Centralized Auction-Based Competition (CAB) and Decentralized Communication-Aware Competition (DCC),no,,H38
 H35,R05061#0,multi-agent,ACCLAIM (compiler-LLM cooperation multi-agent system),yes,https://github.com/amazon-science/acclaim,
-H36,R06562#0,multi-agent,MACGen (artifact-only multi-agent planning + security advisor with standards KB RAG + coder + reviewer),yes,https://github.com/Mishuni/macgen-secure-code,
+H36,S02765#0,multi-agent,"MaintainCoder (requirements analysis + design-pattern selection + framework design and evaluation agents, then code generation and execution-driven optimization)",yes,https://github.com/IAAR-Shanghai/MaintainCoder,
 H37,R00256#0,retrieval,Dynamic retrieval-based few-shot prompting (PIE),yes,https://pie4perf.com,H39
 H38,R01956#0,retrieval,LAIL (LLM-Aware In-context Learning example retrieval),no,,H40
 H39,R00410#0,retrieval,KPC (Knowledge-driven Prompt Chaining),yes,https://github.com/goodchar123/KPC,H41
@@ -54,7 +54,7 @@ H52,R04456#0,decoding,FunPRM (Chain-of-Function prompting + meta reward-correcte
 H53,R04821#0,decoding,SCS-Code (Secure Concept Steering via difference-in-means residual stream activation addition),yes,https://anonymous.4open.science/r/codellm-steering-BED7,H58
 H54,R02790#0,decoding,"Mixture of Corrections (MoC): conditional, decayed activation steering vectors per CWE derived from linear probes (group mean diff, normal vector, PCA normal vector, dynamic NN)",yes,https://github.com/viviable/MoC,
 H55,R04603#0,decoding,SecCodePRM-guided inference-time scaling (step-level security PRM ranking candidates),no,,
-H56,R06355#0,decoding,CoGate (confidence-gated co-decoding with max-probability or normalized-entropy gate),no,,
+H56,S02752#0,decoding,RobGen (line-level intervention checker + token-level conditional logit adjustment of the if token),yes,https://anonymous.4open.science/r/RobGen-838C,
 H57,R00523#0,training,"SVEN (security-hardening prefix-tuning with masked LM, contrastive and KL losses)",yes,https://github.com/eth-sri/sven,H59
 H58,R00699#0,training,SafeCoder (joint standard + security instruction tuning with masked NLL and unlikelihood loss),yes,https://github.com/eth-sri/SafeCoder,H60
 H59,R00755#0,training,SFT + DPO (RLAIF) preference tuning on CodeUltraFeedback,yes,https://github.com/martinwey/CodeUltraFeedback,H61
