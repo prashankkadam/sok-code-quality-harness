@@ -1,0 +1,67 @@
+h2h_id,tid,family,technique_name,code_public,code_url,old_id
+H01,R00308#0,prompting,SCoT prompting (Structured Chain-of-Thought),no,,H01
+H02,R00985#0,prompting,Self-planning (two-phase plan-then-implement few-shot prompting),no,,H02
+H03,R01905#0,prompting,"LLM4EFFI (task formalization, logic-domain algorithm exploration, code-domain implementation optimization, synthetic-test bidirectional verification refinement)",yes,https://anonymous.4open.science/r/LLM4EFFI-04B2,H03
+H04,R00888#0,prompting,Code2API (role designation + 8-step CoT + 5-shot in-context learning),yes,https://doi.org/10.6084/m9.figshare.24219856.v1,H04
+H05,R02908#0,prompting,MPCO (Meta-Prompted Code Optimization),no,,H05
+H06,R05930#0,prompting,BRACE (Black-box Risk Analysis and Contextual Elicitation),no,,H06
+H07,R03399#0,prompting,ECO (symbolic advisor bottleneck diagnosis + ROI retriever performance-aware prompting),no,,H07
+H08,R06912#0,prompting,Universal Textual Teaching (UTT) Primer,no,,H08
+H09,R04475#0,prompting,Constitutional Spec-Driven Development (CSDD),yes,https://github.com/srinivasraom/banking-ms-by-constitution,H09
+H10,R05489#0,prompting,SecureForge (benign falsification + MCMC prompt amplification + GEPA system-prompt optimization with Semgrep feedback),yes,https://github.com/sisl/SecureForge,
+H11,R01176#0,feedback-loop,"SBLLM (execution-based representative sample selection + adaptive optimization pattern retrieval + genetic operator-inspired CoT prompting, evolutionary loop)",yes,https://github.com/shuzhenggao/sbllm,H11
+H12,R01494#0,feedback-loop,PerfCodeGen (correctness refinement with reflection/planning + performance refinement using most time-consuming unit test feedback),no,,H12
+H13,R01255#0,feedback-loop,PromSec (gGAN-guided iterative prompt optimization),yes,https://github.com/mahmoudkanazzal/PromSec,H13
+H14,R00317#0,feedback-loop,DeepDevVuln filtering of LLM completions (fine-tuned CodeBERT vulnerability detector),no,,H14
+H15,R01309#1,feedback-loop,FRANC repair via generated knowledge prompting with static analyzer messages (P1/P2/P3),yes,https://github.com/s2e-lab/FRANC,H15
+H16,R05008#0,feedback-loop,"Optimo (Mixture-of-Prompts multi-level optimization with differential profiling, mined strategies, correctness reflection)",yes,https://doi.org/10.5281/zenodo.19335907,H16
+H17,R04774#0,feedback-loop,"Iterative static-analysis (Infer) feedback repair, one vulnerability at a time, with fix instructions",no,,H17
+H18,R05453#0,feedback-loop,CodeEvolve (JFR profiling-guided target selection + evolutionary/MCTS search + refinement agent + cascaded evaluation),no,,H18
+H19,R06303#0,feedback-loop,PerfAgent (curated py-spy profiler summary + objective-driven loop controller + selective pytest-testmon validation + best-patch selection),no,,H20
+H20,R03126#0,feedback-loop,SelectIssue / IssueSelect iterative static-analysis-driven prompting,yes,https://github.com/Kamel773/LLM-code-refine,
+H21,O00008#0,self-refinement,Self-Refine (iterative self-feedback and refinement),yes,https://selfrefine.info/,H21
+H22,R00469#0,self-refinement,CodeChain (modular CoT prompting + chain of self-revisions with clustered representative sub-modules),yes,https://github.com/SalesforceAIResearch/CodeChain,H22
+H23,R01365#0,self-refinement,SecCode (Encouragement Prompting + interactive iteration + CodeQL cross-check),no,,H23
+H24,R03547#0,self-refinement,RefleXGen (guided self-reflection with self-accumulating security RAG knowledge base),no,,H24
+H25,R03359#0,self-refinement,GRASP (SCP Graph-based reasoning),no,,H25
+H26,R04250#0,self-refinement,Safety Sidecar (reflection-driven runtime control; published version of Reflection-Driven Control),no,,H28
+H27,R06826#0,multi-agent,SecAwareCoder (task-adaptive threat modeling + constraint-guided generation + security-aware test synthesis + closed-loop refinement),yes,https://github.com/CY-SCUT-MS/CodeSecEval,H29
+H28,R00772#0,multi-agent,FlowGen (Waterfall/TDD/Scrum multi-agent process emulation with self-refinement),yes,https://anonymous.4open.science/r/FlowGen-LLM-E842/README.md,H30
+H29,O00015#0,multi-agent,INDICT (dual safety/helpfulness critics with tool-grounded preemptive and post-hoc feedback),yes,https://github.com/SalesforceAIResearch/indict_code_gen,H33
+H30,R04488#0,multi-agent,"ContextEvolve (Summarizer, Navigator and Sampler agents for context compression in evolutionary code optimization)",yes,https://anonymous.4open.science/r/ContextEvolveACC,H34
+H31,R06501#0,multi-agent,"Pipeline 1: enriched Code Validator LLM findings (MITRE ATT&CK, CWE Observed Examples, Python best practices) fed to generator for remediation",yes,https://github.com/Droidsurikov/securing-ai-generated-code,H35
+H32,R02474#0,multi-agent,LessonL (lesson solicitation-banking-selection multi-agent framework),yes,https://github.com/MITIBM-FastCoder/LessonL,H36
+H33,R02322#0,multi-agent,MARCO (code optimizer agent + performance evaluator agent + Tavily web search),no,,H37
+H34,R06610#0,multi-agent,C3 (Controllable Competitive Collaboration) with Centralized Auction-Based Competition (CAB) and Decentralized Communication-Aware Competition (DCC),no,,H38
+H35,R05061#0,multi-agent,ACCLAIM (compiler-LLM cooperation multi-agent system),yes,https://github.com/amazon-science/acclaim,
+H36,R06562#0,multi-agent,MACGen (artifact-only multi-agent planning + security advisor with standards KB RAG + coder + reviewer),yes,https://github.com/Mishuni/macgen-secure-code,
+H37,R00256#0,retrieval,Dynamic retrieval-based few-shot prompting (PIE),yes,https://pie4perf.com,H39
+H38,R01956#0,retrieval,LAIL (LLM-Aware In-context Learning example retrieval),no,,H40
+H39,R00410#0,retrieval,KPC (Knowledge-driven Prompt Chaining),yes,https://github.com/goodchar123/KPC,H41
+H40,R00352#0,retrieval,RAPGen (Retrieval-Augmented Prompt Generation),no,,H42
+H41,R02216#0,retrieval,CodeGuarder (security knowledge base + query decomposition + CWE-prevalence re-ranking/filtering + prompt injection),no,,H43
+H42,R01838#0,retrieval,Retrieval Augmented Search (RAS) with contextual retrieval,yes,https://sagnikanupam.com/papers/llmprogramoptimization,H44
+H43,R03457#0,retrieval,SemOpt (strategy library + LLM-generated Semgrep rules + strategy-guided LLM optimization),yes,https://figshare.com/s/0391db49a3620ed53a1f,H45
+H44,R02327#0,retrieval,AutoPatch (Similarity Analyzer + Vulnerability Verifier + Code Patcher with CVE RAG DB and patch-verification loop),yes,https://github.com/ai-llm-research/autopatch,H46
+H45,R03728#0,retrieval,PEACE (dependency-aware function sequence + valid associated edits agent + fine-tuned efficiency optimizer with internal/external retrieval),yes,https://github.com/linrenmeng/Peace/tree/master,H47
+H46,R05636#0,retrieval,Mitigation-Aware Chain-of-Thought (MA-CoT),no,,H48
+H47,V00036#0,decoding,Planning-Guided Transformer Decoding (PG-TD) with code-length-penalty / comment-encouragement rewards,yes,https://github.com/shunzh/Code-AI-Tree-Search,H49
+H48,R00867#0,decoding,Constrained Beam Sampling (positive/negative keyword and template constraints),yes,https://github.com/CodeGuardPlus/CodeGuardPlus,H50
+H49,V00051#0,decoding,RPG (Repetition Penalization based on Grammar),yes,https://github.com/LYC127/RPG,H52
+H50,R04566#0,decoding,Surprisal-guided Best-of-N selection (highest-surprisal correct sample; top3 variant),no,,H54
+H51,R06585#0,decoding,DuoSteer (double activation steering of safety and correctness directions at causally-identified attention heads),yes,https://github.com/Ziyu-Yao-NLP-Lab/DuoSteer-Safe-Correct-Code-Gen,H55
+H52,R04456#0,decoding,FunPRM (Chain-of-Function prompting + meta reward-corrected PRM Best-of-N selection),no,,H56
+H53,R04821#0,decoding,SCS-Code (Secure Concept Steering via difference-in-means residual stream activation addition),yes,https://anonymous.4open.science/r/codellm-steering-BED7,H58
+H54,R02790#0,decoding,"Mixture of Corrections (MoC): conditional, decayed activation steering vectors per CWE derived from linear probes (group mean diff, normal vector, PCA normal vector, dynamic NN)",yes,https://github.com/viviable/MoC,
+H55,R04603#0,decoding,SecCodePRM-guided inference-time scaling (step-level security PRM ranking candidates),no,,
+H56,R06355#0,decoding,CoGate (confidence-gated co-decoding with max-probability or normalized-entropy gate),no,,
+H57,R00523#0,training,"SVEN (security-hardening prefix-tuning with masked LM, contrastive and KL losses)",yes,https://github.com/eth-sri/sven,H59
+H58,R00699#0,training,SafeCoder (joint standard + security instruction tuning with masked NLL and unlikelihood loss),yes,https://github.com/eth-sri/SafeCoder,H60
+H59,R00755#0,training,SFT + DPO (RLAIF) preference tuning on CodeUltraFeedback,yes,https://github.com/martinwey/CodeUltraFeedback,H61
+H60,R01312#0,training,"CodeDPO (self-generated, self-validated preference data with PageRank-style code/test scoring plus execution-time pairs, trained with DPO/RPO)",yes,https://anonymous.4open.science/r/CodeDPO/,H62
+H61,R00611#0,training,MPCoder (explicit coding-style residual learning + implicit style features + multi-user style adapter with contrastive learning),yes,https://github.com/455849940/MPCoder,
+H62,R02468#0,training,Afterburner-GRPO within the Iterative Optimization Framework (with SFT and DPO variants compared),no,,H64
+H63,R01746#0,training,PurpCode (rule learning SFT + GRPO RL with multi-objective oracle rewards),no,,H65
+H64,R04564#0,training,"SecCoderX (online GRPO with CWE-conditioned reasoning vulnerability reward model, length/AST functionality-preservation rewards, synthesized vulnerability-inducing prompts)",yes,https://github.com/AndrewWTY/SecCoderX,H66
+H65,R04543#0,training,Fine-tuning on SmellCC smell-cleaned CodeSearchNet-Python dataset,yes,https://zenodo.org/records/13755652,H67
+H66,R01764#0,training,REAL (Reinforcement rEwards from Automated program anaLysis),yes,https://github.com/yaof20/ReaL.git,H68

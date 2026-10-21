@@ -7,7 +7,7 @@ Improving the Quality of LLM-Generated Code".
   full-text assessment, extraction data and quality assessment, plus the scripts that produce the paper's
   review counts, tables and figures. See `review/README.md`.
 - `harness/`: the controlled re-evaluation (Section "Controlled Re-evaluation"): the main grid, the extended grid,
-  the agent benchmarks and the E7 head-to-head of the 68 highlighted techniques.
+  the agent benchmarks and the E7 head-to-head of the 66 highlighted techniques.
 - `configs/`: models, benchmarks, pinned analyzer configurations, training settings.
 - `docker/`: the execution and measurement environment and a SonarQube server.
 
@@ -21,7 +21,7 @@ Improving the Quality of LLM-Generated Code".
 | `harness/benchmarks/` | Loaders and official scorers: HumanEval+, MBPP+, LiveCodeBench v6, LiveCodeBench Pro protocol, RACE, NoFunEval, PythonSecurityEval, EvalPerf, EffiBench-X, Mercury, EffiBench, CWEval, BaxBench, CyberSecEval, DeepSWE, Terminal-Bench 4.0, FrontierCode, SlopCodeBench, GSO, SWE-fficiency, SusVibes. |
 | `harness/techniques/` | T0-T10 (Table E1c), their agent versions for repository-level benchmarks, and the T6 retrieval corpus. |
 | `harness/training/` | T8-T10 data from the base model, LoRA SFT and DPO on Fireworks, GRPO with TRL, adapter upload and serving. |
-| `harness/h2h/` | E7: the T0 and best-of-n references and the 68 highlighted techniques, one module per family. |
+| `harness/h2h/` | E7: the T0 and best-of-n references and the 66 highlighted techniques, one module per family. |
 | `harness/run.py`, `harness/stats.py`, `harness/tables.py` | Experiment drivers, paired bootstrap half-widths, trade-off matrix, budget curves, E7 counts, manual-rating agreement, LaTeX tables. |
 
 ## Setup
@@ -54,8 +54,11 @@ Data that is not public must be placed under `$HARNESS_DATA` before a run:
 | E10 and the extended technique table | `harness extended` |
 | E2b and the agent table | `harness agent` |
 | E7 head-to-head | `harness h2h` |
-| Manual ratings | `harness manual-sample`, then `harness manual-agreement runs/main/manual_sample.csv` |
+| E7 budget-matched best-of-n (after `harness h2h`) | `harness h2h-bon-matched` |
+| E7 fidelity check | `harness fidelity H01,H02,...` |
+| Manual ratings (two raters) | `harness manual-sample`, then `harness manual-agreement runs/main/manual_sample_A.csv runs/main/manual_sample_B.csv` |
 | All tables | `harness tables` |
+| Compute ledger | `harness ledger` |
 
 Options: `--models`, `--techniques`, `--benches`, `--budgets`, `--seeds` (comma-separated). Runs resume where they
 stopped. Results are stored as `runs/<experiment>/<model>/<technique>/B<b>/seed<s>/<benchmark>.jsonl`, and every

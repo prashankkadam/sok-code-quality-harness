@@ -1,4 +1,4 @@
-"""E7 training family (H59-H68). prepare() retrains Gemma 4 31B IT as each paper does (LoRA SFT or DPO on Fireworks; GRPO locally
+"""E7 training family (H57-H66). prepare() retrains Gemma 4 31B IT as each paper does (LoRA SFT or DPO on Fireworks; GRPO locally
 with TRL and the paper's reward as a Python function, the adapter then uploaded to Fireworks; local PEFT where the paper's
 token-level loss is none of these) and solve() makes the paper's inference call(s) with the tuned weights. Every training
 example sharing a 13-gram with an E7 task is dropped, and none is cut to a length limit."""
@@ -281,7 +281,7 @@ def _local_solve(tech: _Trained, task: Task, ctx: Ctx) -> str:
     return ctx.keep(C.code_of(task, text))
 
 
-# ---------------------------------------------------------------- H59 SVEN
+# ---------------------------------------------------------------- H57 SVEN
 
 SVEN_DATA = "https://raw.githubusercontent.com/eth-sri/sven/e8449a0d54a5ae0bbdc6bb236330b8c7ec71df57/data_train_val/train/{}.jsonl"
 SVEN_CWES = ["cwe-089", "cwe-125", "cwe-078", "cwe-476", "cwe-416", "cwe-022", "cwe-787", "cwe-079", "cwe-190"]
@@ -357,7 +357,7 @@ def _sven_train(ctx: Ctx, out: Path) -> str:
 class Sven(_Trained):
     """Prefix tuning with SVEN's masked-LM, contrastive and KL losses on its released fix pairs; generation uses the secure
     prefix on the local weights."""
-    hid, name, target = "H59", "SVEN", ("SEC",)
+    hid, name, target = "H57", "SVEN", ("SEC",)
     code_url = "https://github.com/eth-sri/sven"
     whitebox = True
 
@@ -368,7 +368,7 @@ class Sven(_Trained):
         return _local_solve(self, task, ctx)
 
 
-# ---------------------------------------------------------------- H60 SafeCoder
+# ---------------------------------------------------------------- H58 SafeCoder
 
 SAFECODER_DATA = "https://raw.githubusercontent.com/eth-sri/SafeCoder/1bf9d57b42b785ca1bf5454c040cc9d2d27c4ab5/data_train_val/train/{}.jsonl"
 # general-purpose 7B setting: lmsys utility data, oversampling k=40, LoRA r=16 alpha=32 dropout 0.1
@@ -475,7 +475,7 @@ def _safecoder_train(ctx: Ctx, out: Path) -> str:
 class SafeCoder(_Trained):
     """Joint instruction tuning: likelihood on standard data and on the changed tokens of secure code, unlikelihood on the
     changed tokens of vulnerable code; LoRA trained locally because the masked unlikelihood term is not an SFT objective."""
-    hid, name, target = "H60", "SafeCoder", ("SEC",)
+    hid, name, target = "H58", "SafeCoder", ("SEC",)
     code_url = "https://github.com/eth-sri/SafeCoder"
     whitebox = True
 
@@ -486,7 +486,7 @@ class SafeCoder(_Trained):
         return _local_solve(self, task, ctx)
 
 
-# ---------------------------------------------------------------- H61 CodeUltraFeedback SFT + DPO
+# ---------------------------------------------------------------- H59 CodeUltraFeedback SFT + DPO
 
 CUF_SFT = {"epochs": 3, "lr": 2e-4, "rank": 64, "batch": 64, "warmup_ratio": 0.1}
 CUF_DPO = {"epochs": 5, "lr": 5e-5, "rank": 64, "batch": 32, "warmup_ratio": 0.1, "beta": 0.1}
@@ -496,7 +496,7 @@ CUF_DPO = {"epochs": 5, "lr": 5e-5, "rank": 64, "batch": 32, "warmup_ratio": 0.1
 class SFTDPO(_Trained):
     """SFT on Magicoder Evol-Instruct (CodeUltraFeedback instructions removed), then DPO on the highest- versus lowest-rated
     CodeUltraFeedback responses, as released by the authors."""
-    hid, name, target = "H61", "SFT + DPO", ("RM", "EFF")
+    hid, name, target = "H59", "SFT + DPO", ("RM", "EFF")
     code_url = "https://github.com/martin-wey/CodeUltraFeedback"
 
     def train(self, ctx: Ctx) -> str:
@@ -513,7 +513,7 @@ class SFTDPO(_Trained):
         return _deploy(ctx, _dpo(ctx, self.hid, "dpo", rows, CUF_DPO, warm))
 
 
-# ---------------------------------------------------------------- H62 CodeDPO
+# ---------------------------------------------------------------- H60 CodeDPO
 
 CDPO_SEEDS, CDPO_N, CDPO_TEMP, CDPO_T, CDPO_D = 100_000, 15, 1.5, 10, 0.85
 CDPO_GAP = 0.1        # "too close" correctness scores (relative), not quantified in the paper
@@ -592,7 +592,7 @@ def _cdpo_pairs(rec: dict) -> list[tuple[int, int]]:
 class CodeDPO(_Trained):
     """Self-generated, self-validated preference data (15 codes and 15 assertion sets per OSS-Instruct prompt at temperature
     1.5, generated here by the E7 model), correctness and execution-time pairs, DPO; greedy decoding."""
-    hid, name, target = "H62", "CodeDPO", ("EFF",)
+    hid, name, target = "H60", "CodeDPO", ("EFF",)
     code_url = "https://anonymous.4open.science/r/CodeDPO/"
     data_rebuilt = True
     temperature = 0.0
@@ -627,28 +627,420 @@ class CodeDPO(_Trained):
         return _deploy(ctx, _dpo(ctx, self.hid, "dpo", rows, CDPO_DPO))
 
 
-# ---------------------------------------------------------------- H63 fine-tuning on vulnerability fixes
+# ---------------------------------------------------------------- H61 MPCoder
 
-VULNFIX_DATA = "https://zenodo.org/api/records/13377505/files/fine-tuning_dataset.zip/content"
-VULNFIX = {"epochs": 2, "lr": 3e-4, "rank": 8, "batch": 5, "temperature": 0.8}
+MPC_CODENET = "https://dax-cdn.cdn.appdomain.cloud/dax-project-codenet/1.0.0/Project_CodeNet.tar.gz"
+MPC_PY3 = r"(Python|PyPy)\s*\(?3"
+# Checkstyle with google_checks.xml, ported: flake8 (pycodestyle defaults) with pep8-naming and the star-import check
+MPC_FLAKE8 = [sys.executable, "-m", "flake8", "--select=E,W,F403,N8", "--max-line-length=79", "--format=%(path)s %(code)s"]
+# the 25 explicit style attributes: Python counterparts of the authors' Checkstyle checks, as (code prefixes, meaning)
+MPC_STYLES = {
+    "IndentationCheck": (("E101", "E111", "E112", "E113", "E114", "E115", "E116", "E117", "W191"),
+                         "Indentation is not four spaces per level or mixes tabs and spaces."),
+    "ContinuationLineCheck": (("E12", "E13"), "Continuation lines are not aligned with the opening bracket or hanging indent."),
+    "WhitespaceAroundCheck": (("E22",), "Missing or extra whitespace around an operator."),
+    "WhitespaceAfterCheck": (("E231",), "Missing whitespace after ',', ';' or ':'."),
+    "ExtraneousWhitespaceCheck": (("E20", "E211"), "Whitespace inside brackets or before ',', ';', ':' or '('."),
+    "KeywordWhitespaceCheck": (("E27",), "Missing or multiple spaces around a keyword."),
+    "ParameterEqualsWhitespaceCheck": (("E25",), "Spaces around '=' of a keyword argument or default value."),
+    "CommentFormatCheck": (("E26",), "An inline comment is not preceded by two spaces or a comment does not start with '# '."),
+    "EmptyLineSeparatorCheck": (("E30",), "Top-level definitions are not separated by two blank lines and methods by one, "
+                                          "or there are too many blank lines."),
+    "MultipleImportsCheck": (("E401",), "Multiple modules are imported on one line."),
+    "ImportPositionCheck": (("E402",), "A module level import is not at the top of the file."),
+    "AvoidStarImportCheck": (("F403",), "import statements that use the * notation."),
+    "LineLengthCheck": (("E501",), "The line length exceeds 79 characters."),
+    "OneStatementPerLineCheck": (("E70",), "there is not only one statement per line."),
+    "ComparisonToSingletonCheck": (("E711", "E712"), "None, True or False are compared with == or != instead of is."),
+    "TypeComparisonCheck": (("E721",), "Types are compared with == instead of isinstance()."),
+    "BareExceptCheck": (("E722",), "An except clause does not name the exception."),
+    "LambdaAssignmentCheck": (("E731",), "A lambda expression is assigned to a name instead of using def."),
+    "AmbiguousNameCheck": (("E741", "E742", "E743"), "The names 'l', 'O' or 'I' are used."),
+    "TrailingWhitespaceCheck": (("W29", "W39"), "Lines end with whitespace or the file ends with blank lines."),
+    "TypeNameCheck": (("N801",), "Class name is not in CapWords."),
+    "MethodNameCheck": (("N802",), "Function name is not in lower_case_with_underscores."),
+    "MemberNameCheck": (("N815",), "Member name is in mixedCase."),
+    "ParameterNameCheck": (("N803",), "Parameter name is not in lower_case_with_underscores."),
+    "LocalVariableNameCheck": (("N806", "N816"), "Local variable name is not in lower_case_with_underscores."),
+}
+MPC_RESIDUAL = ("You are given two pieces of code, code1 and code2, along with their corresponding lists of style conventions, "
+                "list1 and list2. Please identify and explain the style conventions in list2 that are not present in list1.")
+MPC_ANSWER = "{a} is present in list2 but not in list1; the style convention of {a} indicates '{m}'"
+MPC_SYSTEM = ("Give you a programming question and corresponding user code style conventions, please give the corresponding "
+              "user style answer in {language}")
+MPC_TARGET = "```\n{code}```\n"
+# PCIDense recipe (split_accepted_programming_json): one accepted submission per (user, problem), at least 101 problems
+# (Table 1 minimum), 8/1/1 problem split, users in every split, 50 users; residual pairs from a PCISparse-sized pool
+# (at least 20 problems), at most 5 attributes, at most 600 train and 75 dev pairs per residual attribute
+MPC_DATA = {"users": 50, "dense": 101, "sparse": 20, "pool": 34642, "ratio": 0.8, "max_attrs": 5, "train_cap": 600,
+            "dev_cap": 75, "seed": 42}
+# run.sh / Appendix A.3: lr 1e-4, StepLR 0.85, no weight decay, tau 0.5, alpha 0.55, 5 user vectors, adapter width H/8,
+# 2048-token examples, stage 1 batch 8 (30 epochs, early stopping), stage 2 batch 4 for 1 epoch
+MPC = {"lr": 1e-4, "wd": 0.0, "gamma": 0.85, "tau": 0.5, "alpha": 0.55, "user_len": 5, "scale": 8, "init": 0.1,
+       "max_len": 2048, "batch1": 8, "epochs1": 30, "batch2": 4, "epochs2": 1, "seed": 42}
+MPC_LORA_SCALE = 2.0  # lora_alpha = 2 * rank
+_MPC_LOCK = threading.Lock()
+_MPC_CACHE: dict = {}
+
+
+def _mpc_codenet(root: Path) -> Path:
+    """Project CodeNet metadata, problem statements and Python submissions (the dataset the authors' README points to)."""
+    import tarfile
+    if not (root / "done").exists():
+        with tarfile.open(_fetch(MPC_CODENET, root / "codenet.tar.gz"), "r|gz") as tf:
+            for m in tf:
+                parts = m.name.split("/")[1:]
+                if m.isfile() and parts and ".." not in parts and (
+                        parts[0] in ("metadata", "problem_descriptions") or parts[2:3] == ["Python"]):
+                    p = root.joinpath(*parts)
+                    p.parent.mkdir(parents=True, exist_ok=True)
+                    p.write_bytes(tf.extractfile(m).read())
+        (root / "done").touch()
+    return root
+
+
+def _mpc_text(page: str) -> str:
+    import html
+    s = re.sub(r"(?is)<(script|style)\b.*?</\1>", "", page)
+    return re.sub(r"\n\s*\n+", "\n\n", html.unescape(re.sub(r"<[^>]+>", "", s))).strip()
+
+
+def _mpc_records(root: Path) -> tuple[list[dict], dict]:
+    """Accepted Python 3 submissions of problems with a statement."""
+    import csv
+    recs, problems = [], {}
+    for meta in sorted((root / "metadata").glob("p[0-9]*.csv")):
+        desc = root / "problem_descriptions" / f"{meta.stem}.html"
+        if not desc.exists():
+            continue
+        problems[meta.stem] = _mpc_text(desc.read_text(errors="ignore"))
+        with open(meta, newline="") as f:
+            for r in csv.DictReader(f):
+                src = root / "data" / meta.stem / "Python" / f"{r['submission_id']}.{r['filename_ext']}"
+                if r["status"] == "Accepted" and re.match(MPC_PY3, r["original_language"]) and src.exists():
+                    recs.append({"user": r["user_id"], "problem_id": meta.stem, "path": str(src)})
+    return recs, problems
+
+
+def _mpc_split(recs: list[dict], min_problems: int, rng: random.Random, n_users: int | None = None) -> list[dict]:
+    """The authors' split: users with no problem accepted twice and at least min_problems problems, problems split
+    8/1/1, only users present in all three splits (the first n_users of them)."""
+    from collections import Counter
+    per = Counter((r["user"], r["problem_id"]) for r in recs)
+    twice = {u for (u, _), k in per.items() if k > 1}
+    users = {u for u, k in Counter(u for u, _ in per).items() if k >= min_problems and u not in twice}
+    problems = sorted({r["problem_id"] for r in recs if r["user"] in users})
+    rng.shuffle(problems)
+    k = math.floor(len(problems) * (1 - MPC_DATA["ratio"]) / 2)
+    dev, test = set(problems[:k]), set(problems[k:2 * k])
+    split = {p: "dev" if p in dev else "test" if p in test else "train" for p in problems}
+    seen: dict = {}
+    for r in recs:
+        if r["user"] in users:
+            seen.setdefault(r["user"], set()).add(split[r["problem_id"]])
+    keep = sorted(u for u, s in seen.items() if len(s) == 3)
+    rng.shuffle(keep)
+    keep = set(keep[:n_users] if n_users else keep)
+    return [r | {"split": split[r["problem_id"]]} for r in recs if r["user"] in keep]
+
+
+def _mpc_styles(codes: list[str]) -> list[list[int]]:
+    """Per-attribute violation counts of each code (the Checkstyle step)."""
+    names = list(MPC_STYLES)
+    vecs = [[0] * len(names) for _ in codes]
+    with tempfile.TemporaryDirectory() as d:
+        for i, c in enumerate(codes):
+            Path(d, f"{i}.py").write_text(c + "\n", encoding="utf-8")
+        out = subprocess.run([*MPC_FLAKE8, d], capture_output=True, text=True).stdout
+    for line in out.splitlines():
+        path, _, code = line.rpartition(" ")
+        k = next((j for j, n in enumerate(names) if code.startswith(MPC_STYLES[n][0])), None)
+        if path and k is not None:
+            vecs[int(Path(path).stem)][k] += 1
+    return vecs
+
+
+def _mpc_messages(styles: list[str], problem: str, language: str) -> list:
+    return [{"role": "system", "content": MPC_SYSTEM.format(language=language)},
+            {"role": "user", "content": "The style conventions is:" + ",".join(styles) + ".\n" + problem}]
+
+
+def _mpc_pairs(codes: list[str], vecs: list[list[int]], rng: random.Random) -> tuple[list[dict], list[dict]]:
+    """Attribute-residual prompts: code2 has code1's attributes plus one (at most five in all), balanced over the residual
+    attribute, at most 600 train and 75 dev pairs each."""
+    names, by = list(MPC_STYLES), {}
+    for i, v in enumerate(vecs):
+        s = frozenset(k for k, x in enumerate(v) if x)
+        if len(s) <= MPC_DATA["max_attrs"]:
+            by.setdefault(s, []).append(i)
+    cap, train, dev = MPC_DATA["train_cap"] + MPC_DATA["dev_cap"], [], []
+    for a, name in enumerate(names):
+        keys = [(s - {a}, s) for s in by if a in s and s - {a} in by]
+        if not keys:
+            continue
+        w = [len(by[s1]) * len(by[s2]) for s1, s2 in keys]
+        n, seen, tries = min(cap, sum(w)), set(), 0
+        while len(seen) < n and tries < 50 * cap:
+            tries += 1
+            s1, s2 = rng.choices(keys, w)[0]
+            seen.add((rng.choice(by[s1]), rng.choice(by[s2])))
+        rows = []
+        for i, j in sorted(seen):
+            l1 = [x for x, c in zip(names, vecs[i]) if c]
+            user = f"code1:```\n{codes[i]}```\nlist1:{l1}\ncode2:```\n{codes[j]}```\nlist2:{l1 + [name]}\n"
+            rows.append(_chat(user, MPC_ANSWER.format(a=name, m=MPC_STYLES[name][1]), MPC_RESIDUAL))
+        rng.shuffle(rows)
+        k = min(MPC_DATA["dev_cap"], len(rows) * MPC_DATA["dev_cap"] // cap)
+        dev, train = dev + rows[:k], train + rows[k:]
+    return train, dev
+
+
+def _mpc_data(ctx: Ctx) -> dict:
+    """PCIDense rebuilt on CodeNet Python 3 by the authors' recipe, each user's style conventions (attributes present in at
+    least half of their records), the PEP 8-cleanest user as the E7 target, and the residual pairs."""
+    recs, problems = _mpc_records(_mpc_codenet(ctx.dir("H61") / "codenet"))
+    rng = random.Random(MPC_DATA["seed"])
+    read = lambda r: Path(r["path"]).read_text(errors="ignore").strip("\n")
+    dense = [r for r in _mpc_split(recs, MPC_DATA["dense"], rng, MPC_DATA["users"]) if r["split"] == "train"]
+    codes = [read(r) for r in dense]
+    per: dict = {}
+    for r, c, v in zip(dense, codes, _mpc_styles(codes)):
+        per.setdefault(r["user"], []).append((c, v))
+    names, styles = list(MPC_STYLES), {}
+    for u, xs in per.items():
+        freq = [sum(v[k] > 0 for _, v in xs) for k in range(len(names))]
+        styles[u] = [n for n, f in zip(names, freq) if 2 * f >= len(xs)] or [names[freq.index(max(freq))]]
+    target = min(per, key=lambda u: sum(sum(v) / (c.count("\n") + 1) for c, v in per[u]) / len(per[u]))
+    lang = C.LANG_NAME["python"]
+    records = [{"user": r["user"], "messages": _mpc_messages(styles[r["user"]], problems[r["problem_id"]], lang) +
+                [{"role": "assistant", "content": MPC_TARGET.format(code=c)}]} for r, c in zip(dense, codes)]
+    sparse = _mpc_split(recs, MPC_DATA["sparse"], rng)
+    pool = [read(r) for r in rng.sample(sparse, min(MPC_DATA["pool"], len(sparse)))]
+    train, dev = _mpc_pairs(pool, _mpc_styles(pool), rng)
+    return {"users": sorted(per), "styles": styles, "target": target, "records": _decon(records),
+            "residual_train": _decon(train), "residual_dev": _decon(dev)}
+
+
+def _mpc_contrast(q, p, labels):
+    """The authors' ContrastLoss: L2-normalised global style features against the style hidden states, positives = the
+    same user, scaled by the temperature."""
+    import torch.nn.functional as F
+    z = F.normalize(q, dim=1) @ p.T / MPC["tau"]
+    z = z - z.max(1, keepdim=True).values.detach()
+    logp = z - z.exp().sum(1, keepdim=True).log()
+    pos = (labels[:, None] == labels[None]).float()
+    return -((logp * pos).sum(1) / pos.sum(1)).mean() * MPC["tau"]
+
+
+class _MPCModel:
+    """The E7 model with MPCoder's parts: 25 style-attribute tokens with learned embeddings, 5 implicit feature vectors per
+    user prefixed to the input, and the multi-user style adapter whose style distribution is gated into the output one."""
+
+    def __init__(self, ctx: Ctx, n_users: int, state: dict | None = None):
+        import torch
+        import torch.nn as nn
+        self.t = torch
+        torch.manual_seed(MPC["seed"])
+        self.tok, self.lm = _hf_model(ctx)
+        self.tok.add_tokens(list(MPC_STYLES))
+        self.sel = {i: k + 1 for k, i in enumerate(self.tok.convert_tokens_to_ids(list(MPC_STYLES)))}
+        self.lm.requires_grad_(False)
+        self.dec, self.emb, self.out = self.lm.get_decoder(), self.lm.get_input_embeddings(), self.lm.get_output_embeddings()
+        self.dec.norm.float()
+        self.cap = getattr(self.lm.config.get_text_config(), "final_logit_softcapping", None)
+        self.din, self.dout = self.emb.weight.device, self.out.weight.device
+        vocab, hidden = self.out.weight.shape
+        s, r = hidden // MPC["scale"], _rank()
+        self.m = nn.ModuleDict({
+            "user": nn.Embedding(n_users * MPC["user_len"], hidden), "style": nn.Embedding(len(MPC_STYLES) + 1, hidden),
+            "mlp": nn.Sequential(nn.Linear(hidden, s), nn.Linear(s, hidden)), "keyword": nn.Linear(hidden, vocab),
+            "p1": nn.Linear(vocab, s), "p2": nn.Linear(s, vocab), "p3": nn.Linear(hidden, s),
+            "lora_a": nn.Linear(hidden, r, bias=False), "lora_b": nn.Linear(r, vocab, bias=False)})
+        for k in ("user", "style"):
+            nn.init.uniform_(self.m[k].weight, -MPC["init"], MPC["init"])
+        nn.init.kaiming_uniform_(self.m["lora_a"].weight, a=math.sqrt(5))
+        nn.init.zeros_(self.m["lora_b"].weight)
+        for k, mod in self.m.items():
+            mod.to(self.din if k in ("user", "style") else self.dout)
+        if state:
+            self.m.load_state_dict(state["modules"])
+            self.dec.norm.weight.data.copy_(state["norm"])
+        self.m.requires_grad_(False)
+        eos = self.lm.generation_config.eos_token_id
+        self.eos = {i for i in [self.tok.eos_token_id, *(eos if isinstance(eos, list) else [eos])] if isinstance(i, int)}
+
+    def train_only(self, names: tuple[str, ...], norm: bool = False) -> list:
+        self.m.requires_grad_(False)
+        for k in names:
+            self.m[k].requires_grad_(True)
+        self.dec.norm.requires_grad_(norm)
+        return [p for p in [*self.m.parameters(), *self.dec.norm.parameters()] if p.requires_grad]
+
+    def ids(self, msgs: list) -> list[int]:
+        return self.tok(self.tok.apply_chat_template(msgs, tokenize=False), add_special_tokens=False).input_ids
+
+    def embed(self, ids: list[int]):
+        """Token embeddings with the style-attribute positions replaced by the learned attribute vectors."""
+        t = self.t
+        sel = t.tensor([self.sel.get(i, 0) for i in ids], device=self.din)
+        e = self.emb(t.tensor([[0 if i in self.sel else i for i in ids]], device=self.din))[0]
+        return t.where(sel[:, None] > 0, self.m["style"](sel).to(e.dtype), e), sel
+
+    def users(self, user: int):
+        return self.m["user"](self.t.arange(MPC["user_len"], device=self.din) + user * MPC["user_len"])
+
+    def hidden(self, e, past=None, cache: bool = False):
+        o = self.dec(inputs_embeds=e[None], past_key_values=past, use_cache=cache)
+        return o.last_hidden_state[0], o.past_key_values
+
+    def head(self, h, mix: bool = True):
+        """Generic distribution of the tuned output layer; with mix, P = g * P_style + (1 - g) * P_generic, renormalised."""
+        t, hf = self.t, h.to(self.dout).float()
+        z = self.out(h.to(self.dout)).float() + self.m["lora_b"](self.m["lora_a"](hf)) * MPC_LORA_SCALE
+        if self.cap:
+            z = t.tanh(z / self.cap) * self.cap
+        if not mix:
+            return z.log_softmax(-1), None
+        s = self.m["mlp"](hf)
+        ps = self.m["keyword"](s).softmax(-1)
+        g = t.sigmoid(self.m["p2"]((t.relu(self.m["p1"](ps)) + self.m["p3"](hf)) / 2))
+        p = g * ps + (1 - g) * z.softmax(-1)
+        return (p / p.sum(-1, keepdim=True)).log(), s
+
+    def labels(self, ids: list[int], sel, pad: int = 0):
+        return self.t.tensor([-100] * pad + [-100 if k else i for i, k in zip(ids, sel.tolist())], device=self.dout)
+
+    def loss1(self, ids: list[int]):
+        """Explicit stage (Eq. 1): language-modelling loss on the attribute-residual prompt and its target."""
+        import torch.nn.functional as F
+        e, sel = self.embed(ids)
+        logp, _ = self.head(self.hidden(e)[0], mix=False)
+        return F.nll_loss(logp[:-1], self.labels(ids, sel)[1:])
+
+    def forward2(self, ids: list[int], user: int):
+        """Implicit stage: generation loss (Eq. 13), global style feature (mean of the user and attribute vectors) and
+        global style hidden state (mean of the adapter's s_t)."""
+        import torch.nn.functional as F
+        e, sel = self.embed(ids)
+        u = self.users(user)
+        logp, s = self.head(self.hidden(self.t.cat([u.to(e.dtype), e]))[0])
+        nll = F.nll_loss(logp[:-1], self.labels(ids, sel, MPC["user_len"])[1:])
+        return nll, ((u.mean(0) + e[sel > 0].float().mean(0)) / 2).to(self.dout), s.mean(0)
+
+    def step1(self, group: list) -> None:
+        for ids in group:
+            (self.loss1(ids) / len(group)).backward()
+
+    def step2(self, group: list) -> None:
+        """L = L_imp + alpha * L_CL over the batch; the contrastive gradient is cached on the batch's features first so that
+        each example is then back-propagated alone."""
+        t = self.t
+        with t.no_grad():
+            f = [self.forward2(ids, u)[1:] for ids, u in group]
+        q, p = (t.stack([x[i] for x in f]).requires_grad_() for i in (0, 1))
+        _mpc_contrast(q, p, t.tensor([u for _, u in group], device=self.dout)).backward()
+        for i, (ids, u) in enumerate(group):
+            nll, a, b = self.forward2(ids, u)
+            ((nll + MPC["alpha"] * ((a * q.grad[i]).sum() + (b * p.grad[i]).sum())) / len(group)).backward()
+
+    def dev1(self, rows: list) -> float:
+        with self.t.no_grad():
+            return sum(self.loss1(ids).item() for ids in rows) / len(rows)
+
+    def generate(self, ids: list[int], user: int, max_tokens: int) -> str:
+        """Greedy decoding on the mixed distribution, the user's features prefixed."""
+        t = self.t
+        with t.no_grad():
+            e, _ = self.embed(ids)
+            x, past, out = t.cat([self.users(user).to(e.dtype), e]), None, []
+            for _ in range(max_tokens):
+                h, past = self.hidden(x, past, cache=True)
+                nxt = int(self.head(h[-1:])[0][-1].argmax())
+                if nxt in self.eos:
+                    break
+                out.append(nxt)
+                x = self.emb(t.tensor([[nxt]], device=self.din))[0]
+        return self.tok.decode(out, skip_special_tokens=True)
+
+
+def _mpc_fit(mm: _MPCModel, params: list, rows: list, step, batch: int, epochs: int, dev=None) -> None:
+    """The authors' loop: AdamW at 1e-4 without weight decay or clipping, StepLR 0.85 per epoch; with a dev loss, the best
+    epoch is kept and training stops at the first epoch without improvement."""
+    import torch
+    opt = torch.optim.AdamW(params, lr=MPC["lr"], weight_decay=MPC["wd"])
+    sched = torch.optim.lr_scheduler.StepLR(opt, 1, gamma=MPC["gamma"])
+    rng, best, keep = random.Random(MPC["seed"]), math.inf, None
+    mm.lm.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    for _ in range(epochs):
+        mm.lm.train()
+        order = rng.sample(rows, len(rows))
+        for i in range(0, len(order), batch):
+            step(order[i:i + batch])
+            opt.step()
+            opt.zero_grad()
+        sched.step()
+        if dev:
+            mm.lm.eval()
+            loss = dev()
+            if loss >= best:
+                break
+            best, keep = loss, [p.detach().clone() for p in params]
+    for p, k in zip(params, keep or []):
+        p.data.copy_(k)
+    mm.lm.eval()
+
+
+def _mpc_load(ctx: Ctx, path: str) -> tuple[_MPCModel, dict]:
+    if path not in _MPC_CACHE:
+        import torch
+        state = torch.load(path, map_location="cpu")
+        _MPC_CACHE[path] = (_MPCModel(ctx, len(state["users"]), state), state)
+    return _MPC_CACHE[path]
 
 
 @h2h
-class VulnFixFT(_Trained):
-    """LoRA fine-tuning on the authors' block-level code from 4,900 real-world vulnerability-fixing commits (BigVul,
-    CVEfixes, AndroidCVEfixes), their best granularity; sampling at temperature 0.8."""
-    hid, name, target = "H63", "Fine-tuning GPT-J on vulnerability fixes", ("SEC",)
-    code_url = "https://github.com/SecureLLM/Secure_LLM"
-    temperature = VULNFIX["temperature"]
+class MPCoder(_Trained):
+    """Explicit stage: the 25 attribute embeddings learned by attribute-residual prompts (LM frozen); implicit stage: user
+    vectors, multi-user style adapter, final norm and output layer (LoRA) trained with generation + contrastive loss.
+    Ported from Java/Checkstyle to Python/flake8 on CodeNet, the authors' suggested source; the benchmarks have no users,
+    so E7 generates as the training user whose code has the fewest style violations per line, with that user's
+    conventions in the second-stage prompt; greedy decoding on the local weights."""
+    hid, name, target = "H61", "MPCoder", ("RM",)
+    code_url = "https://github.com/455849940/MPCoder"
+    whitebox, ported, data_rebuilt = True, True, True
 
     def train(self, ctx: Ctx) -> str:
-        z = zipfile.ZipFile(_fetch(VULNFIX_DATA, ctx.dir(self.hid) / "fine-tuning_dataset.zip"))
-        rows = [_chat("Please complete the code", r["text"])
-                for r in json.loads(z.read("fine-tuning_dataset/rq2/train-block.json"))]
-        return _deploy(ctx, _sft(ctx, self.hid, "sft", rows, VULNFIX))
+        import torch
+        out = ctx.dir(self.hid) / "mpcoder.pt"
+        if not out.exists():
+            d = _cached(ctx, self.hid, "data", lambda: _mpc_data(ctx))
+            mm = _MPCModel(ctx, len(d["users"]))
+            fit = lambda rows: [x for r in rows if len(x := mm.ids(r["messages"])) <= MPC["max_len"]]
+            explicit = ctx.dir(self.hid) / "style.pt"
+            if not explicit.exists():
+                dev = fit(d["residual_dev"])
+                _mpc_fit(mm, mm.train_only(("style",)), fit(d["residual_train"]), mm.step1, MPC["batch1"], MPC["epochs1"],
+                         lambda: mm.dev1(dev))
+                torch.save(mm.m["style"].state_dict(), explicit)
+            mm.m["style"].load_state_dict(torch.load(explicit, map_location="cpu"))
+            uid = {u: k for k, u in enumerate(d["users"])}
+            rows = [(x, uid[r["user"]]) for r in d["records"] if len(x := mm.ids(r["messages"])) <= MPC["max_len"]]
+            params = mm.train_only(("user", "mlp", "keyword", "p1", "p2", "p3", "lora_a", "lora_b"), norm=True)
+            _mpc_fit(mm, params, rows, mm.step2, MPC["batch2"], MPC["epochs2"])
+            torch.save({"modules": mm.m.state_dict(), "norm": mm.dec.norm.weight.detach().cpu(), "users": d["users"],
+                        "target": uid[d["target"]], "styles": d["styles"][d["target"]]}, out)
+        return str(out)
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        ctx.charge(1)
+        with _MPC_LOCK:
+            mm, state = _mpc_load(ctx, ctx.tuned_models[self.hid])
+            msgs = _mpc_messages(state["styles"], C.task_text(task), C.LANG_NAME.get(task.language, task.language))
+            text = mm.generate(_prompt_ids(mm.tok, msgs), state["target"], ctx.llm.max_tokens)
+        return ctx.keep(C.code_of(task, text))
 
 
-# ---------------------------------------------------------------- H64 Afterburner
+# ---------------------------------------------------------------- H62 Afterburner
 
 AB_SYSTEM = ("A conversation between User and Assistant.\n"
              "The User asks a question and provides an original solution, then the Assistant improves it.\n"
@@ -798,7 +1190,7 @@ def _venus_tasks() -> list[dict]:
 class Afterburner(_Trained):
     """Cold-start SFT on <thinking>/<solution> responses, GRPO with the format, relative-correctness and efficiency-gain reward
     measured in a Monolith-style sandbox on Venus, then the iterative optimization loop with execution feedback at inference."""
-    hid, name, target = "H64", "Afterburner", ("EFF",)
+    hid, name, target = "H62", "Afterburner", ("EFF",)
     code_url = "https://huggingface.co/datasets/Elfsong/Venus"
     data_rebuilt = True
 
@@ -842,7 +1234,7 @@ class Afterburner(_Trained):
         return best
 
 
-# ---------------------------------------------------------------- H65 PurpCode
+# ---------------------------------------------------------------- H63 PurpCode
 
 PC_SYSTEM = """You are a helpful and safe assistant. You will first check the safety of user requests based on our safety guidelines shown below, to decide if the request can be (partially) safely implemented or must be directly rejected, and then provide the final response.
 
@@ -1021,7 +1413,7 @@ def _pc_messages(prompt) -> list:
 class PurpCode(_Trained):
     """Rule-learning SFT on the authors' verified safety-reasoning trajectories, then GRPO on their four RL sets with the
     oracle reward; greedy answers in the "## Analysis / ## Answer" format under the safety system prompt."""
-    hid, name, target = "H65", "PurpCode", ("SEC",)
+    hid, name, target = "H63", "PurpCode", ("SEC",)
     code_url = "https://github.com/purpcode-uiuc/purpcode"
     temperature = 0.0
 
@@ -1051,7 +1443,7 @@ class PurpCode(_Trained):
         return ctx.keep(C.code_of(task, text.split("\n## Answer", 1)[-1]))
 
 
-# ---------------------------------------------------------------- H66 SecCoderX
+# ---------------------------------------------------------------- H64 SecCoderX
 
 SX_RM_PROMPT = """You are a highly experienced code security analyst with deep expertise in identifying and reasoning about Common Weakness Enumeration (CWE) vulnerabilities in source code. Your goal is to meticulously and systematically examine whether the provided code snippet contains a specified vulnerability, and as well as any other potential vulnerabilities and document your thought process in a structured, detailed manner.
 
@@ -1129,7 +1521,7 @@ class SecCoderX(_Trained):
     """Reasoning vulnerability reward model retrained on the E7 model (cold-start SFT, then GRPO), then online GRPO of the
     coder on the reality-grounded vulnerability-inducing prompts against that reward model, with format, length and CodeBLEU
     terms that preserve the model's own original functionality."""
-    hid, name, target = "H66", "SecCoderX", ("SEC",)
+    hid, name, target = "H64", "SecCoderX", ("SEC",)
     code_url = "https://github.com/AndrewWTY/SecCoderX"
     data_rebuilt = True
 
@@ -1163,7 +1555,7 @@ class SecCoderX(_Trained):
         return _deploy(ctx, _stage(ctx, self.hid, "align", lambda: _rl(ctx, self.hid, "align", rows, reward, SX_ALIGN)))
 
 
-# ---------------------------------------------------------------- H67 SmellCC
+# ---------------------------------------------------------------- H65 SmellCC
 
 SMELLCC_DATA = "https://zenodo.org/api/records/13755652/files/clean_code.zip/content"
 SMELLCC_PROMPT = "You are an AI programming assistant, please write the code based on the description and instruction\n### Instruction:\n{}"
@@ -1174,7 +1566,7 @@ SMELLCC = {"epochs": 2, "lr": 1e-5, "batch": 32, "warmup_ratio": 0.01}
 @h2h
 class SmellCC(_Trained):
     """Fine-tuning on the authors' smell-cleaned CodeSearchNet-Python (docstring -> LLM-refactored code); greedy decoding."""
-    hid, name, target = "H67", "Fine-tuning on smell-cleaned code (SmellCC)", ("RM",)
+    hid, name, target = "H65", "Fine-tuning on smell-cleaned code (SmellCC)", ("RM",)
     code_url = "https://zenodo.org/records/13755652"
     temperature = 0.0
 
@@ -1187,7 +1579,7 @@ class SmellCC(_Trained):
         return _deploy(ctx, _sft(ctx, self.hid, "sft", rows, SMELLCC))
 
 
-# ---------------------------------------------------------------- H68 REAL
+# ---------------------------------------------------------------- H66 REAL
 
 REAL_REPO = "https://raw.githubusercontent.com/yaof20/ReaL/e68cd9d07310e069e768b3b6b9379d62eb7def21/"
 REAL_REWARD_FILES = ["__init__.py", "mypy_utils.py", "leetcode_utils.py", "sql_utils.py", "seccodeplt.py",
@@ -1220,7 +1612,7 @@ def _real_reward(s: str, row: dict) -> float:
 class REAL(_Trained):
     """RL on the authors' SecCodePLT+, APPS+ and SafeSQL training sets with their hybrid program-analysis + unit-test reward,
     each set seen as often as in its 7B run."""
-    hid, name, target = "H68", "REAL", ("SEC", "RM")
+    hid, name, target = "H66", "REAL", ("SEC", "RM")
     code_url = "https://github.com/yaof20/ReaL"
 
     def train(self, ctx: Ctx) -> str:

@@ -1,9 +1,8 @@
-"""E7 self-refinement family, H21-H28. The critic and the reviser are the E7 model itself; tools appear only where the paper uses them."""
+"""E7 self-refinement family, H21-H26. The critic and the reviser are the E7 model itself; tools appear only where the paper uses them."""
 from __future__ import annotations
 
 import ast
 import json
-import math
 import random
 import re
 import uuid
@@ -296,7 +295,7 @@ class SecCode(H2HTechnique):
         return code
 
 
-# ------------------------------------------------------------------------------------- shared reflective memory (H24, H28)
+# ------------------------------------------------------------------------------------- shared reflective memory (H24, H26)
 
 MEMORY_K, MEMORY_MIN_SIM = 3, 0.70
 
@@ -456,153 +455,35 @@ class GRASP(H2HTechnique):
                                                     role="review")) or code)
 
 
-# ------------------------------------------------------------------------------------------------- H26 LLM-as-a-Critique
+# ------------------------------------------------------------------------------------------------- H26 Safety Sidecar
 
-CRITIQUE_TRIALS, CRITIQUE_TEMP, CRITIQUE_MAX_TOKENS = 50, 1.0, 256
-CRITIQUE_WEIGHTS = {"ast": 1.3, "llm": 1.0, "ppl": 0.4}
-CRITIQUE_GEN = ("You are a software engineer with Python expertise, and your task is to complete the code with the given "
-                "prefix. Your generated code should be the optimal in time efficiency and memory usage. During each generation "
-                "step, you need to rethink step by step whether your generation is optimal in time efficiency. You need to "
-                "self-evaluate whether the generated code is the optimal in time efficiency, if it is not optimal, you need to "
-                "reflection and regenerate it.\nThere are test examples included in the prompt and you need to analyze it. The "
-                "completed code needs to be included in a code block. {task}")
-CRITIQUE_RATE = '''code snippet: “{code}“
-
-Please rate the above code snippet based on the following performance-related criteria:
-1. Time Complexity (Big-O Notation): Assess the time complexity of the code and assign a score reflecting its efficiency in terms of how the time complexity scales with input size. A score closer to 1 indicates highly efficient code (e.g., O(log n), O(n)), while a score closer to 0 indicates inefficient code (e.g., O(n2 ), O(2n )).
-2. Space Complexity (Big-O Notation): Evaluate the space complexity of the code, considering memory usage for variables and data structures. A score closer to 1 represents minimal space usage (e.g., O(1), O(n)), while a score closer to 0 reflects high memory consumption (e.g., O(n)).
-3. Running Time Performance: Provide an estimate of the expected running time for typical input sizes (small, medium, large). Assign a score between 0 and 1 based on the speed of execution, with 1 being the fastest and 0 being the slowest.
-4. Memory Usage Efficiency: Evaluate how effectively the code uses memory resources, including variable allocations and data structures. A score closer to 1 indicates optimal memory usage, while a score closer to 0 indicates inefficiency or excessive memory consumption.
-5. AST Analysis for Performance: Perform an Abstract Syntax Tree (AST) analysis to assess the efficiency of the code’s structure and operations. The analysis should consider factors like loop depth, redundant expressions, and operator usage. Provide a performance score based on how well-optimized the AST is for execution. A score closer to 1 represents an optimized AST structure, while a score closer to 0 indicates a structure with potential inefficiencies.
-6. If the code contains syntax error, the final score is 0.
-7. The perplexity of the code snippet is as low as better.
-Output: A single numerical value between 0 and 1 that represents the overall performance score based on the above criteria. No additional text or analysis should be provided. Just the final performance score.'''
-AST_PENALTIES = {"nested_loops": 10, "calls_in_loop": 8, "memoization": 5, "list_membership": 6, "expensive_calls_in_loop": 7,
-                 "recursion": 12, "nested_conditions": 4, "string_concat": 6, "io_in_with": 10, "large_function": 8,
-                 "range_len": 6, "syntax_error": 20}
+SS_K_MIN = 1
+SS_CHECK = ("Task:\n{task}\n\nCode:\n{code}\n\nYou are a security reviewer. Decide whether this code is safe to commit: consider "
+            "injection, path traversal, unsafe deserialization, command execution, memory safety, integer overflow, secrets "
+            "and missing validation. Answer with one word only: SAFE or UNSAFE.")
+SS_IDENTIFY = ("Task:\n{task}\n\nCode:\n{code}\n\nEvidence from verified past repairs and secure coding guidelines:\n{evidence}\n\n"
+               "Identify potential security risks in the code.")
+SS_CAUSE = "Explain the cause and suggest a safe alternative."
+SS_REWRITE = ("Rewrite the code to eliminate the risk. Preserve the original functionality and keep it compilable. Return the "
+              "complete code in one fenced block.")
 
 
-def _ast_patterns(code: str) -> set[str]:
-    """The twelve static patterns of the paper's Appendix B, detected exactly as its listing does."""
-    try:
-        tree = ast.parse(code)
-    except SyntaxError:
-        return {"syntax_error"}
-    nodes = list(ast.walk(tree))
-    loops = [n for n in nodes if isinstance(n, (ast.For, ast.While))]
-    calls = lambda body, names: any(isinstance(s, ast.Expr) and isinstance(s.value, ast.Call) and isinstance(s.value.func, ast.Name)
-                                    and s.value.func.id in names for s in body)
-    found = set()
-    if sum(isinstance(n, ast.For) for n in loops) >= 2:
-        found.add("nested_loops")
-    if any(calls(n.body, {"expensive_function"}) for n in loops):
-        found.add("calls_in_loop")
-    seen = set()
-    for n in nodes:
-        if isinstance(n, ast.Expr) and isinstance(n.value, ast.Call) and isinstance(n.value.func, ast.Name) \
-                and n.value.func.id == "expensive_function":
-            key = tuple(ast.dump(a) for a in n.value.args)
-            if key in seen:
-                found.add("memoization")
-            seen.add(key)
-    if any(isinstance(n, ast.Expr) and isinstance(n.value, ast.Compare) and isinstance(n.value.left, ast.Name)
-           and isinstance(n.value.comparators[0], ast.List) for n in nodes):
-        found.add("list_membership")
-    if any(calls(n.body, {"expensive_function", "some_expensive_function"}) for n in loops):
-        found.add("expensive_calls_in_loop")
-    if any(isinstance(n, ast.FunctionDef) and any(isinstance(c, ast.Call) and isinstance(c.func, ast.Name) and c.func.id == n.name
-                                                   for c in ast.walk(n)) for n in nodes):
-        found.add("recursion")
-    if any(isinstance(n, ast.For) and any(isinstance(s, ast.Expr) and isinstance(s.value, ast.BinOp) and isinstance(s.value.op, ast.Add)
-                                          and all(isinstance(x, ast.Constant) and isinstance(x.value, str)
-                                                  for x in (s.value.left, s.value.right)) for s in n.body) for n in nodes):
-        found.add("string_concat")
-    if any(isinstance(n, ast.With) and calls(n.body, {"open", "execute", "query"}) for n in nodes):
-        found.add("io_in_with")
-    if any(isinstance(n, ast.FunctionDef) and len(n.body) > 20 for n in nodes):
-        found.add("large_function")
-    if any(isinstance(n, ast.For) and isinstance(n.iter, ast.Call) and isinstance(n.iter.func, ast.Name) and n.iter.func.id == "range"
-           and n.iter.args and isinstance(n.iter.args[0], ast.Call) and isinstance(n.iter.args[0].func, ast.Name)
-           and n.iter.args[0].func.id == "len" for n in nodes):
-        found.add("range_len")
-    return found
-
-
-def ast_reward(code: str) -> float:
-    return 1 - sum(AST_PENALTIES[p] for p in _ast_patterns(code)) / sum(AST_PENALTIES.values())
+def _scored(col, query: str, k: int) -> list[tuple[float, str]]:
+    if col.count() == 0:
+        return []
+    r = col.query(query_texts=[query], n_results=min(k, col.count()))
+    return [(1 - dist, doc) for doc, dist in zip(r["documents"][0], r["distances"][0])]
 
 
 @h2h
-class LLMAsCritique(H2HTechnique):
-    """Best-of-n (n = 50, beam width 1) over samples at temperature 1, each scored without execution by
-    1.3 * AST-pattern reward + 1.0 * the model's efficiency critique - 0.4 * perplexity."""
-    hid, name, family, target = "H26", "LLM-as-a-Critique for efficiency", "refinement", ("EFF",)
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        msgs = _user(CRITIQUE_GEN.format(task=C.task_text(task)))
-        best, best_r = "", -math.inf
-        for _ in range(CRITIQUE_TRIALS):
-            c = ctx.llm.chat(msgs, temperature=CRITIQUE_TEMP, max_tokens=CRITIQUE_MAX_TOKENS, logprobs=1, role="sample")[0]
-            code = C.code_of(task, c.text)
-            lps = [t["logprob"] for t in c.logprobs or []]
-            ppl = math.exp(-sum(lps) / len(lps)) if lps else 1.0
-            m = re.search(r"\d*\.?\d+", ctx.llm.ask(_user(CRITIQUE_RATE.format(code=code)), temperature=0.0, max_tokens=16,
-                                                    role="critique"))
-            r_llm = min(1.0, max(0.0, float(m.group()))) if m else 0.0
-            r = (CRITIQUE_WEIGHTS["ast"] * ast_reward(code) + CRITIQUE_WEIGHTS["llm"] * r_llm
-                 - CRITIQUE_WEIGHTS["ppl"] * ppl)
-            if r > best_r:
-                best, best_r = ctx.keep(code), r
-        return best
-
-
-# ------------------------------------------------------------------------------------------------- H27 Chain-of-Verification
-
-COV_CYCLES = 3
-COV_ANALYZE = ("Task:\n{task}\n\nCode:\n{code}\n\nVerify this code for security. Go through it step by step: every input path, "
-               "missing or incomplete checks, unsafe fallbacks and defaults, injection points, cryptographic misuse, secrets, "
-               "and resource handling. List each vulnerability with its CWE and the lines involved. If there is none, reply "
-               "exactly: NO VULNERABILITIES.")
-COV_REVISE = ("Revise the code to fix every vulnerability you listed, keeping its required behavior. Return the complete code "
-              "in one fenced block.")
-
-
-@h2h
-class ChainOfVerification(H2HTechnique):
-    """Generate, then cycles of vulnerability self-analysis, revision and re-verification until the self-review finds nothing."""
-    hid, name, family, target = "H27", "Chain-of-Verification", "refinement", ("SEC",)
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        code = ctx.keep(C.code_of(task, ctx.llm.ask(C.messages(task))))
-        for _ in range(COV_CYCLES):
-            hist = _user(COV_ANALYZE.format(task=C.task_text(task), code=_fence(task, code)))
-            analysis = ctx.llm.ask(hist, role="verify")
-            if "NO VULNERABILITIES" in analysis.upper():
-                break
-            code = ctx.keep(C.code_of(task, ctx.llm.ask(hist + [{"role": "assistant", "content": analysis}] + _user(COV_REVISE),
-                                                        role="revise")) or code)
-        return code
-
-
-# ------------------------------------------------------------------------------------------------- H28 Reflection-Driven Control
-
-RDC_CHECK = ("Task:\n{task}\n\nCode:\n{code}\n\nYou are a security reviewer. Decide whether this code is safe to commit: consider "
-             "injection, path traversal, unsafe deserialization, command execution, memory safety, integer overflow, secrets "
-             "and missing validation. Answer with one word only: SAFE or UNSAFE.")
-RDC_DIAGNOSE = ("Task:\n{task}\n\nCode:\n{code}\n\nThis code was judged UNSAFE. Evidence from verified past repairs and secure "
-                "coding guidelines:\n{evidence}\n\nReflect step by step: which vulnerabilities does the code contain, where, "
-                "and which of the evidence applies to each?")
-RDC_REPAIR = ("Now generate the repaired code: eliminate every vulnerability you identified, follow the evidence-based "
-              "constraints, preserve the original functionality and keep it compilable. Return the complete code in one fenced "
-              "block.")
-
-
-@h2h
-class ReflectionDrivenControl(H2HTechnique):
-    """Reflex module: a SAFE/UNSAFE self-check routes unsafe code to a two-turn reflective repair grounded in the top-3
-    dynamic-memory cases (cosine >= 0.70, static secure-coding memory as fallback); verified repairs (compile + CodeQL)
-    are written back to the dynamic memory, which grows across tasks."""
-    hid, name, family, target = "H28", "Reflection-Driven Control", "refinement", ("SEC",)
+class SafetySidecar(H2HTechnique):
+    """Safety Sidecar (ACL Findings 2026; published version of Reflection-Driven Control): an LLM SAFE/UNSAFE self-check
+    routes the output; external verification (compilation and CodeQL) also intercepts a SAFE-routed output it flags.
+    Unsafe outputs get one round (the deployed setting) of the three-turn reflective dialogue (identify risks, explain
+    cause and safe alternative, rewrite) grounded in hierarchical retrieval: top-k of the dynamic memory when it returns
+    at least k_min cases with best cosine >= theta, else top-k of dynamic and static memory together. Only repairs that
+    pass the verifiers are written back to the dynamic memory, which grows across tasks."""
+    hid, name, family, target = "H26", "Safety Sidecar", "refinement", ("SEC",)
 
     def prepare(self, ctx: Ctx) -> None:
         if not CORPUS.exists():
@@ -617,25 +498,39 @@ class ReflectionDrivenControl(H2HTechnique):
             static.add(ids=[f"s{i + j}" for j in range(len(b))], documents=[f"[{d['source']}]\n{d['text']}" for d in b],
                        metadatas=[{"kind": d["kind"]} for d in b])
 
+    @staticmethod
+    def _verified(task: Task, code: str) -> bool | None:
+        """Compiles and CodeQL finds nothing: True; fails either: False; no CodeQL verdict for the language: None."""
+        if not code.strip() or (_py(task) and not _parses(code)):
+            return False
+        alerts = codeql(code, task.language)
+        return None if alerts is None else not alerts
+
+    def _evidence(self, ctx: Ctx, dynamic, query: str) -> list[str]:
+        dyn = _scored(dynamic, query, MEMORY_K)
+        if len(dyn) >= SS_K_MIN and max(s for s, _ in dyn) >= MEMORY_MIN_SIM:
+            return [d for _, d in dyn]
+        pool = dyn + _scored(_collection(ctx, self.hid, "static"), query, MEMORY_K)
+        return [d for _, d in sorted(pool, key=lambda x: -x[0])[:MEMORY_K]]
+
     def solve(self, task: Task, ctx: Ctx) -> str:
         text = C.task_text(task)
         code = ctx.keep(C.code_of(task, ctx.llm.ask(C.messages(task))))
         dynamic = _collection(ctx, self.hid, f"dynamic-s{current_scope().seed}")
-        verdict = ctx.llm.ask(_user(RDC_CHECK.format(task=text, code=_fence(task, code))), temperature=0.0, role="self-check")
-        if "UNSAFE" not in verdict.upper():
+        verdict = ctx.llm.ask(_user(SS_CHECK.format(task=text, code=_fence(task, code))), temperature=0.0, role="self-check")
+        if "UNSAFE" not in verdict.upper() and self._verified(task, code) is not False:
             _remember(dynamic, f"Task: {task.prompt}\n\nSafe code:\n{code}", kind="safe")
             return code
-        query = task.prompt + "\n" + code
-        evidence = _recall(dynamic, query)
-        if len(evidence) < MEMORY_K:
-            evidence += _recall(_collection(ctx, self.hid, "static"), query, MEMORY_K - len(evidence), min_sim=-1.0)
-        hist = _user(RDC_DIAGNOSE.format(task=text, code=_fence(task, code), evidence="\n\n---\n\n".join(evidence) or "(none)"))
-        reflection = ctx.llm.ask(hist, role="reflect")
-        fixed = C.code_of(task, ctx.llm.ask(hist + [{"role": "assistant", "content": reflection}] + _user(RDC_REPAIR),
-                                            role="repair"))
+        evidence = self._evidence(ctx, dynamic, task.prompt + "\n" + code)
+        hist = _user(SS_IDENTIFY.format(task=text, code=_fence(task, code), evidence="\n\n---\n\n".join(evidence) or "(none)"))
+        risks = ctx.llm.ask(hist, role="reflect-identify")
+        hist += [{"role": "assistant", "content": risks}] + _user(SS_CAUSE)
+        cause = ctx.llm.ask(hist, role="reflect-cause")
+        hist += [{"role": "assistant", "content": cause}] + _user(SS_REWRITE)
+        fixed = C.code_of(task, ctx.llm.ask(hist, role="reflect-rewrite"))
         if not fixed.strip() or (_py(task) and not _parses(fixed)):
             return code
-        alerts = codeql(fixed, task.language)
-        if not alerts:
-            _remember(dynamic, f"Task: {task.prompt}\n\nReflection:\n{reflection}\n\nVerified repair:\n{fixed}", kind="repair")
+        if self._verified(task, fixed):
+            _remember(dynamic, f"Task: {task.prompt}\n\nRisks:\n{risks}\n\nCause and mitigation:\n{cause}\n\n"
+                               f"Verified repair:\n{fixed}", kind="repair")
         return ctx.keep(fixed)

@@ -1,6 +1,6 @@
 # Benchmark settings. Data roots are relative to $HARNESS_DATA (default ./data).
 main:
-  COR: [lcb_pro, humaneval_plus, mbpp_plus, lcb_v6, deepswe]
+  COR: [lcb_pro, humaneval_plus, lcb_v6, deepswe]
   RM: [race_r, race_m, nofuneval]
   EFF: [evalperf, effibench_x, mercury]
   SEC: [cweval, baxbench, pythonsecurityeval]

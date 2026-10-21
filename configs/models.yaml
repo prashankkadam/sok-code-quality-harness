@@ -67,3 +67,4 @@ sampling:
   max_tokens: 8192
 
 judge: op
+judge2: gpt61

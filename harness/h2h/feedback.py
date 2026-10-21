@@ -29,8 +29,8 @@ from ..techniques import common as C
 from .base import Ctx, H2HTechnique, h2h
 
 BANDIT = [sys.executable, "-m", "bandit", "-f", "json", "-q"]
-PYLINT_SYNTAX = [sys.executable, "-m", "pylint", "-f", "json", "--disable=all", "--enable=E0001"]
 PYLINT_SCORE = [sys.executable, "-m", "pylint", "-f", "json2", "--score=y"]
+PYLINT = [sys.executable, "-m", "pylint", "-f", "json2"]
 CODEQL = "codeql"
 CODEQL_SUITE = "codeql/{lang}-queries:codeql-suites/{lang}-security-extended.qls"
 CODEQL_LANGS = {"python", "javascript", "cpp", "java", "csharp", "go", "ruby"}
@@ -168,18 +168,6 @@ def bandit_results(code: str) -> tuple[list[dict], bool]:
     return rep.get("results", []), not rep.get("errors")
 
 
-def pylint_messages(code: str, cmd: list[str]) -> list[dict]:
-    with tempfile.TemporaryDirectory() as d:
-        p = Path(d) / "solution.py"
-        p.write_text(code)
-        out = subprocess.run(cmd + [str(p)], capture_output=True, text=True).stdout
-    try:
-        rep = json.loads(out)
-    except json.JSONDecodeError:
-        return []
-    return rep if isinstance(rep, list) else rep.get("messages", [])
-
-
 def pylint_score(code: str) -> float:
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "solution.py"
@@ -189,6 +177,17 @@ def pylint_score(code: str) -> float:
         return float(json.loads(out)["statistics"]["score"])
     except (json.JSONDecodeError, KeyError, TypeError):
         return 0.0
+
+
+def pylint_messages(code: str) -> list[dict]:
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "solution.py"
+        p.write_text(code)
+        out = subprocess.run(PYLINT + [str(p)], capture_output=True, text=True).stdout
+    try:
+        return json.loads(out).get("messages", [])
+    except (json.JSONDecodeError, AttributeError):
+        return []
 
 
 def codeql(code: str, lang: str) -> list[dict] | None:
@@ -1549,112 +1548,7 @@ class CodeEvolve(H2HTechnique):
         return code
 
 
-# ------------------------------------------------------------------------------------------------- H19 CodeEnhancer
-
-CE_ATTEMPTS = 5
-CE_SYSTEM = "You are a code generation assistant."
-CE_GEN = ("Please write Python code for the following task. At the very top, add a triple-quoted docstring with these three "
-          "sections, each starting on its own line:\n• **Input Prompt**: Restate the prompt clearly.\n• **Intention**: State "
-          "the purpose of the code.\n• **Functionality**: Describe briefly how the code solves the task.\n\nWrite only valid "
-          "Python code and no extra explanations. Return the complete script only.\n\nPrompt: {prompt}")
-CE_DOC_RETRY = ("The code must begin with a triple-quoted docstring containing the sections **Input Prompt**, **Intention** "
-                "and **Functionality**. Return the complete script with that docstring at the very top.\n\n{code}")
-CE_SAST = '''The static-analysis tools below reported problems in the implementation.
-<Code>
-{code}
-</Code>
-<PylintIssues>
-{pylint}
-</PylintIssues>
-<BanditIssues>
-{bandit}
-</BanditIssues>
-Instructions
-• Fix **every** issue listed above.
-• Keep all existing docstrings and comments exactly as they are.
-• Reply with *only* the corrected implementation, enclosed in a single code block:
-<Code>
-… full fixed code body (docstring excluded) …
-</Code>
-Formatting rules
-• The first line of your answer must be "<Code>".
-• The last line must be "</Code>".
-• Do **not** output anything else—no explanations, no Markdown fences, no extra text.'''
-CE_CHECK = '''<Instruction>
-Follow these rules **exactly** when you answer.
-1. Determine whether the implementation in <Code> mostly satisfies the requirements described in <Docstring>,
-   including cases where it uses a different library or algorithm that achieves the same observable behaviour
-   while improving security or performance. Compare results, not the exact API calls.
-2. If the implementation meets the intention (identical behaviour) — even if it swaps to a more secure or faster library — output one word only: Correct
-3. If any change is needed, output in *precisely* this structure—nothing more, nothing less:
-Incorrect
-<Code>
-# (full corrected code body here — do NOT include the docstring)
-</Code>
-<Reason>
-# (brief explanation of what you fixed and why)
-</Reason>
-Formatting constraints
-• Start the corrected code block with a line that contains only <Code>
-  and end it with a line that contains only </Code>.
-• Start the reason block with <Reason> and end it with </Reason>.
-• Do NOT add Markdown fences (```), line numbers, extra headers, or footers.
-• Never duplicate, delete, or modify the original docstring; keep comments intact.
-</Instruction>
-<Docstring>
-{doc}
-</Docstring>
-<Code>
-{code}
-</Code>'''
-_DOC = re.compile(r'^\s*("""|\'\'\')(.*?)\1\s*\n?', re.S)
-
-
-def _tagged(text: str) -> str | None:
-    m = re.search(r"<Code>\s*\n?(.*?)\n?\s*</Code>", text or "", re.S)
-    if not m:
-        return None
-    body = m.group(1)
-    return C.extract_code(body, "python") if "```" in body else body.strip("\n")
-
-
-@h2h
-class CodeEnhancer(H2HTechnique):
-    """Stage 1 of CodeEnhancer: generation with an intent docstring, then up to five attempts in which Pylint (syntax) and
-    Bandit findings drive repair, and a clean body is checked against the docstring by the model."""
-    hid, name, family, target = "H19", "CodeEnhancer stage 1", "feedback", ("SEC",)
-    code_url = "https://github.com/cyb3rlab/CodeEnhancer"
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        msgs = [{"role": "system", "content": CE_SYSTEM}, {"role": "user", "content": CE_GEN.format(prompt=C.task_text(task))}]
-        code = ctx.keep(C.code_of(task, ctx.llm.ask(msgs, temperature=0.0, max_tokens=1024)))
-        if not _py(task):
-            return code
-        for _ in range(CE_ATTEMPTS):
-            if _DOC.match(code):
-                break
-            code = ctx.keep(C.code_of(task, ctx.llm.ask(msgs + [{"role": "assistant", "content": code}] + _user(
-                CE_DOC_RETRY.format(code=code)), role="docstring")))
-        m = _DOC.match(code)
-        doc, body = (m.group(0), code[m.end():]) if m else ("", code)
-        for _ in range(CE_ATTEMPTS):
-            lint = [f"{x.get('line', 0)}: {x.get('message', '')}" for x in pylint_messages(doc + body, PYLINT_SYNTAX)]
-            sec = [r.get("issue_text", "") for r in bandit_results(doc + body)[0]]
-            if lint or sec:
-                reply = ctx.llm.ask(_user(CE_SAST.format(code=body, pylint="\n".join(lint) or "None",
-                                                         bandit="\n".join(sec) or "None")), role="sast-repair")
-                body = _tagged(reply) or body
-                ctx.keep(doc + body)
-                continue
-            reply = ctx.llm.ask(_user(CE_CHECK.format(doc=doc.strip(), code=body)), role="functional-check")
-            if reply.strip().lower().startswith("correct"):
-                break
-            body = _tagged(reply) or body
-            ctx.keep(doc + body)
-        return doc + body
-
-
-# ------------------------------------------------------------------------------------------------- H20 PerfAgent
+# ------------------------------------------------------------------------------------------------- H19 PerfAgent
 
 PERFAGENT_SUBMISSIONS, PERFAGENT_WINDOW, PERFAGENT_HOTSPOTS = 5, 10, 10
 PERFAGENT_TASK = '''Here is a {lang} program for the task below, and an example workload that runs it on the task's example inputs.
@@ -1726,7 +1620,7 @@ def pyspy_hotspots(task: Task, code: str, seconds: int = PERFAGENT_WINDOW, k: in
 class PerfAgent(H2HTechnique):
     """Profiler-guided loop: a py-spy hotspot summary written by the model, up to five validated submissions, each failure or
     speedup fed back with a fresh profile, and the fastest validated submission kept."""
-    hid, name, family, target = "H20", "PerfAgent", "feedback", ("EFF",)
+    hid, name, family, target = "H19", "PerfAgent", "feedback", ("EFF",)
     ported = True
 
     def solve(self, task: Task, ctx: Ctx) -> str:
@@ -1762,3 +1656,72 @@ class PerfAgent(H2HTechnique):
     def _summary(ctx: Ctx, task: Task, code: str) -> str:
         return ctx.llm.ask(_user(PERFAGENT_SUMMARY.format(hotspots=pyspy_hotspots(task, code))), temperature=0.0,
                            role="profile-summary")
+
+
+# ------------------------------------------------------------------------------------------------- H20 SelectIssue
+
+SELECTISSUE_ITERS, SELECTISSUE_PICK = 10, 3
+SELECTISSUE_BANDIT = {"HIGH": 30, "MEDIUM": 20, "LOW": 10, "UNDEFINED": 10}
+SELECTISSUE_PYLINT = {"convention": 3, "error": 3, "warning": 3, "refactor": 3, "fatal": 3}
+SELECTISSUE_PROMPT = ("You are asked to solve the problem:\n{problem}\nThe following code has some issues, which is "
+                      "highlighted in the form\n<issue description>\n# <start issue><code># <end issue>\n{code}\n{tests}"
+                      " Return a code snippet fixing these issues. You may edit any part of the code\n"
+                      "Respond with the whole solution")
+SELECTISSUE_TESTS = "The code also fails this example:\n{test}\n{error}\n"
+
+
+def _issues(code: str) -> list[tuple[int, int, int, str]]:
+    """Bandit and Pylint issues as (weight, line, end line, description), heaviest first, then by line."""
+    out = [(SELECTISSUE_BANDIT.get(r.get("issue_severity", "UNDEFINED"), 10), r.get("line_number") or 1,
+            max(r.get("line_range") or [r.get("line_number") or 1]), r.get("issue_text", ""))
+           for r in bandit_results(code)[0]]
+    out += [(SELECTISSUE_PYLINT[m["type"]], m.get("line") or 1, m.get("endLine") or m.get("line") or 1,
+             f" {m.get('message', '')} ({m.get('symbol', '')})") for m in pylint_messages(code)
+            if m.get("type") in SELECTISSUE_PYLINT]
+    return sorted(out, key=lambda x: (-x[0], x[1]))
+
+
+def _tag(code: str, issues: list[tuple[int, int, int, str]]) -> str:
+    lines = code.split("\n")
+    pre, post = defaultdict(list), defaultdict(int)
+    for _, a, b, text in issues:
+        a = min(max(a, 1), len(lines))
+        pre[a] += [f"# {text}", "# <start issue>", ""]
+        post[min(max(b, a), len(lines))] += 1
+    out = []
+    for n, ln in enumerate(lines, 1):
+        out += pre[n] + [ln] + ["# <end issue>"] * post[n]
+    return "\n".join(out)
+
+
+@h2h
+class SelectIssue(H2HTechnique):
+    """Blyth et al.: up to 10 rounds; the heaviest I=3 Bandit/Pylint issues (Table III weights) are tagged in place, a
+    failing public example is reported, and a rewrite is kept when its fitness (passes, -total severity) does not drop."""
+    hid, name, family, target = "H20", "SelectIssue", "feedback", ("SEC", "RM")
+    code_url = "https://github.com/Kamel773/LLM-code-refine"
+    pick = SELECTISSUE_PICK
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        code = ctx.keep(C.code_of(task, ctx.llm.ask(C.messages(task))))
+        if not _py(task):
+            return code
+        cur = self._state(task, code)
+        for _ in range(SELECTISSUE_ITERS):
+            issues, fail, fit = cur
+            if fit == (True, 0.0):
+                break
+            tests = SELECTISSUE_TESTS.format(test=test_text(fail[0]), error=error_text(*fail)) if fail else ""
+            new = C.code_of(task, ctx.llm.ask(SELECTISSUE_PROMPT.format(
+                problem=task.prompt, code=_tag(code, issues[:self.pick]), tests=tests), role="mutate"))
+            nxt = self._state(task, new)
+            if nxt[2] >= fit:
+                code, cur = ctx.keep(new), nxt
+        return code
+
+    @staticmethod
+    def _state(task: Task, code: str):
+        if not code.strip():
+            return [], None, (False, float("-inf"))
+        issues, fail = _issues(code), failure(task, code)
+        return issues, fail, (fail is None, -float(sum(i[0] for i in issues)))

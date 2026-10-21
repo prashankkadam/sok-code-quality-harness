@@ -45,7 +45,9 @@ FAMILIES = ["prompting", "feedback-loop", "self-refinement", "multi-agent", "ret
 
 
 def load_rows() -> list[dict]:
-    return list(csv.DictReader(open(EXTRACTION)))
+    from synth import retrieved
+    ok = retrieved()
+    return [r for r in csv.DictReader(open(EXTRACTION)) if r["rid"] in ok]
 
 
 def s2_batch(ids: list[str]) -> list[dict | None]:
@@ -159,6 +161,9 @@ def cmd_pool(_a) -> None:
 
 
 PER_LANE, PER_FAMILY, RECENT_FROM = 5, 10, 2025
+# Training: reinforcement learning, the dominant training method of 2025-2026, replaces the three non-RL recent
+# picks (the paper's stated adjustment of the rule).
+RL_OVERRIDE = {"R02496#0": "R02468#0", "R05410#0": "R01746#0", "R02014#0": "R04564#0"}
 
 
 def _num(s: str) -> float | None:
@@ -186,6 +191,8 @@ def merged() -> list[dict]:
     out = []
     for p in sorted(TOP.glob("pass1_out_*.csv")):
         for r in csv.DictReader(open(p)):
+            if r["tid"] not in pool:
+                continue
             m = {**pool[r["tid"]], **r}
             ft = CACHE / "fulltext_slr" / f"{m['rid']}.txt"
             src = ft.read_text(errors="replace") if ft.exists() else recs.get(m["rid"], {}).get("abstract") or ""
@@ -234,11 +241,12 @@ def cmd_rank(_a) -> None:
         w.writeheader()
         w.writerows(rows)
     dup = {t: r.get("duplicate_of", "").split(";")[0].strip() for t, r in p2.items()}
+    pool_tids = {r["tid"] for r in rows}
 
     def is_dup(t: str) -> bool:
         """Drop a record that duplicates another; for mutual flags keep the lexically first tid."""
         d = dup.get(t, "")
-        if not d or d not in p2 or d == t:
+        if not d or d not in p2 or d not in pool_tids or d == t:
             return False
         return not (dup.get(d) == t and t < d)
 
@@ -279,6 +287,10 @@ def cmd_rank(_a) -> None:
             picked += [dict(r, lane="landmark") for r in fill]
         if len(picked) < PER_FAMILY:
             notes.append(f"only {len(picked)} eligible general-purpose techniques")
+        if fam == "training":
+            byt = {r["tid"]: r for r in rows}
+            picked = [dict(byt[RL_OVERRIDE[r["tid"]]], lane=r["lane"], note="RL adjustment") if r["tid"] in RL_OVERRIDE
+                      else r for r in picked]
         used |= {r["rid"] for r in picked}
         sel += [dict(r, family=fam, rank=i + 1) for i, r in enumerate(picked)]
         report.append({"family": fam, "eligible_general": len(cands),

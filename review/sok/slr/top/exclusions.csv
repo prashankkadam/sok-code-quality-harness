@@ -17,3 +17,4 @@ R03314#0,E4,reviewer flagged low credibility; simulated results
 R00766#1,E2,five functions; Copilot only (same study as R00766#0)
 R00766#2,E2,five functions; Copilot only (same study as R00766#0)
 R06874#0,E5,verification found a correctness decline (pass@1 42.4% to 33.9%)
+R01618#0,E2,Evaluated on 11 test cases (aggregated SecurityEval/LLMSecEval data-leakage scenarios).

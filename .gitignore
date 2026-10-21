@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 .env
-data/
-runs/
+/data/
+/runs/
 configs/tuned.yaml
+.cache/
+review/.cache

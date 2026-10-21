@@ -1,4 +1,4 @@
-"""Layer 3: length-controlled readability-and-maintainability judge (Claude Opus 5.5)."""
+"""Layer 3: length-controlled readability-and-maintainability judges (Claude Opus 5.5 and, as the non-Anthropic check, GPT-6.1 Sol)."""
 from __future__ import annotations
 
 import re

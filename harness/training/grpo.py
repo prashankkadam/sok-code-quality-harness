@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Callable
@@ -60,6 +61,20 @@ def train(model_key: str, rows: list[dict], reward: Reward, out: Path, cfg: dict
         base.enable_input_require_grads()
         model, lora = PeftModel.from_pretrained(base, str(init_adapter), is_trainable=True), None
     trainer = GRPOTrainer(model=model, reward_funcs=reward_fn, args=args, train_dataset=ds, peft_config=lora)
+    t0 = time.time()
     trainer.train()
     trainer.save_model(str(out / "adapter"))
+    _log(model_key, out, time.time() - t0)
     return out / "adapter"
+
+
+def _log(model_key: str, out: Path, seconds: float) -> None:
+    """Records the local job (GPU type and count, GPU-hours, cost at local_gpu_usd_per_hour when set) for the ledger."""
+    import torch
+    from .fireworks import write_job
+    n = torch.cuda.device_count()
+    gpu_hours = n * seconds / 3600
+    rate = load("training").get("local_gpu_usd_per_hour")
+    write_job(model_key, {"job": str(out), "kind": "grpo", "provider": "local (TRL)", "output": str(out / "adapter"),
+                          "gpu_type": torch.cuda.get_device_name(0) if n else None, "gpus": n, "gpu_hours": gpu_hours,
+                          "wall_hours": seconds / 3600, "cost": gpu_hours * rate if rate is not None else None})

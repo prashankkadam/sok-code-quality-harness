@@ -9,9 +9,29 @@ selection, plus the scripts that produce the paper's counts, tables and figures.
 
 The folder layout is the one the scripts expect; run them from this folder after `mkdir -p sok/paper/figures sok/paper/generated` (where they write their output).
 
-## Corrections applied after the consistency pass
+## Full-text rule
 
-The included set is 606 studies (618 before). Twelve records were moved from `extraction.csv` to
+Only reports whose full text was retrieved are assessed (`synth.retrieved`): a report without a retrievable full text
+is excluded as not retrieved and never synthesized from its abstract. Every count, table and figure applies this rule.
+
+## Corrections
+
+`sok/slr/corrections.csv` logs every correction made to `extraction.csv` after extraction (`src/slr/corrections.py`):
+targets filled in from the quote-checked selection review for highlighted techniques, and the outcome of a criteria
+audit of every included study (`runs/main/scope_audit.csv`: duplicates, studies outside the criteria, studies moved to
+the context list, a corrected year). The highlighted-technique exclusions are in `top/exclusions.csv`.
+
+## Completing the review (`round2.sh`)
+
+`round2.sh` runs the remaining steps with the frozen prompts: the revised strings on OpenAlex, the manual ACM DL and
+IEEE Xplore exports (`src/slr/manual_search.py`), screening of the new records, full-text assessment and extraction of
+every forwarded report not yet extracted (including the snowballing reports in `runs/main/snow_pending_ids.txt`), and
+regeneration of all outputs. Until it has run, `synth.py` adds the estimates in `runs/main/round2_estimates.json` to the
+affected counts and marks them blue in the paper.
+
+## First consistency pass
+
+Twelve records were moved from `extraction.csv` to
 `runs/*/side_lists.csv`, each with its criterion and reason:
 
 | Removed | Criterion | Reason |

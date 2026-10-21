@@ -22,11 +22,20 @@ def main() -> None:
         q.add_argument("--benches")
         q.add_argument("--budgets")
         q.add_argument("--seeds")
+    b = sub.add_parser("h2h-bon-matched")
+    b.add_argument("--families")
+    b.add_argument("--seeds")
+    fc = sub.add_parser("fidelity")
+    fc.add_argument("techniques")
+    fc.add_argument("--model", default="g31")
+    fc.add_argument("--seeds")
     sub.add_parser("tables")
+    sub.add_parser("ledger")
     m = sub.add_parser("manual-sample")
     m.add_argument("--per-model", type=int, default=110)
+    m.add_argument("--raters", default="A,B")
     a = sub.add_parser("manual-agreement")
-    a.add_argument("rated")
+    a.add_argument("rated", nargs="+")
     args = p.parse_args()
     logging.basicConfig(level=logging.INFO)
 
@@ -39,8 +48,9 @@ def main() -> None:
         from .benchmarks.base import get
         from .config import load
         from .techniques.rag import build
-        evals = [t for d in ("COR", "RM", "EFF", "SEC") for b in load("benchmarks")["main"][d] if b != "deepswe"
-                 for t in get(b).tasks()]
+        cfg = load("benchmarks")
+        benches = {b for d in ("COR", "RM", "EFF", "SEC") for b in cfg["main"][d] if b != "deepswe"} | set(cfg["h2h"])
+        evals = [t for b in sorted(benches) for t in get(b).tasks()]
         print(build(evals))
     elif args.cmd == "train":
         print(run.train_main(args.model))
@@ -53,17 +63,25 @@ def main() -> None:
         run.agent_grid(_list(args.models), seeds)
     elif args.cmd == "h2h":
         run.h2h(_list(args.techniques), seeds)
+    elif args.cmd == "h2h-bon-matched":
+        print(run.h2h_bon_matched(_list(args.families), seeds))
+    elif args.cmd == "fidelity":
+        for hid in _list(args.techniques):
+            print(run.fidelity_check(hid, args.model, seeds))
     elif args.cmd == "tables":
         from .tables import write_all
         print(write_all())
+    elif args.cmd == "ledger":
+        from .ledger import write
+        print(write())
     elif args.cmd == "manual-sample":
         from .config import grid
         from .stats import draw_manual_sample
-        print(draw_manual_sample("main", grid("main_grid"), args.per_model))
+        print(draw_manual_sample("main", grid("main_grid"), args.per_model, raters=_list(args.raters)))
     elif args.cmd == "manual-agreement":
         from pathlib import Path
         from .stats import manual_agreement
-        print(manual_agreement("main", Path(args.rated)))
+        print(manual_agreement("main", [Path(x) for x in args.rated]))
 
 
 if __name__ == "__main__":

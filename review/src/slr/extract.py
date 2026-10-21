@@ -41,7 +41,8 @@ def run_dir(run):
 def all_records(run) -> dict:
     recs = {}
     for f in sorted(run_dir(run).glob("dedup_all*.jsonl")) + sorted(run_dir(run).glob("snowball_*.jsonl")) + \
-            sorted(run_dir(run).glob("other_sources*.jsonl")) + sorted(run_dir(run).glob("venue_sweep_new*.jsonl")):
+            sorted(run_dir(run).glob("other_sources*.jsonl")) + sorted(run_dir(run).glob("venue_sweep_new*.jsonl")) + \
+            sorted(run_dir(run).glob("manual_new*.jsonl")):
         if f.name.endswith("_raw.jsonl"):
             continue
         for l in f.open():

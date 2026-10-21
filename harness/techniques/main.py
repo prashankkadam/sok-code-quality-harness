@@ -39,12 +39,13 @@ class T0(Technique):
 
 class _BestOfB(Technique):
     """Single-call techniques spend extra budget as best-of-B with the T7 ranker."""
+    low_temperature = False
 
     def prompt(self, task: Task) -> list:
         raise NotImplementedError
 
     def solve(self, task, llm, B):
-        code, scored = C.best_of(llm, task, self.prompt(task), B)
+        code, scored = C.best_of(llm, task, self.prompt(task), B, llm.temperature if self.low_temperature else None)
         return code, [{"public_ok": s.public_ok, "weighted": s.weighted} for s in scored]
 
 
@@ -197,6 +198,13 @@ class T7(_BestOfB):
 
     def prompt(self, task):
         return C.messages(task)
+
+
+@technique
+class T7lo(T7):
+    """Control for T7: the same best-of-B and ranker, sampled at the open models' default temperature (0.2) instead of 0.8."""
+    key, name = "T7lo", "best-of-n, T=0.2"
+    low_temperature = True
 
 
 class _Tuned(T7):

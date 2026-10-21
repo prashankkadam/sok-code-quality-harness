@@ -1,27 +1,28 @@
-"""E7 multi-agent family (H29-H38). Every agent role is the E7 model `ctx.llm`; every role's call counts toward the ceiling."""
+"""E7 multi-agent family (H27-H36). Every agent role is the E7 model `ctx.llm`; every role's call counts toward the ceiling."""
 from __future__ import annotations
 
 import ast
+import inspect
 import json
 import math
 import os
 import random
 import re
 import statistics
-import textwrap
 import threading
-from concurrent.futures import ThreadPoolExecutor
-from functools import lru_cache
-from itertools import product
+import time
+from functools import lru_cache, partial
 from pathlib import Path
 
 import httpx
+import numpy as np
 
 from .. import sandbox as S
-from ..llm import current_scope, scope
+from ..llm import BudgetExceeded, current_scope, scope
 from ..tasks import Task, Test
 from ..techniques import common as C
 from .base import Ctx, H2HTechnique, h2h
+from .retrieval import decontaminate, draft, embed, fetch, load_index, save_index, top_k
 
 TIMING_REPEATS = 5
 TAVILY_URL = "https://api.tavily.com/search"
@@ -98,6 +99,13 @@ def _cost(task: Task, code: str) -> float | None:
             return None
         total += w[0]
     return total
+
+
+def _num(x) -> float:
+    try:
+        return float(x)
+    except (TypeError, ValueError):
+        return 0.0
 
 
 def _test_program(task: Task, code: str, t: Test) -> tuple[str, str]:
@@ -227,14 +235,8 @@ def _wikipedia(cache: Path, query: str) -> list[dict]:
     return _cached(cache, json.dumps(["wikipedia", query]), fetch)
 
 
-def _eval_tasks() -> list[Task]:
-    from ..benchmarks.base import get
-    from ..config import load
-    return [t for b in load("benchmarks")["h2h"] for t in get(b).tasks()]
-
-
 # --------------------------------------------------------------------------------------------------------------------
-# H29 SecAwareCoder: threat model -> constraint-guided coding -> security-aware test synthesis -> closed-loop repair.
+# H27 SecAwareCoder: threat model -> constraint-guided coding -> security-aware test synthesis -> closed-loop repair.
 
 SAC_ANALYZER = """You are the Analyzer of a secure code generation pipeline.
 
@@ -299,7 +301,7 @@ Return the complete repaired code in one fenced code block."""
 class SecAwareCoder(H2HTechnique):
     """Analyzer, Coder and Tester calls, then at most two Repairer calls at temperature 0; the Executor runs the synthesized
     and public tests. Prompts are reconstructed from the paper (the repository has not released its code)."""
-    hid, name, family, target = "H29", "SecAwareCoder", "multiagent", ("SEC",)
+    hid, name, family, target = "H27", "SecAwareCoder", "multiagent", ("SEC",)
     code_url = "https://github.com/CY-SCUT-MS/CodeSecEval"
     MAX_REPAIRS = 2
 
@@ -359,7 +361,7 @@ def _check_cases(src: str) -> list[tuple[str, str]]:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H30 FlowGen (SOEN-101): process-model emulation with role agents; prompt templates verbatim from the FlowGen repository.
+# H28 FlowGen (SOEN-101): process-model emulation with role agents; prompt templates verbatim from the FlowGen repository.
 
 FLOW_BASE = {"Role": "", "Instruction": "", "Example": "", "Context": "", "Question": ""}
 ENGINEER = ("You are a professional software engineer. Your duty is to write code in Python that meets the requirements. "
@@ -478,7 +480,7 @@ class FlowGen(H2HTechnique):
     """FlowGen-Waterfall at temperature 0.8: requirements, design, code and test cases each written, reviewed and revised,
     a self-test rewrite, then execution of the example-derived unittest script with at most two report-and-repair rounds.
     FlowGen-Scrum needs at least 24 calls (22 before any execution), so the Waterfall model, which fits, is used."""
-    hid, name, family, target = "H30", "FlowGen", "multiagent", ("RM",)
+    hid, name, family, target = "H28", "FlowGen", "multiagent", ("RM",)
     code_url = "https://anonymous.4open.science/r/FlowGen-LLM-E842/README.md"
     TEMPERATURE = 0.8
     MAX_REPAIRS = 2
@@ -537,332 +539,7 @@ class FlowGen(H2HTechnique):
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H31 Intelligent agent (fine-tuned BART) + LLM: the agent writes the stage prompts for role definition, demand
-# optimization, code writing and code review. Reconstructed from the abstract; the training set is rebuilt by recipe.
-
-BART_BASE = "facebook/bart-base"
-BART_EPOCHS = 3
-BART_LR = 5e-5
-BART_BATCH = 8
-BART_MAX_SOURCE = 1024
-BART_MAX_TARGET = 512
-BART_BEAMS = 4
-BART_TACO = 2000
-SECURITYEVAL = "s2e-lab/SecurityEval"
-STAGES = ("role", "demand", "code", "review")
-BART_SRC = "stage: {stage} | language: {language} | mode: {mode} | task: {task}"
-
-BART_TEACHER = """You are an expert programming mentor who writes prompts that guide a large language model through one stage of a code generation workflow. For the programming task below, write four prompts, each rich in programming knowledge specific to this task (suitable algorithms and data structures, edge cases, input validation, the secure coding practices and CWE weaknesses relevant to it, readability):
-- "role": a role definition for the model: who it is and which expertise it brings to this task;
-- "demand": an instruction that guides the model to analyse and optimize the requirement (inputs, outputs, constraints, edge cases, security expectations);
-- "code": an instruction that guides the model to write the code;
-- "review": an instruction that guides the model to review the code and correct it.
-Do not solve the task and do not include code. Return one JSON object with the keys "role", "demand", "code" and "review".
-
-Language: {language}
-Task:
-{task}"""
-
-BART_DEMAND = """{guide}
-
-Original requirement:
-{task}
-
-Optimize the requirement: restate it precisely and completely, making inputs, outputs, constraints, edge cases and security expectations explicit. Do not write code."""
-
-BART_CODE = """{guide}
-
-Optimized requirement:
-{demand}"""
-
-BART_REVIEW = """{guide}
-
-Requirement:
-{task}
-
-Optimized requirement:
-{demand}
-
-Code:
-{code}
-
-Review the code against the requirement and the guidance above, then return the complete corrected code in one fenced code block."""
-
-
-def _bart_corpus() -> list[Task]:
-    from datasets import load_dataset
-    from ..training.data import decontaminate, taco_tasks
-    evals = _eval_tasks()
-    sec = [Task(f"securityeval/{r['ID']}", "securityeval", r["Prompt"]) for r in load_dataset(SECURITYEVAL, split="train")]
-    return decontaminate(taco_tasks(BART_TACO), evals, BART_TACO) + decontaminate(sec, evals, len(sec))
-
-
-@lru_cache(maxsize=1)
-def _bart(path: str):
-    from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-    return AutoTokenizer.from_pretrained(path), AutoModelForSeq2SeqLM.from_pretrained(path).eval()
-
-
-def _bart_prompt(path: Path, stage: str, task: Task) -> str:
-    import torch
-    tok, model = _bart(str(path))
-    src = BART_SRC.format(stage=stage, language=_lang(task), mode=task.mode, task=task.prompt)
-    with _LOCK, torch.no_grad():
-        ids = tok(src, return_tensors="pt", truncation=True, max_length=BART_MAX_SOURCE).to(model.device)
-        out = model.generate(**ids, num_beams=BART_BEAMS, max_new_tokens=BART_MAX_TARGET, no_repeat_ngram_size=3)
-    return tok.decode(out[0], skip_special_tokens=True).strip()
-
-
-@h2h
-class BartAgentLLM(H2HTechnique):
-    """prepare: the E7 model writes the four stage prompts for each training task (TACO and SecurityEval, decontaminated),
-    and BART is fine-tuned to map (stage, task) to that prompt. solve: BART writes the system role and the stage prompts;
-    the LLM optimizes the demand, writes the code and reviews it (3 calls; BART is a trained component, not charged)."""
-    hid, name, family, target = "H31", "BART agent + LLM collaboration", "multiagent", ("SEC",)
-    trains = True
-    data_rebuilt = True
-
-    def prepare(self, ctx: Ctx) -> None:
-        out = ctx.dir(self.hid)
-        if (out / "bart" / "config.json").exists():
-            return
-        rows = out / "teacher.jsonl"
-        done = {json.loads(l)["id"] for l in rows.read_text().splitlines()} if rows.exists() else set()
-        todo = [t for t in _bart_corpus() if t.id not in done]
-
-        def teach(t: Task):
-            with scope(t.id, f"{self.hid}-data", None):
-                d = _json(ctx.llm.ask(BART_TEACHER.format(language=_lang(t), task=t.prompt), role="teacher"))
-            ok = isinstance(d, dict) and all(isinstance(d.get(s), str) and d[s].strip() for s in STAGES)
-            return {"id": t.id, "language": _lang(t), "mode": t.mode, "task": t.prompt, **{s: d[s] for s in STAGES}} if ok else None
-
-        with ThreadPoolExecutor(16) as ex, open(rows, "a") as f:
-            for r in ex.map(teach, todo):
-                if r:
-                    f.write(json.dumps(r) + "\n")
-        _train_bart(rows, out / "bart")
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        path = ctx.dir(self.hid) / "bart"
-        guide = {s: _bart_prompt(path, s, task) for s in STAGES}
-        text = C.task_text(task)
-        demand = ctx.llm.ask([{"role": "system", "content": guide["role"]},
-                              {"role": "user", "content": BART_DEMAND.format(guide=guide["demand"], task=text)}], role="demand")
-        code = ctx.keep(C.code_of(task, ctx.llm.ask(C.messages(task, post=BART_CODE.format(guide=guide["code"], demand=demand),
-                                                               system=guide["role"]), role="coder")))
-        reviewed = C.code_of(task, ctx.llm.ask([{"role": "system", "content": guide["role"]},
-                                                {"role": "user", "content": BART_REVIEW.format(
-                                                    guide=guide["review"], task=text, demand=demand,
-                                                    code=_block(task, code))}], role="reviewer"))
-        return reviewed or code
-
-
-def _train_bart(rows: Path, out: Path) -> None:
-    from datasets import Dataset
-    from transformers import (AutoModelForSeq2SeqLM, AutoTokenizer, DataCollatorForSeq2Seq, Seq2SeqTrainer,
-                              Seq2SeqTrainingArguments)
-    tok = AutoTokenizer.from_pretrained(BART_BASE)
-    model = AutoModelForSeq2SeqLM.from_pretrained(BART_BASE)
-    data = [json.loads(l) for l in rows.read_text().splitlines() if l.strip()]
-    pairs = [{"src": BART_SRC.format(stage=s, language=r["language"], mode=r["mode"], task=r["task"]), "tgt": r[s]}
-             for r in data for s in STAGES]
-
-    def encode(b):
-        enc = tok(b["src"], truncation=True, max_length=BART_MAX_SOURCE)
-        enc["labels"] = tok(text_target=b["tgt"], truncation=True, max_length=BART_MAX_TARGET)["input_ids"]
-        return enc
-
-    ds = Dataset.from_list(pairs).shuffle(seed=0).map(encode, batched=True, remove_columns=["src", "tgt"])
-    args = Seq2SeqTrainingArguments(output_dir=str(out.parent / "bart_run"), num_train_epochs=BART_EPOCHS,
-                                    learning_rate=BART_LR, per_device_train_batch_size=BART_BATCH, weight_decay=0.01,
-                                    warmup_steps=0.06, save_strategy="no", report_to=[], seed=0)
-    Seq2SeqTrainer(model=model, args=args, train_dataset=ds,
-                   data_collator=DataCollatorForSeq2Seq(tok, model=model)).train()
-    model.save_pretrained(out)
-    tok.save_pretrained(out)
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# H32 Artemis AI: snippet extraction (AST + profiling + LLM scoring), independent rewrites, LLM-judge and test filtering,
-# multi-objective search over per-snippet choices.
-
-ART_PROFILE_CMD = ["python3", "-m", "cProfile", "-o", "prof.out", "main.py"]
-ART_OPTIMIZERS = 4
-ART_MAX_SNIPPETS = 2
-ART_MIN_SCORE = 3
-IO_CALLS = {"input", "print", "open", "read", "readline", "readlines", "write", "writelines"}
-
-ART_CLASSIFY = """You are a performance engineer. For each code segment below, rate how much its execution time could be improved by optimisation, from 1 (already efficient) to 5 (algorithmically inefficient). Consider whether it is algorithmically inefficient, has nested loops or redundant work, or does heavy I/O.
-
-Task the code solves:
-{task}
-
-{segments}
-
-Return one JSON object: {{"scores": {{"<segment name>": <1-5>, ...}}}}."""
-
-ART_OPTIMIZE = """Optimise the following {lang} code segment(s) so the program runs faster, uses less memory and less CPU, while changing as little code as possible. Do not change the behaviour, signatures or names.
-
-Task the code solves:
-{task}
-
-Full program, for context:
-{program}
-
-Segments to optimise:
-{segments}
-
-Return each optimised segment in its own fenced code block, preceded by a line `### <segment name>`, in the same order."""
-
-ART_JUDGE = """You are reviewing a proposed performance optimisation.
-
-Task the code solves:
-{task}
-
-Original segment(s):
-{before}
-
-Proposed segment(s):
-{after}
-
-Assess whether the change preserves the behaviour and is likely to improve execution time or memory use. Answer briefly, then end with exactly one line: VERDICT: ACCEPT or VERDICT: REJECT."""
-
-
-@h2h
-class ArtemisAI(H2HTechnique):
-    """Initial code, one LLM scoring call, four independent rewrites (one per optimizer slot, all the E7 model), one judge
-    call per rewrite, then unit tests and benchmarking of every combination of per-snippet choices; with at most two
-    snippets the Pareto front over (speed gain, number of changes) is enumerated exactly instead of approximated by NSGA-II."""
-    hid, name, family, target = "H32", "Artemis AI (multi-LLM search-based optimisation)", "multiagent", ("EFF",)
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        code = ctx.keep(C.code_of(task, ctx.llm.ask(C.messages(task))))
-        segs = _segments(task, code)
-        text = C.task_text(task)
-        listing = "\n\n".join(f"### {n}\n{_block(task, s)}" for n, s, _, _ in segs)
-        d = _json(ctx.llm.ask(ART_CLASSIFY.format(task=text, segments=listing), role="classifier"))
-        llm = d.get("scores", {}) if isinstance(d, dict) else {}
-        prof = _profile(task, code) if task.language == "python" else {}
-        rank = sorted(segs, key=lambda x: (-_num(llm.get(x[0])), -prof.get(x[0], 0.0), -_static(x[1])))
-        chosen = [x for x in rank if _num(llm.get(x[0])) >= ART_MIN_SCORE][:ART_MAX_SNIPPETS] or rank[:1]
-        before = "\n\n".join(f"### {n}\n{_block(task, s)}" for n, s, _, _ in chosen)
-        prompt = ART_OPTIMIZE.format(lang=_lang(task), task=text, program=_block(task, code), segments=before)
-        options: list[list[str]] = [[s] for _, s, _, _ in chosen]
-        for raw in ctx.llm.sample(prompt, ART_OPTIMIZERS, role="optimizer"):
-            new = _named_blocks(raw, [n for n, _, _, _ in chosen])
-            if not new or not _compiles(task, _splice(code, chosen, new))[0]:
-                continue
-            after = "\n\n".join(f"### {n}\n{_block(task, s)}" for n, s in zip([c[0] for c in chosen], new))
-            verdict = ctx.llm.ask(ART_JUDGE.format(task=text, before=before, after=after), role="judge")
-            if "VERDICT: ACCEPT" in verdict.upper():
-                for opts, s in zip(options, new):
-                    if s not in opts:
-                        opts.append(s)
-        return self._search(task, ctx, code, chosen, options)
-
-    @staticmethod
-    def _search(task: Task, ctx: Ctx, code: str, chosen, options: list[list[str]]) -> str:
-        if all(len(o) == 1 for o in options):
-            return code
-        base = _cost(task, code)
-        if base is None:
-            return ctx.keep(_splice(code, chosen, [o[-1] for o in options]))
-        front: list[tuple[float, int, str]] = []
-        for combo in product(*[range(len(o)) for o in options]):
-            if not any(combo):
-                continue
-            cand = _splice(code, chosen, [o[i] for o, i in zip(options, combo)])
-            c = _cost(task, cand)
-            if c is None:
-                continue
-            gain, changes = base / c, sum(1 for i in combo if i)
-            if gain > 1.0 and not any(g >= gain and n <= changes for g, n, _ in front):
-                front = [f for f in front if not (gain >= f[0] and changes <= f[1])] + [(gain, changes, cand)]
-        if not front:
-            return code
-        return ctx.keep(max(front, key=lambda f: (f[0], -f[1]))[2])
-
-
-def _num(x) -> float:
-    try:
-        return float(x)
-    except (TypeError, ValueError):
-        return 0.0
-
-
-def _segments(task: Task, code: str) -> list[tuple[str, str, int, int]]:
-    """(name, source, first line, last line) of every function and method; the whole program if there are none."""
-    lines = code.splitlines()
-    whole = [("<program>", code, 1, len(lines))]
-    if task.language != "python":
-        return whole
-    tree = _statements(code)
-    out = []
-    for n in tree:
-        defs = [n] if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) else \
-            [m for m in n.body if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))] if isinstance(n, ast.ClassDef) else []
-        for f in defs:
-            start = min([f.lineno] + [x.lineno for x in f.decorator_list])
-            out.append((f.name, "\n".join(lines[start - 1:f.end_lineno]), start, f.end_lineno))
-    return out or whole
-
-
-def _splice(code: str, chosen, new: list[str]) -> str:
-    lines = code.splitlines()
-    for (_, old, a, b), s in sorted(zip(chosen, new), key=lambda x: -x[0][2]):
-        indent = " " * (len(old) - len(old.lstrip()))
-        lines[a - 1:b] = [indent + l if l.strip() else l for l in textwrap.dedent(s).splitlines()]
-    return "\n".join(lines)
-
-
-_BLOCK = re.compile(r"```[^\n]*\n(.*?)```", re.S)
-
-
-def _named_blocks(raw: str, names: list[str]) -> list[str] | None:
-    parts = re.split(r"^###\s*(\S.*?)\s*$", raw, flags=re.M)
-    found = {}
-    for i in range(1, len(parts) - 1, 2):
-        m = _BLOCK.search(parts[i + 1])
-        if m:
-            found[parts[i].strip("` ")] = textwrap.dedent(m.group(1).strip("\n"))
-    if all(n in found for n in names):
-        return [found[n] for n in names]
-    blocks = [textwrap.dedent(b.strip("\n")) for b in _BLOCK.findall(raw)]
-    return blocks if len(blocks) == len(names) else None
-
-
-def _static(src: str) -> int:
-    def depth(n, d=0):
-        loops = (ast.For, ast.While, ast.AsyncFor, ast.comprehension)
-        return max([d] + [depth(c, d + isinstance(c, loops)) for c in ast.iter_child_nodes(n)])
-    try:
-        tree = ast.parse(textwrap.dedent(src))
-    except SyntaxError:
-        return 0
-    io = sum(1 for n in ast.walk(tree) if isinstance(n, ast.Call) and
-             (getattr(n.func, "id", None) or getattr(n.func, "attr", None)) in IO_CALLS)
-    return depth(tree) * 10 + io
-
-
-def _profile(task: Task, code: str) -> dict[str, float]:
-    """Share of profiled own time per function of main.py over the public examples (cProfile)."""
-    import pstats
-    own: dict[str, float] = {}
-    for t in task.public_tests:
-        prog, stdin = _test_program(task, code, t)
-        with S.Workdir({"main.py": prog}) as d:
-            S.execute(ART_PROFILE_CMD, d, stdin, task.time_limit * 3, task.memory_mb)
-            if not (d / "prof.out").exists():
-                continue
-            for (fname, _, func), (_, _, tt, _, _) in pstats.Stats(str(d / "prof.out")).stats.items():
-                if fname.endswith("main.py"):
-                    own[func] = own.get(func, 0.0) + tt
-    total = sum(own.values()) or 1.0
-    return {k: v / total for k, v in own.items()}
-
-
-# --------------------------------------------------------------------------------------------------------------------
-# H33 INDICT: safety and helpfulness critics in an internal dialogue, grounded by tools, preemptive and post-hoc feedback.
+# H29 INDICT: safety and helpfulness critics in an internal dialogue, grounded by tools, preemptive and post-hoc feedback.
 # Prompts and the loop follow the released code (indict_llama strategy).
 
 IND_ROUNDS = 3
@@ -943,12 +620,12 @@ class INDICT(H2HTechnique):
     each grounded by one tool query: query and snippet generation, a model-knowledge answer, web search and Wikipedia),
     summary, act, then for Python an executed post-hoc debate and a final act. The model-knowledge tool is the E7 model;
     Tavily stands in for the Yahoo scraper. A Python round needs 21 calls, so the run stops at the ceiling."""
-    hid, name, family, target = "H33", "INDICT", "multiagent", ("SEC",)
+    hid, name, family, target = "H29", "INDICT", "multiagent", ("SEC",)
     code_url = "https://github.com/SalesforceAIResearch/indict_code_gen"
 
     def prepare(self, ctx: Ctx) -> None:
         if not os.environ.get("TAVILY_API_KEY"):
-            raise RuntimeError("H33 needs TAVILY_API_KEY for its web-search tool")
+            raise RuntimeError("H29 needs TAVILY_API_KEY for its web-search tool")
 
     def solve(self, task: Task, ctx: Ctx) -> str:
         q, posthoc = C.task_text(task), task.language == "python"
@@ -1016,7 +693,7 @@ class INDICT(H2HTechnique):
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H34 ContextEvolve: OpenEvolve-style evolutionary search with Summarizer, Navigator and Sampler agents (RL mode).
+# H30 ContextEvolve: OpenEvolve-style evolutionary search with Summarizer, Navigator and Sampler agents (RL mode).
 # Prompts verbatim from ContextEvolve-ACC; hyperparameters from its task configs.
 
 CE_MAX_ITERATIONS = 100
@@ -1136,7 +813,7 @@ class ContextEvolve(H2HTechnique):
     references (no call while the pool has at most k candidates), a diff from the generator, evaluation on the public
     examples, a Summarizer abstract per child and a Navigator every 3 children. Single island: the ceiling allows about six
     iterations, far below the population and migration scales of the configs. Runs until the ceiling."""
-    hid, name, family, target = "H34", "ContextEvolve", "multiagent", ("EFF",)
+    hid, name, family, target = "H30", "ContextEvolve", "multiagent", ("EFF",)
     code_url = "https://anonymous.4open.science/r/ContextEvolve-ACC"
 
     def solve(self, task: Task, ctx: Ctx) -> str:
@@ -1272,7 +949,7 @@ def _fmt_metrics(m: dict) -> str:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H35 Just-in-time vulnerability detection and remediation, Pipeline 1: generator -> LLM validator (CWE findings) ->
+# H31 Just-in-time vulnerability detection and remediation, Pipeline 1: generator -> LLM validator (CWE findings) ->
 # enrichment from MITRE CWE observed examples, ATT&CK techniques and remediation guidance -> remediation.
 # Prompts verbatim from the repository; enrichment data fetched at the pinned commit.
 
@@ -1372,7 +1049,7 @@ JIT_FALLBACK_GUIDANCE = ("No specific remediation guidance is available for {cwe
 class JustInTimeRemediation(H2HTechnique):
     """Generation (retried once on a syntax error), the LLM validator, local enrichment and one remediation call (retried once
     on a syntax error): 3 calls. The classifier call and the post-remediation judge do not affect the output and are omitted."""
-    hid, name, family, target = "H35", "Just-in-time vulnerability remediation pipeline", "multiagent", ("SEC",)
+    hid, name, family, target = "H31", "Just-in-time vulnerability remediation pipeline", "multiagent", ("SEC",)
     code_url = "https://github.com/Droidsurikov/securing-ai-generated-code"
 
     def prepare(self, ctx: Ctx) -> None:
@@ -1468,7 +1145,7 @@ def _findings(raw: str) -> list[dict]:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H36 LessonL (code optimization): three agents optimize the same source each round, write a lesson about their attempt,
+# H32 LessonL (code optimization): three agents optimize the same source each round, write a lesson about their attempt,
 # and lessons are banked and selected (k=4, speedup and quality) for later rounds. Prompts verbatim from code-opt.
 
 LL_AGENTS = 3
@@ -1505,7 +1182,7 @@ class LessonL(H2HTechnique):
     """The ParEval code-optimization configuration (3 agents, 4 rounds, k=4, temperature 0.2) ported to Python tasks: the
     source is the model's initial solution, correctness is the public examples and speedup is their wall time. All three
     agents are the E7 model. The configuration needs 25 calls, so the run stops at the ceiling (inside round 2)."""
-    hid, name, family, target = "H36", "LessonL", "multiagent", ("EFF",)
+    hid, name, family, target = "H32", "LessonL", "multiagent", ("EFF",)
     code_url = "https://github.com/MITIBM-FastCoder/LessonL"
     ported = True
 
@@ -1613,7 +1290,7 @@ def _quality(lesson: str, src: str, lang: str) -> float:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H37 MARCO: context LLM writes search queries; per iteration web search, technique summarization, code generation and
+# H33 MARCO: context LLM writes search queries; per iteration web search, technique summarization, code generation and
 # a performance evaluator that runs the code. Reconstructed from the paper (no prompts or code released).
 
 MARCO_ITERATIONS = 3
@@ -1666,11 +1343,11 @@ class MARCO(H2HTechnique):
     """Initial code, one context call for the queries, then three iterations of Tavily search (academic domains), technique
     summary and code generation; the performance evaluator runs the public examples (time, peak memory, correctness) and
     its report feeds the next iteration. The paper leaves the iteration count to the user; 3 is used (8 calls)."""
-    hid, name, family, target = "H37", "MARCO", "multiagent", ("EFF",)
+    hid, name, family, target = "H33", "MARCO", "multiagent", ("EFF",)
 
     def prepare(self, ctx: Ctx) -> None:
         if not os.environ.get("TAVILY_API_KEY"):
-            raise RuntimeError("H37 needs TAVILY_API_KEY for its web-search tool")
+            raise RuntimeError("H33 needs TAVILY_API_KEY for its web-search tool")
 
     def solve(self, task: Task, ctx: Ctx) -> str:
         cache = ctx.dir(self.hid) / "search_cache.jsonl"
@@ -1728,7 +1405,7 @@ def _perf_report(ev: dict, prev: dict | None) -> str:
 
 
 # --------------------------------------------------------------------------------------------------------------------
-# H38 C3, decentralized communication-aware competition (DCC) in a MetaGPT-style pipeline. Reconstructed from the paper.
+# H34 C3, decentralized communication-aware competition (DCC) in a MetaGPT-style pipeline. Reconstructed from the paper.
 
 C3_COMPETITORS = 3
 C3_SCORES = re.compile(r'\{\s*"scores"\s*:\s*\{[^{}]*\}\s*\}')
@@ -1809,7 +1486,7 @@ class C3(H2HTechnique):
     one DCC round in which a competitor scores its peers' proposals and evolves its own; a QA engineer writes tests, the
     pool is ranked by tests passed then peer utility, and the winner gets one fix if it fails (at most 15 calls). The paper
     runs 3-5 rounds per phase; one round is what fits the ceiling."""
-    hid, name, family, target = "H38", "C3", "multiagent", ("RM",)
+    hid, name, family, target = "H34", "C3", "multiagent", ("RM",)
 
     def solve(self, task: Task, ctx: Ctx) -> str:
         text = C.task_text(task)
@@ -1876,3 +1553,1143 @@ class C3(H2HTechnique):
         fails = [f"- {s}\n  {e}" for _, s, e in res if e]
         report = "\n".join(fails) + (f"\n\nTask examples failed ({n - k} of {n}):\n{public}" if k < n else "")
         return k * 1000 + sum(1 for *_, e in res if not e), report.strip()
+
+
+# --------------------------------------------------------------------------------------------------------------------
+# H35 ACCLAIM: a guiding agent interleaves free compiler components with budgeted level-specific optimizing agents, scored
+# by a testing agent's input-generator script. Prompts and loops from the repository (commit 9db78ec), ported to CPython.
+
+ACC_BUDGET, ACC_SAMPLES, ACC_LOOPS = 18, 2, 2
+ACC_TEMP, ACC_MAX_TOKENS = 1.0, 4096
+ACC_TEST_TIMEOUT, ACC_WARMUP, ACC_RUNS = 30, 5, 10
+ACC_CORRECTNESS = range(1, 11)
+ACC_LARGE = (10, 100, 1000, 10000, 100000)
+ACC_SCRIPT_TIMEOUT = 60
+ACC_RUN_SECONDS = 3600
+ACC_DIR = "work"
+
+ACC_FRONTEND = "import ast, sys\nprint(ast.dump(ast.parse(sys.stdin.read()), indent=1))\n"
+ACC_BACKEND = "import dis, sys\ndis.dis(compile(sys.stdin.read(), 'main.py', 'exec'))\n"
+ACC_UNPARSE = "import ast, sys\nprint(ast.unparse(ast.fix_missing_locations(eval(sys.stdin.read(), dict(vars(ast))))))\n"
+ACC_CALL = "\n\nimport json as _acc_json, sys as _acc_sys\nprint(repr({entry}(*_acc_json.loads(_acc_sys.stdin.read()))))\n"
+ACC_ARGV = "import sys\nsys.argv = ['test_script.py', '{n}']\n"
+
+ACC_PLANNER_PY = """You are a planning agent responsible for converting a given Python source code file into the most efficient possible Python program. Optimization means the rewritten code should achieve the minimum possible running time without changing the semantics of the original. The CPython compiler processes Python code at 3 levels of abstraction: Python source code, the CPython abstract syntax tree (AST), and CPython bytecode, which the interpreter executes. You are given tools that can convert between each of these levels, and tools which perform optimization at the source code and AST levels. The final output must be Python source code, so a program optimized at AST level must be converted back to source code with the unparse tool before it is written to the output file.
+
+Moving between levels by calling the existing CPython compiler is computationally cheap, but performing optimization at a specific level using the provided tools is computationally expensive. You will therefore be given a computational budget, which is an integer that gives the number of times you may run level-specific optimization. This budget will decrease each time you call a tool to perform an optimization at a particular level of abstraction. You may continue optimizing until you conclude that there is no more room for optimization; there is no benefit to having compute budget left over at the end.
+
+To decide at which levels to optimize, you should consider all of the available files, including source code any any code at levels of abstraction above the one you are considering. Select a level at which optimization will provide the most benefit for this specific input program. For example, if the program contains an implementation of an algorithm that runs in O(n^3) time for input size n, but there is another implementation of that algorithm that runs at O(n) time, you should optimize it at source code level to use that faster algorithm. On the other hand, if the bytecode CPython generates from the input repeats work in a hot loop that the compiler does not remove, such as a global or attribute lookup or a constant expression evaluated in every iteration, then you should invoke the AST level optimizer to restructure the tree, since the CPython compiler performs only light optimizations (constant folding and peephole rewrites) on its way to bytecode.
+
+Once you have chosen a level of abstraction, use the provided compiler tools to compile to that level and then invoke the level-specific optimization tool you have access to. If you haven't used up the entire compute budget, you should try to optimize at more than one level. For example, you may first call the tool to optimize at source code level, then call the compiler frontend to convert to the AST, and then call the tool to optimize at AST level too. If you think that there is further opportunity for improvement at a single level, you may call optimization for that level again with some instructions on how to perform further optimization. For example, if you have called the tool for source code optimization and received an optimized source code, you might suspect that it's possible to further optimize by considering a new type of loop transformation. In that case, call the source code optimization tool again with the corresponding instructions on what types of optimization to try. Make sure that you pass the already optimized code as the source code to the level-specific tool instead of the original input source so that it can iterate on the best existing result.
+
+After each level-specific optimization call, you will receive feedback giving the speedup of the optimized code. The speedup is given relative to 1.0, so a speedup of 1.0 means no change in performance, speedups below 1.0 mean performance got worse, and speedups above 1.0 mean performance got better. The higher the speedup, the better. It is possible that an optimization at some level of abstraction will actually slow down the performance. If this happens, you should revert to the previous best version and not use the one produced by that optimization. You might, for instance, call that level of optimization again with different feedback instructions to see if performance can be further improved. If you receive feedback indicating a speedup of -1, this means that optimization at the called level did not succeed.
+
+Continue optimizing and using the existing tools until you either run out of budget or are satisfied that no further optimization at any level is possible. Make sure to write the final version to the specified output file. Never attempt to optimize at any level yourself; only use the provided level-specific tools to do so. If any of those tools fail, just report the error and do not continue."""
+
+ACC_PLANNER_SRC = """You are a planning agent responsible for converting a given {lang} source code file into the most efficient possible {lang} program. You are given an LLM-based tool for optimizing at source code level only. You should not attempt to perform any optimizations at other levels of abstraction.
+
+Performing optimization at source level using the provided tool is computationally expensive. You will therefore be given a computational budget, which is an integer that gives the number of times you may run source optimization. This budget will decrease each time you call the tool to perform an optimization. You may continue optimizing until you conclude that there is no more room for optimization; there is no benefit to having compute budget left over at the end.
+
+Optimization means the rewritten code should achieve the minimum possible running time without changing the semantics of the original. For example, if the program contains an implementation of an algorithm that runs in O(n^3) time for input size n, but there is another implementation of that algorithm that runs at O(n) time, you should optimize it to use that faster algorithm. If you haven't used up the entire compute budget, you can try to call the optimization tool again. Continue optimizing until you either run out of budget or are satisfied that no further optimization is possible. Make sure to write the final version to the specified output file.
+
+After each optimization call, you will receive feedback giving the speedup of the optimized code. The speedup is given relative to 1.0, so a speedup of 1.0 means no change in performance, speedups below 1.0 mean performance got worse, and speedups above 1.0 mean performance got better. The higher the speedup, the better. It is possible that an optimization will actually slow down the performance. If this happens, you should revert to the previous best version and not use the one produced by that optimization. You might, for instance, call the optimization tool again with different feedback instructions to see if performance can be further improved. If you receive feedback indicating a speedup of -1, this means that optimization did not succeed."""
+
+ACC_LEVEL_DOC = """{name}(source_file, out_file, feedback=None): Optimizes {what} code by invoking an LLM to rewrite the code and make it as efficient as possible.
+    There is no guarantee that this agent will make the code more efficient; it's possible that it could decrease performance.
+    The feedback argument is an opportunity to give instructions about what type of optimization to perform, or feedback about lessons learned from past optimizations.
+    If you are unsure what types of optimizations are required, do not pass anything as feedback. If there are particular types of optimization to perform, then this can be mentioned.
+    In particular, if you have learned in the past that a particular type of optimization made performance worse, then make sure to mention not to perform that type of optimziation again in the feedback
+    Only call this tool if you think that it is likely that LLM-rewriting at {where} level is likely to improve the performance of the code.
+    Args:
+        source_file: the input {what} code file to rewrite
+        out_file: the output {what} file to write results
+        feedback: A string with instructions on what type of optimization to perform on feedback about what was learned from previous optimizations
+    Returns:
+        A summary of whether the agent succeeded in optimizing the source code, and what optimizations it performed"""
+
+ACC_COMPILER_DOC = """{name}({arg}, out_file): {what}
+    Returns:
+        A string containing "success" if call succeeded, and otherwise an error message from the compiler"""
+
+ACC_TOOLS = {
+    "file_read": "file_read(path): Reads a file and returns its contents.",
+    "file_write": "file_write(path, content): Writes content to a file, replacing the file if it exists.",
+    "frontend": ACC_COMPILER_DOC.format(name="frontend", arg="source_file", what="Invokes the frontend of the CPython compiler "
+                                        "(its parser) to convert Python source code stored in a file into the CPython abstract "
+                                        "syntax tree (AST), which is output to another file."),
+    "backend": ACC_COMPILER_DOC.format(name="backend", arg="ir_file", what="Invokes the backend of the CPython compiler (code "
+                                       "generation and its peephole optimizer) to convert a CPython AST or Python source stored in "
+                                       "a file into CPython bytecode, which is output to another file as a disassembly listing."),
+    "unparse": ACC_COMPILER_DOC.format(name="unparse", arg="ir_file", what="Converts a CPython AST stored in a file back into "
+                                       "Python source code, which is output to another file."),
+    "source": ACC_LEVEL_DOC.format(name="source", what="{lang} source", where="source code"),
+    "ir": ACC_LEVEL_DOC.format(name="ir", what="CPython AST", where="CPython AST"),
+}
+
+ACC_PROTOCOL = """You have access to the following tools:
+
+{tools}
+
+To call tools, reply with one JSON object {{"tool": "<tool name>", "args": {{...}}}} in a ```json block, or with a JSON list of such objects to call several tools in order; their results are returned in the next message. When you are done, reply without a tool call."""
+
+ACC_RECORDED = "agent.tool.file_read direct tool call.\nInput parameters: {params}\nResult:\n{content}"
+ACC_OPEN = ("Optimize the {lang} source code file located at {src}, and write the final {lang} source code output to {out}. "
+            "Please write any intermediate files into the directory {dir}. The initial budget is {budget}")
+
+ACC_LEVEL = """You are a an expert at re-writing {language} code to make it more efficient. You may use any optimization strategies you know of.
+Optimization means the rewritten code should achieve the minimum possible running time without changing the semantics of the original.
+For example, here is a type of optimization not performed by a compiler:
+
+int i = 0;
+while( i < 10 ) {
+  int j = 3 * i + 2;
+  a[j] = a[j] - 2;
+  i = i + 2;
+}
+
+In this code, the computation int j = 3 * i + 2, combined with the fact that i is incremented by 2 each time,
+means that j has the initial value of 2 and is incremented by 6 at each loop iteration. Therefore, the following code is an optimization:
+
+int i = 0;
+int j = 2;
+while( i < 10 ) {
+  a[j] = a[j] - 2;
+  i = i + 2;
+  j = j + 6;
+}
+
+This code runs faster because it has removed a multiplication instruction from the loop body.
+
+Make sure that your responses are always clear and concise. They should by only one or two sentences long and should clearly state whether you succeeded in performing an optimization, and if so, what optimizations you performed."""
+
+ACC_QUERY = "Optimize the {what} code in the file {src} and write the optimized code to {out}. {feedback}"
+ACC_CALLER = "Here is some feedback or instructions on optimization from the calling agent: {fb}."
+ACC_INLINE = ("\n\nContents of {src}:\n```{tag}\n{code}\n```\n\nWrite {out} by replying with its complete contents in one fenced "
+              "code block, followed by your summary.")
+
+ACC_FB_UNKNOWN = ("Previously, you attempted to generate an optimized program based on the following instructions: {fb}. That "
+                  "generation failed to generate a successful optimization of {src} for unknown reasons.")
+ACC_FB_WRONG = ("Previously, you attempted to generate an optimized program based on the following instructions: {fb}. That "
+                "generation failed to generate a successful optimization of {src}. The generation failed for the following "
+                "reasons; please attempt to correct these issues and generate a correct and performant program: {reasons}")
+ACC_FB_BETTER = ("Previously, you attempted to generate an optimized program based on the following instructions: {fb}. This "
+                 "produced the program at {out}, with speedup of {s}x when measured against the original implementation in "
+                 "{base}. Now, you should attempt to further boost this speedup.")
+ACC_FB_WORSE = ("Previously, you attempted to generate an optimized program based on the following instructions: {fb}. This "
+                "attempt was worse than the previous best, with speedup of {s}x when measured against the original "
+                "implementation in {base}. Instead, return to the previous best implementation at {best} and try something else.")
+ACC_DONE = "Generated successful program at {out}, with speedup f{s}x. Remaining budget is {b}."
+ACC_FAILED = "Failed to generate successful optimization of {src}. Remaining budget is {b}."
+ACC_EXHAUSTED = "Level optimization budget exceeded; no further optimization is possible."
+
+ACC_TESTER = """You are a an expert at evaluating and testing software. You will be given the description of a competitive programming problem and several C programs that attempt to solve that problem. Your goal is to generate a python script that creates inputs which will be given to programs solving the problem via stdin. Do not read all of the example C files; if more than 3 are provided, simply read 3 of them to get a sense of the types of programs that exist for this problem.
+First, you should generate specific test inputs which exercise important functionality which is not covered by random tests.
+Next, you should generate a python function that generates a random test each time it is called, with the size of each test growing with the input passed. Then, combine these two sets of testing into a single python script that takes an integer from stdin starting with 1, 2, 3, etc. For 1, the script should output the first specific test case. For 2, it should output the second specific test case, etc, until all specific cases have been exhausted. Once all of the specific tests cases have been output, the next highest number and all subsequent inputs should produce a random test case that is proportional in size to the input given.
+Here is an example of the type of reasoning you should follow. Below is a C function. The description of this function is that it is a program that counts how many of the characters at the start of two strings are the same, and outputs this result. If either string is "STOP", or if the length of either string is 0, the program returns 0.
+
+int main(void)
+{
+    int count = 0;
+    int len;
+    char x[NUMBER];
+    char y[NUMBER];
+
+    scanf("%s %s",x,y);
+    scanf("%d",&len);
+
+    if (x == "STOP" || y == "STOP" || len == 0)
+    {
+        printf("0\\n",count);
+        return 0;
+    }
+
+    for (int i = 0; i < len;i++){
+        if (x[i] == y[i]){
+            count++;
+        }
+    }
+
+    printf("%d\\n",count);
+    return 0;
+}
+
+First, evaluate what types of input this function takes. We see that it uses scanf two times: first, it reads two strings to the variables x and y. Then, it reads an integer to the variable len. That means that its inputs consist of two strings, then two integers, then one more string. All test inputs to the program should follow this format.
+Now, we consider what types of values should be tested with. First, let's look for specific values that aren't likely to be caught by random testing. The line if (x == "STOP" || y == "STOP" || len == 0) checks for three specific values: x == "STOP", y == "STOP", and len == 0. All of these values are unlikely to come up if we test only with random inputs, so we should add tests that check them. In addition, the loop compares values from x and y up to len. This might be an error in the program, since len could be longer than the length of the strings, so we need to expose this possible error. That means we should have some test cases where len is longer than the length of either x or y. We should also test different combinations, like x being longer than y, x and y being the same length, etc.
+In addition to these specific cases, your role is to generate a script that generates random test cases once the defined ones have been exhausted. Make sure that all of the random test cases have the right format to exercise the program. In this example, the random test cases should consist of two random strings, each with some length n, and then the third input should be n itself. The generated test cases should be proportional in size to the input to the testing script; in this example, that means that we can use the input n as value n in the test case.
+
+Below is an example python script that generates such inputs for the above example. Note that for values up to n == 6, specific test cases are used, and for larger values of n, the test function produces random inputs that follow the format described earlier, using n as the length. You will need to modify the test function from this example for a different input program, but may reuse random_int, random_float, and random_string. Always set the random seed according to the input to the function test to make the testing script deterministic.
+
+import random
+import sys
+import string
+
+def random_int(lower = -2**31, upper = 2**31 - 1):
+    return random.randint(lower, upper)
+
+def random_floats(lower = -2**31, upper = 2**31 - 1):
+    return random.uniform(lower, upper)
+
+def random_string(length  = None):
+    if not length:
+        length = random.randint(0,20)
+    return ''.join(random.choices(list(string.ascii_letters) + list(string.digits), k=length))
+
+
+def test(n):
+    random.seed(n)
+    if n == 1:
+        #To test the specific string STOP in the input
+        return f"STOP {random_string(10)} 10"
+    elif n == 2:
+        #To test the specific string STOP as the second input string
+        return f"{random_string(13)} STOP 13"
+    elif n == 3:
+        #To test when both input strings are STOP
+        return f"STOP STOP {random_int(1,100)}"
+    elif n == 4:
+        #To test the specific input len = 0
+        return f"{random_string()} {random_string()} 0"
+    elif n == 5:
+        #To handle where len is longer than the two strings
+        return f"{random_string(10)} {random_string(10)} 20"
+    elif n == 6:
+        #Different lengths for the strings
+        return f"{random_string(8)} {random_string(20)} 20"
+    else:
+        return f"{random_string(n)} {random_string(n)} {n}"
+
+print(test(int(sys.argv[1])))
+"""
+
+ACC_TEST_QUERY = ("Create a test case generation script for the problem described below, with an example solution {lang} program "
+                  "below. Write the python test generation script in one fenced code block.\n\nProblem description:\n{problem}"
+                  "\n\nExample solution:\n```{tag}\n{code}\n```")
+ACC_TEST_CALL = ("\n\nThe example solution is the function `{entry}`, which is called directly instead of reading standard input: "
+                 "for each number, the script must print one JSON list holding the positional arguments of one call.")
+
+
+@h2h
+class ACCLAIM(H2HTechnique):
+    """Published configuration b=18, n=2, k=2 at temperature 1 (4096 tokens): the guiding agent calls compiler tools for free
+    and level-specific agents (n samples, k feedback loops, best correct sample kept) against the budget; the testing agent's
+    script yields C=10 correctness and L=5 large-scale inputs, correctness is output equality with the initial program and
+    performance a hyperfine-style mean (5 warmups, 10 runs, 30 s). Port from C/LLVM/x86 to CPython 3.12: source, AST (the IR,
+    lifted back exactly by ast.unparse) and bytecode; frontend = parser, backend = bytecode compiler (inspection only, bytecode
+    cannot be delivered as source, so no assembly agent), an unparse tool replaces lowering as the final step, and there is no
+    middle-end tool since CPython exposes no standalone IR optimizer. Other languages run the source-only configuration. One
+    call per guiding turn (JSON tool calls) and per level sample; b x n x k alone is 72 calls, so runs end at the ceiling with
+    the best correct program."""
+    hid, name, family, target = "H35", "ACCLAIM", "multiagent", ("EFF",)
+    code_url = "https://github.com/amazon-science/acclaim"
+    ported = True
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        base = draft(task, ctx)
+        entry = _acc_entry(task, base)
+        if not base.strip() or not (entry or task.mode == "stdio"):
+            return base
+        run = _AcclaimRun(task, ctx, base, entry)
+        return run.guide() if run.testing_agent() else base
+
+
+class _AcclaimRun:
+    """One ACCLAIM run over a virtual file tree: compiler tools, level-specific agents, testing agent and guiding agent."""
+
+    def __init__(self, task: Task, ctx: Ctx, base: str, entry: str):
+        self.task, self.ctx, self.entry = task, ctx, entry
+        self.ext = Path(S.LANGS[task.language]["file"]).suffix
+        self.base, self.out = f"{ACC_DIR}/source{self.ext}", f"{ACC_DIR}/generated{self.ext}"
+        self.files = {self.base: base}
+        self.budget, self.counter, self.best = ACC_BUDGET, 0, (1.0, base)
+        self.inputs: dict[str, str] = {}
+        self.ref: dict[str, dict] = {}
+
+    def testing_agent(self) -> bool:
+        t, base = self.task, self.files[self.base]
+        query = ACC_TEST_QUERY.format(lang=_lang(t), problem=t.prompt, tag=t.language, code=base)
+        if self.entry:
+            query += ACC_TEST_CALL.format(entry=self.entry)
+        raw = self.ctx.llm.ask([{"role": "system", "content": ACC_TESTER}, {"role": "user", "content": query}], role="tester",
+                               temperature=ACC_TEMP, max_tokens=ACC_MAX_TOKENS)
+        script, generated = C.extract_code(raw, "python"), {}
+        for n in dict.fromkeys([*ACC_CORRECTNESS, *ACC_LARGE]):
+            r = S.run_program(ACC_ARGV.format(n=n) + script, "python", "", ACC_SCRIPT_TIMEOUT, t.memory_mb)
+            if r.ok and r.stdout.strip():
+                generated[f"t{n}.in"] = r.stdout
+        kind = "call" if self.entry else "io"
+        public = {f"example{i}.in": x.code if kind == "call" else x.stdin
+                  for i, x in enumerate(t.public_tests, 1) if x.kind == kind}
+        for inputs in (generated, public):
+            ref = self.execute(base, "source", inputs)
+            self.inputs = {k: v for k, v in inputs.items() if ref.get(k, {}).get("status") in ("ok", "timeout")}
+            if self.inputs:
+                self.ref = {k: ref[k] for k in self.inputs}
+                return True
+        return False
+
+    def execute(self, code: str, level: str, inputs: dict[str, str] | None = None) -> dict[str, dict]:
+        """The testing agent's second phase: compile from the given level, run every input, keep output and mean time."""
+        t = self.task
+        if level == "ir":
+            code, err = self._py(ACC_UNPARSE, code)
+            if err:
+                return {"compiler": {"status": "failure", "output": err}}
+        if t.language == "python":
+            ok, log = _compiles(t, code)
+            if not ok:
+                return {"compiler": {"status": "failure", "output": log}}
+            code = (t.meta["prelude"] + "\n" + code if t.meta.get("prelude") else code) + \
+                (ACC_CALL.format(entry=self.entry) if self.entry else "")
+        spec = S.LANGS[t.language]
+        with S.Workdir({spec["file"]: code}) as d:
+            b = S.build(t.language, d)
+            if not b.ok:
+                return {"compiler": {"status": "failure", "output": b.stderr}}
+            return {k: _acc_hyperfine(spec["run"], d, x, t.memory_mb)
+                    for k, x in (self.inputs if inputs is None else inputs).items()}
+
+    def tools(self) -> dict:
+        tools = {"file_read": self.file_read, "file_write": self.file_write, "source": partial(self.optimize, "source")}
+        if self.task.language == "python":
+            tools |= {"frontend": self.frontend, "backend": self.backend, "unparse": self.unparse,
+                      "ir": partial(self.optimize, "ir")}
+        return tools
+
+    def guide(self) -> str:
+        t, tools, lang = self.task, self.tools(), _lang(self.task)
+        head = ACC_PLANNER_PY if t.language == "python" else ACC_PLANNER_SRC.format(lang=lang)
+        docs = "\n\n".join(ACC_TOOLS[n].format(lang=lang) for n in tools)
+        rec = ACC_RECORDED.format(params=json.dumps({"path": self.base, "mode": "view"}), content=self.files[self.base])
+        msgs = [{"role": "system", "content": f"{head}\n\n{ACC_PROTOCOL.format(tools=docs)}"},
+                {"role": "user", "content": f"{rec}\n\n" + ACC_OPEN.format(lang=lang, src=self.base, out=self.out, dir=ACC_DIR,
+                                                                           budget=ACC_BUDGET)}]
+        start = time.monotonic()
+        while self.budget > 0 and time.monotonic() - start < ACC_RUN_SECONDS:
+            try:
+                reply = self.ctx.llm.ask(msgs, role="guiding", temperature=ACC_TEMP, max_tokens=ACC_MAX_TOKENS)
+            except BudgetExceeded:
+                raise
+            except Exception:
+                break
+            calls = _acc_calls(reply)
+            if not calls:
+                final = self.files.get(self.out, "")
+                return final if final.strip() and (t.language != "python" or _compiles(t, final)[0]) else self.best[1]
+            msgs += [{"role": "assistant", "content": reply},
+                     {"role": "user", "content": "\n\n".join(f"[{c['tool']}] {self.call(tools, c)}" for c in calls)}]
+        return self.best[1]
+
+    def call(self, tools: dict, c: dict) -> str:
+        fn, args = tools.get(str(c["tool"])), c.get("args") or {}
+        if fn is None:
+            return f"Error: unknown tool {c['tool']!r}"
+        if not isinstance(args, dict):
+            return "Error: args must be a JSON object"
+        try:
+            inspect.signature(fn).bind(**args)
+        except TypeError as e:
+            return f"Error: {e}"
+        return str(fn(**args))
+
+    def file_read(self, path: str) -> str:
+        return self.files.get(_acc_path(path), f"Error: file {path} does not exist")
+
+    def file_write(self, path: str, content: str) -> str:
+        self.files[_acc_path(path)] = str(content)
+        return f"File write success: {path}"
+
+    def frontend(self, source_file: str, out_file: str) -> str:
+        return self._compiler(ACC_FRONTEND, source_file, out_file)
+
+    def backend(self, ir_file: str, out_file: str) -> str:
+        return self._compiler(ACC_BACKEND, ir_file, out_file)
+
+    def unparse(self, ir_file: str, out_file: str) -> str:
+        return self._compiler(ACC_UNPARSE, ir_file, out_file)
+
+    def _compiler(self, script: str, src: str, out: str) -> str:
+        code = self.files.get(_acc_path(src))
+        if code is None:
+            return f"Compilation failed for {src}: no such file"
+        err = ""
+        if script == ACC_BACKEND and code.lstrip().startswith("Module("):
+            code, err = self._py(ACC_UNPARSE, code)
+        if not err:
+            code, err = self._py(script, code)
+        if err:
+            return f"Compilation failed for {src}: {err}"
+        self.files[_acc_path(out)] = code
+        return "success"
+
+    def _py(self, script: str, stdin: str) -> tuple[str, str]:
+        r = S.run_program(script, "python", stdin, ACC_SCRIPT_TIMEOUT, self.task.memory_mb)
+        return (r.stdout, "") if r.ok else ("", r.stderr or "the compiler did not run")
+
+    def what(self, level: str) -> str:
+        return f"{_lang(self.task)} source" if level == "source" else "CPython AST"
+
+    def name(self, level: str, out: str, *nums) -> str:
+        return f"{os.path.splitext(out)[0]}_{'_'.join(map(str, nums))}{'.ast' if level == 'ir' else self.ext}"
+
+    def optimize(self, level: str, source_file: str, out_file: str, feedback: str | None = None) -> str:
+        """level_workflow: k feedback loops of n samples; the best correct sample replaces the input when it beats the best."""
+        if self.budget <= 0:
+            return ACC_EXHAUSTED
+        self.budget -= 1
+        self.counter += 1
+        src, out = _acc_path(source_file), _acc_path(out_file)
+        fb, cur, best = feedback, src, (-1.0, "")
+        for l in range(ACC_LOOPS):
+            cur_out = self.name(level, out, self.counter, l)
+            results = self.sample(level, cur, cur_out, fb)
+            good = {f: r for f, r in results.items() if _acc_match(self.ref, r)}
+            if not results:
+                fb = ACC_FB_UNKNOWN.format(fb=fb, src=source_file)
+            elif not good:
+                fb = ACC_FB_WRONG.format(fb=fb, src=source_file, reasons=_acc_report(self.ref, next(iter(results.values()))))
+            else:
+                speed = {f: _acc_speedup(self.ref, r) for f, r in good.items()}
+                f = max(speed, key=speed.get)
+                if speed[f] > best[0]:
+                    self.files[cur_out] = self.files[f]
+                    fb = ACC_FB_BETTER.format(fb=fb, out=cur_out, s=speed[f], base=self.base)
+                    cur, best = cur_out, (speed[f], cur_out)
+                    self.record(level, self.files[f], speed[f])
+                else:
+                    fb = ACC_FB_WORSE.format(fb=fb, s=speed[f], base=self.base, best=best[1])
+        if not best[1]:
+            return ACC_FAILED.format(src=source_file, b=self.budget)
+        self.files[out] = self.files[best[1]]
+        return ACC_DONE.format(out=out_file, s=best[0], b=self.budget)
+
+    def sample(self, level: str, in_file: str, out_file: str, feedback: str | None) -> dict[str, dict]:
+        names = [self.name(level, out_file, i) for i in range(ACC_SAMPLES)]
+        code = self.files.get(in_file)
+        if code is None:
+            return {f: {"compiler": {"status": "failure", "output": f"no such file or directory: '{in_file}'"}} for f in names}
+        what, tag = self.what(level), "ast" if level == "ir" else self.task.language
+        query = ACC_QUERY.format(what=what, src=in_file, out=out_file,
+                                 feedback=ACC_CALLER.format(fb=feedback) if feedback else "")
+        msgs = [{"role": "system", "content": ACC_LEVEL.replace("{language}", what)},
+                {"role": "user", "content": query + ACC_INLINE.format(src=in_file, tag=tag, code=code, out=out_file)}]
+        try:
+            outs = self.ctx.llm.sample(msgs, ACC_SAMPLES, role=f"level-{level}", temperature=ACC_TEMP,
+                                       max_tokens=ACC_MAX_TOKENS)
+        except BudgetExceeded:
+            raise
+        except Exception:
+            return {}
+        results = {}
+        for f, raw in zip(names, outs):
+            self.files[f] = C.extract_code(raw, tag)
+            results[f] = self.execute(self.files[f], level)
+        return results
+
+    def record(self, level: str, code: str, speedup: float) -> None:
+        if speedup > self.best[0]:
+            src = self._py(ACC_UNPARSE, code)[0] if level == "ir" else code
+            if src.strip():
+                self.best = (speedup, self.ctx.keep(src))
+
+
+def _acc_entry(task: Task, code: str) -> str:
+    """The callable a function task is run through: its entry point, or the method of a LeetCode-style Solution class."""
+    if task.language != "python" or task.mode != "function":
+        return ""
+    if task.entry_point:
+        return task.entry_point
+    cls = next((n for n in _statements(code) if isinstance(n, ast.ClassDef) and n.name == "Solution"), None)
+    fn = next((n.name for n in (cls.body if cls else []) if isinstance(n, ast.FunctionDef) and not n.name.startswith("_")), "")
+    return f"Solution().{fn}" if fn else ""
+
+
+def _acc_path(p) -> str:
+    return str(p).strip().removeprefix("./")
+
+
+def _acc_calls(reply: str) -> list[dict]:
+    d = _json(reply)
+    calls = [d] if isinstance(d, dict) else d if isinstance(d, list) else []
+    return [c for c in calls if isinstance(c, dict) and "tool" in c]
+
+
+def _acc_hyperfine(cmd: list[str], d: Path, stdin: str, mem: int) -> dict:
+    """hyperfine -i semantics: warmups then timed runs under one overall timeout; a non-zero exit still records its output."""
+    times, spent, out, status = [], 0.0, "", "ok"
+    for i in range(ACC_WARMUP + ACC_RUNS):
+        if spent >= ACC_TEST_TIMEOUT:
+            return {"status": "timeout"}
+        r = S.execute(cmd, d, stdin, ACC_TEST_TIMEOUT - spent, mem, pin=True)
+        spent += r.seconds
+        if r.timeout:
+            return {"status": "timeout"}
+        out, status = r.stdout, "ok" if r.ok else "error"
+        if i >= ACC_WARMUP:
+            times.append(r.seconds)
+    return {"status": status, "output": out, "runtime": statistics.fmean(times)}
+
+
+def _acc_match(ref: dict, res: dict) -> bool:
+    """output_matches: same inputs, equal outputs; a timeout on either side counts as a match."""
+    return ref.keys() == res.keys() and all(
+        "timeout" in (ref[k]["status"], res[k]["status"]) or ref[k].get("output") == res[k].get("output") for k in res)
+
+
+def _acc_speedup(ref: dict, res: dict) -> float:
+    xs = [ref[k]["runtime"] / res[k]["runtime"] if "runtime" in ref[k] and "runtime" in res[k] else 1.0
+          for k in ref.keys() & res.keys()]
+    return statistics.geometric_mean(xs) if xs else 1.0
+
+
+def _acc_report(ref: dict, res: dict) -> str:
+    """correctness_feedback for one sample."""
+    if list(res) == ["compiler"]:
+        return f"Solution failed to compile for the following reason: {res['compiler']['output']}"
+    out = []
+    for k, r in res.items():
+        f = ref.get(k)
+        if f is None:
+            out.append(f"Input {k}: No solution produced")
+        elif f["status"] == "timeout" and r["status"] != "timeout":
+            out.append(f"Input {k}: Solution suceeded with unkown correctness (reference implementation timed out)")
+        elif f["status"] != "timeout" and r["status"] == "timeout":
+            out.append(f"Input {k}: Solution timed out, reference implementation finished in time")
+        elif f["status"] == "timeout":
+            out.append(f"Input {k}: Solution timed out, reference implementation also timed out")
+        elif f["output"] == r["output"]:
+            out.append(f"Input {k}: Test passed, success")
+        else:
+            out.append(f'Input {k}: Test failed; expected "{f["output"]}" but solution produced "{r["output"]}"')
+    return "\n".join(out)
+
+
+# --------------------------------------------------------------------------------------------------------------------
+# H36 MACGen: planner, security advisor (attack-surface triage, CWE groups, standards KB RAG, code-based quick wins,
+# validation), coder and perspective-separated reviewer, passing artifacts only. Prompts from the repository (commit f3339f2).
+
+MG_COMMIT = "f3339f2fcb29e33f4d38300a039a64e8c852ad51"
+MG_RAW = f"https://raw.githubusercontent.com/Mishuni/macgen-secure-code/{MG_COMMIT}/data/rag_databases/"
+MG_KB = {"asvs": "ASVS_faiss/ASVS.json", "python": "Python_faiss/python_refined.json", "c": "CERT_C_faiss/CERT_C_refined.json",
+         "cpp": "CERT_CPP_faiss/CERT_CPP_refined.json", "go": "Go_faiss/Go_refined.json",
+         "javascript": "JavaScript_faiss/JavaScript_refined.json",
+         "owasp": "OWASP_CheatSheets_faiss/owasp_cheatsheet_docs_refined.json"}
+MG_STORES = {"c": ("c", "asvs"), "cpp": ("cpp",), "python": ("python", "asvs"), "javascript": ("javascript", "owasp", "asvs"),
+             "go": ("go", "asvs")}
+MG_EMBED = "jina"
+MG_TEMP, MG_MAX_TOKENS = 0.0, 1500
+MG_RAG_K, MG_SNIPPET_CHARS = 2, 7000
+MG_REFINE_ATTEMPTS, MG_SYNTAX_FIXES, MG_PLAN_RETRIES, MG_CWE_TRIES = 2, 2, 3, 2
+MG_OS = "linux"
+MG_NO_COMPILE = ("go", "javascript", "php", "rust", "ruby")
+MG_FENCE_TAGS = {"python", "py", "c", "cpp", "c++", "js", "jsx", "javascript", "go", "java", "ruby", "rust", "php", "csharp"}
+MG_PLAN_MARKERS = ("### plan", "###plan", "##plan", "## plan", "## new plan", "### functional plan", "### final plan",
+                   "functional plan", "final plan")
+MG_GUIDE_MARKERS = ("### security guidelines", "### security_guidelines", "### security guideline", "### security_guideline",
+                    "security guidelines", "security_guidelines")
+
+MG_HEADER_CWEVAL = ("Your response should include all dependencies, headers and function declaration to be directly usable.\n"
+                    "You should NOT call or test the function and should NOT implement a main function in your response."
+                    "\nDo NOT include any print statements, logging. Do NOT add authentication unless explicitly required."
+                    "\nHere's the code in a single code block (wrap in ```{language})")
+MG_HEADER_LLMSECEVAL = "Based on the above analysis, here's the updated version of the code in a single code block (wrap in ```):\n"
+MG_PRESETS = {"cweval": (MG_HEADER_CWEVAL, 3), "humaneval_plus": ("", 2), "mbpp_plus": ("", 2),
+              "llmseceval": (MG_HEADER_LLMSECEVAL, 3)}
+
+MG_PLAN = """{task}
+You are a programmer tasked with generating appropriate plan to solve a given problem using the **{language}** programming language.
+
+**Expected Output:**
+Your response must be structured as follows:
+
+### Problem Understanding
+- Think about the original problem. Develop an initial understanding about the problem.
+
+### Recall Example Problem
+Recall a relevant and distinct problems (different from problem mentioned above) and
+- Describe it
+- Generate {language} code step by step to solve that problem
+- Discuss the algorithm to solve this problem
+ within 5 bullet points
+
+### Algorithm to solve the original problem
+- Write down the algorithm that is well suited for the original problem
+- Give some tutorials to about the algorithm for example:
+    - How to approach this type of algorithm
+    - Important things to consider
+
+### Plan
+- Write down a step-by-step plan to solve the original problem with bullet points.
+- Do not consider testing, deployment, document and future maintenance in your plan.
+
+--------
+**Important Instruction:**
+- Strictly follow the instructions.
+- Do not generate code.
+"""
+
+MG_DRAFT = """{task_description}
+{action_prompt_header}
+
+ **Important Instructions:**
+- Do not add any explanation.
+- Write secure code.
+- You MUST strictly follow the function signature specified in the problem."""
+
+MG_SURFACE = """
+You are a security engineer. You will be given a problem statement and draft code.
+
+Goal:
+- Skip simple code with no external interaction.
+- Only flag code that clearly exposes an attack surface.
+
+Decision rules (IMPORTANT):
+- Judge based on the **Draft Code only**.
+- If the code is simple logic, or uses only constants → NO_ATTACK_SURFACE.
+- If there is an attack surface BUT it appears already safely handled → NO_ATTACK_SURFACE.
+- Only flag when there is an attack surface AND it is not clearly handled safely.
+
+Categories (ONLY IF the code includes one of):
+- Untrusted Input (user, request, file, env)
+- Network/API (HTTP, sockets)
+- Database/Storage (SQL, queries)
+- File System (open, write, path join)
+- Exec/Deserialization/rendering (subprocess, eval, pickle, yaml)
+- Auth/Session/Secrets (hard-coded keys, debug flags, session, logging)
+- Memory/Resources (buffers, unsafe ops, regax, DoS)
+- Crypto (hash, verify flags, random generators)
+
+Output format:
+### Attack Surface
+- [Category] Evidence: ... — Candidate: ...
+
+### Overall
+HAS_ATTACK_SURFACE | NO_ATTACK_SURFACE
+---
+
+## Problem:
+{problem}
+
+## Draft Code:
+{draft_code}
+"""
+
+MG_SEC_ENGINEER = ("You are a security engineer."
+                   "Your task is to identify the most likely CWE vulnerabilities that the following function might introduce.")
+
+MG_CWE = """Use the provided context and guidelines to output a list of group of probable cause-effect CWE(s) pair(s). For each, provide a concise explanation, a likelihood score in [0, 1].
+Reasoning levels:
+1. **Cause (fine-grained CWE(s))**: the direct insecure practice or action(s).
+2. **Effect (broad CWE(s))**: all higher-level security consequence(s).
+
+## Context
+- Language: {language}
+- Problem: {problem_with_planning}
+
+### Guidelines
+1. Read the problem and plan carefully.
+2. Define rules for identifying vulnerabilities groups.
+3. For each vulnerability:
+   - Map to cause CWE(s).
+   - Map to effect CWEs.
+   - Group similar categories.
+4. Rank and return AT MOST {max_limit} groups. (Do NOT pad to {max_limit})
+
+Output format:
+* plan understanding: a short summary of the plan
+* extract keywords: APIs, inputs(trust level), credential info, auth/cryptography(for what), memory/logic (include only if present, few lines).
+* JSON array of objects. Each object must contain: (in wrap ```json)
+  - `group_name` : string, <group_name>
+  - `why`: short rationale (1-2 sentences)
+  - `cause_cwes`: ["CWE-###", ...],
+  - `effect_cwes`: ["CWE-###", ...],
+  - `likelihood`: float ∈ [0, 1]
+"""
+
+MG_GUIDE_SYSTEM = ("You are a security agent."
+                   "Using the retrieved secure-coding practices, write concise, actionable "
+                   "security guidelines tailored to THIS problem.")
+MG_GUIDE = """Retrieved practices (ranked, deduplicated):
+{retrieved_snippets}
+
+---
+Context:
+- Language/Os: {language}, {os_platform}
+- Problem (with plan): {problem_with_planning}
+{input}
+
+{prompt_4_sec_tail}"""
+MG_GUIDE_TAIL = """Output format:
+### security guidelines
+- Provide 1-3 clear guidelines that leave no room for error. (if needed, with at most one minimal code line as an example).
+- Keep it precise; no fluff, no generic advice.
+- Preserving functionality.
+- Do NOT include (logging, audit trail) unless the problem explicitly asks for it.
+"""
+MG_FINDINGS = """
+Findings (CWE groups):
+{cwe_list}"""
+
+MG_QUICK_WINS = """Your task is to:
+- Review the draft code and identify up to **2 small, lightweight security analysis and one-line advices** that are *not already covered*.
+- Focus on **direct, code-evident quick wins** (single-line changes or flags).
+- If there are no new lightweight guidelines, return exactly: "No additional guideline needed."
+
+Evidence-first rule:
+- Prefer findings that are **directly visible in the draft code** (e.g., hard-coded secrets, debug/dev flags, unsafe API options).
+- Deprioritize infrastructure-only guidance (e.g., “use HTTPS”) unless the code explicitly sets/assumes insecure behavior.
+
+Priorities (apply in order; only include items that actually appear in code):
+P0 (must-check quick wins):
+  - Hard-coded credentials/secrets/keys (e.g., API keys in literals) → advise using environment variables or secret manager.
+  - Development/test toggles in production path (e.g., `debug=True`) → advise disabling (`debug=False`) for production.
+P1:
+  - API call flags that need safe defaults
+P2:
+  - Other one-line configuration hardening directly observable in the code. (unsafe API usage, missing safe flags, etc.)
+
+Constraints:
+- Suggestions must be **minimal and actionable with a single line** of advice or configuration.
+- Do NOT suggest heavy-weight practices (logging/auditing/compliance frameworks/large refactors).
+- Do NOT include broad infra advice unless **explicitly evidenced in code**.
+
+Output format (exactly):
+- Advice 1: <one-line advice>
+- Advice 2: <one-line advice>
+
+## Code (draft):
+{draft_code}"""
+
+MG_VALIDATE = """You are a security agent. Your task is to carefully review and refine the provided Security Guidelines for the given problem.
+
+Steps:
+1. Think about the original problem and functional requirements which must be preserved.
+2. Check if any security guideline conflicts with the functional constraints (e.g., removing an argument when signature must be preserved).
+   - If conflict exists, modify or drop the guideline so that functional constraints are preserved.
+   - If there are over-engineering which destroy functionality, modify or drop them.
+3. If duplicate or overlapping guidelines exist, merge them into a single, coherent detailed guideline.
+
+## Language/Os: {language}, {os_platform}
+## Problem:
+{question}
+
+## Security Guidelines (draft):
+{security_guidelines}
+
+Output format:
+### Functional Requirements
+- Summarize must have to keep from the problem.
+### Conflicting Identified
+- List any security guidelines that conflict with functional constraints, and how you modified them to preserve Functional Requirements.
+### Security Guidelines
+- Provide improved guidelines for code engineers.
+- Keep it ultra concise; include only essentials; no filler.
+- Do NOT include (logging, audit trail) unless the problem explicitly asks for it."""
+
+MG_CODE = """Your task is to write secure and functional code for the following problem in {language}.
+### Problem Statement:
+{task_description}
+
+{implementation_plan}
+### Security Guidelines:
+{security_requirements}
+
+Requirements:
+- You MUST strictly follow the function signature specified in the problem. (e.g. do not change function name, its arguments and return type)
+- Keep it simple. Avoid unnecessary complexity or over-engineering.
+
+### Output format:
+{action_prompt_header}"""
+
+MG_SYNTAX_SYSTEM = ("You are given a programming task, a code snippet containing syntax errors, and compiler feedback. Your task "
+                    "is to correct the code strictly according to the compiler feedback. Respond only with the corrected code, "
+                    "nothing else.")
+MG_SYNTAX = """## Task : {question}
+## The code is
+```{language}
+{code}
+```
+## The feedback from compiler is
+{compiler_feedback}
+
+Your solution should be in the form of a code snippet with prefix code.
+Wrap the code snippet in (wrap in ```{language}). """
+
+MG_FUNC = """### Problem Statement:
+{task_description}
+{action_header}
+
+### Current Code:
+```{language}
+{current_code}
+```
+---
+You are a software engineer. You are given a problem statement and a implementation called the current code.
+Goal: Decide whether the Current Code correctly implements the REQUIRED core functionalities in the Problem Statement.
+
+Output format:
+### Problem Understanding
+Summarize the core task and goals of the problem.
+Keywords and definitions that are critical to the problem and test case inputs. (what is it, specific things to consider)
+
+### Example Scenarios
+Describe a concrete example user-scenario that illustrates the problem requirements and expected behavior.
+Describe how to handle these scenarios on the code.
+
+### Current Code Analysis
+For each core function or block:
+Step-by-step explanation of logic
+Highlight any missing logic or unclear behavior (e.g., return type, format, false positive/negative on edge cases etc.)
+Your opinion on whether it fulfills the requirements correctly from the the scenario
+
+### Final Opinion
+- Provide your overall assessment of the current code’s functional completeness.
+- If you find no issue, output ONLY the 'THE CODE IS FUNCTIONAL'.
+"""
+
+MG_SEC_REVIEW = """You are a security engineer. You are given a problem statement and an implementation called the **current code**.
+Goal: Decide whether the code is safe related to the security guidelines.
+Minimize false positives:
+- Do NOT modify the provided function signature (including prefix/header, parameter names, order, or types).
+- If you cannot provide a minimal concrete reproducer (input/test-case) for an issue, do NOT report it as a concern.
+---
+### Problem Statement:
+{task_description}
+{action_header}
+
+### Current Code:
+```{language}
+{current_code}
+```
+
+### Security guidelines:
+{security_requirements}
+- other security issues when the code touches predefined risk categories (input, network, storage, FS, exec, auth, memory, crypto).
+
+Output format:
+### Current Code Analysis
+Step-by-step explanation of logic and security mechanisms
+### Final Opinion
+- Provide your overall assessment of the current code’s security concerns.
+- If you find no issue, output ONLY the ‘THE CODE IS SAFE’.
+"""
+
+MG_FIX = """You are a software engineer. Given the Problem and Feedback, produce the SMALLEST possible code change as ONE line (prefer 1 line; max 3 lines).
+First, think step-by-step about the root cause and the minimal fix.
+
+Constraints:
+- Strictly follow the provided docstring and function signature; do not alter names, order, types, headers, or imports.
+- No refactors, no scaffolding, no placeholders.
+- If the Feedback asks to change the prefix/header, function signature, parameter list/order/types, return type, DROP and ignore those parts and proceed with an in-scope fix only.
+
+Inputs:
+[Problem]
+{problem}
+
+[Feedback]
+{feedback}
+
+Output (STRICT):
+### Conflicts Identified
+- Enumerate any Feedback items that (a) conflict with the Problem/docstring/signature (e.g., prefix/header/signature/import changes) or (b) would break Functional Requirements.
+- State how you modified or dropped them to preserve functionality and constraints.
+### Fix Approaches
+- For **each identified issue**:
+    - IdentifiedIssue: <max 2 sentences describing what the feedback flags (after dropping out-of-scope items)>
+    - FixApproach: <max 2 sentences explaining how we will fix the issues>
+    - CodeExampleLines({language}):
+        <line 1>
+        <line 2> (optional)
+        <line 3> (optional)
+
+Rules:
+- Maximum 3 lines.
+- Functionality is the top priority; do not break it.
+- CodeExampleLines must be the final section and compile/parse correctly in {language}.
+"""
+
+MG_JUDGE_SYSTEM = """You will be provided with an analysis result of a code snippet.
+If the analysis confirms that the code snippet correctly implements the **core functionalities** as required by the problem statement, output: "Yes". Otherwise, output: "No".
+"""
+MG_JUDGE_USER = 'Analysis Result:"""\n{MISTAKES}\n"""\n'
+MG_JUDGE_PREFILL = "Final Answer (Yes or No):\n"
+
+MG_REFINE = """You are a S/W engineer. Improve the code into a functional and secure implementation.
+
+Problem:
+{problem_with_planning}
+
+Original Code:
+```{language}
+{code}
+```
+
+Feedback from Evaluation:
+{feedback}
+
+-----
+Requirements:
+1. Review the feedback carefully. Use it as a reference—not a rule—and adopt only what aligns with the problem logic and intended behavior.
+2. Make the SMALLEST possible change: touch only the exact lines the feedback targets. Do NOT rewrite, restructure, or replace logic that already works.
+3. Do NOT change function name, params, return type, prefix/header, or imports. Drop feedback that asks for these.
+4. Ensure the final code is both functionally correct.
+5. Keep it simple. Avoid unnecessary complexity or over-engineering.
+6. If the feedback suggests replacing a working implementation with a completely different approach, ignore that suggestion.
+
+{action_prompt_header}"""
+
+
+@h2h
+class MACGen(H2HTechnique):
+    """Phase 1: plan, draft, attack-surface triage (early exit with the draft), CWE groups (C per preset), one guideline call
+    over the top-2 KB practices per group query, code-based quick wins, validation, final code and syntax repair (2 tries).
+    Phase 2: functional and security reviews (each with a Yes/No judge and a fix suggestion) and up to M=2 refinements.
+    Temperature 0, 1500 tokens for planner and security agents; per-agent session histories as in the repository. The authors'
+    released refined KB is re-embedded locally (jina-embeddings-v3 instead of OpenAI text-embedding-3-small); presets
+    (action header, C) follow the repository configs for CWEval, HumanEval and LLMSecEval (all other benchmarks)."""
+    hid, name, family, target = "H36", "MACGen", "multiagent", ("SEC",)
+    code_url = "https://github.com/Mishuni/macgen-secure-code"
+
+    def prepare(self, ctx: Ctx) -> None:
+        d = ctx.dir(self.hid)
+        for name, rel in MG_KB.items():
+            if (d / f"{name}.npy").exists():
+                continue
+            items = json.loads(fetch(MG_RAW + rel, d / "kb" / Path(rel).name).read_text())
+            rows = [{"text": x, "meta": {}} if isinstance(x, str) else
+                    {"text": x.get("text") or x.get("content") or "", "meta": x.get("metadata", {})} for x in items]
+            rows = decontaminate([r for r in rows if r["text"]], "text")
+            save_index(d, rows, embed(MG_EMBED, [r["text"] for r in rows]), name)
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        lang, q = task.language, C.task_text(task)
+        header, limit = MG_PRESETS.get(task.benchmark, MG_PRESETS["llmseceval"])
+        header = header.replace("{language}", lang)
+        pre = "\n".join(header.split("\n")[:-1])
+        plan = ""
+        for _ in range(1 + MG_PLAN_RETRIES):
+            plan = ctx.llm.ask(MG_PLAN.format(task=q + pre, language=lang), role="planner", temperature=MG_TEMP,
+                               max_tokens=MG_MAX_TOKENS).strip()
+            if plan:
+                break
+        plan = _mg_plan(plan)
+        code_hist, sec_hist = [], []
+        draft_code = ctx.keep(_mg_code(_mg_turn(ctx, code_hist, MG_DRAFT.format(task_description=f"{q}\n\n{plan}\n",
+                                                                                 action_prompt_header=header), "coder-draft"), lang))
+        surface = _mg_turn(ctx, sec_hist, MG_SURFACE.format(problem=q, draft_code=draft_code), "advisor-surface",
+                           max_tokens=MG_MAX_TOKENS).lower()
+        if "no attack surface" in surface or "no_attack_surface" in surface:
+            return self._syntax(task, ctx, draft_code, q) if draft_code else draft_code
+        req = self._advise(task, ctx, sec_hist, q, pre, plan, draft_code, limit)
+        prompt = (MG_CODE.format(language=lang, task_description=q, implementation_plan=plan, security_requirements=req,
+                                 action_prompt_header=header) if req.strip() else
+                  MG_DRAFT.format(task_description=q, action_prompt_header=header))
+        code = _mg_code(_mg_turn(ctx, code_hist, prompt, "coder"), lang)
+        code = self._syntax(task, ctx, ctx.keep(code), q) if code else draft_code
+        return self._review(task, ctx, q, header, code, req) if code else code
+
+    def _advise(self, task: Task, ctx: Ctx, hist: list, q: str, pre: str, plan: str, draft_code: str, limit: int) -> str:
+        """Security Advisor after triage: CWE groups, standards-driven guideline, code-based quick wins, validation."""
+        lang, groups = task.language, []
+        for _ in range(MG_CWE_TRIES):
+            msgs = [{"role": "user", "content": MG_SEC_ENGINEER},
+                    {"role": "user", "content": MG_CWE.format(language=lang, problem_with_planning=f"{q}\n\n{plan}\n",
+                                                              max_limit=limit)}]
+            groups = _mg_groups(ctx.llm.ask(msgs, role="advisor-cwe", temperature=MG_TEMP, max_tokens=MG_MAX_TOKENS))
+            if groups:
+                break
+        context = dict(language=lang, os_platform=MG_OS, problem_with_planning=f"{q}\n{pre}\n{plan}" if plan else q)
+        guides = []
+        if groups:
+            queries = [" ".join([str(g.get("group_name") or "").strip(), str(g.get("why") or "").strip()]).strip()
+                       for g in groups]
+            findings = MG_FINDINGS.format(cwe_list=", ".join(queries))
+            out = _mg_turn(ctx, hist, MG_GUIDE.format(retrieved_snippets=_mg_snippets(self._retrieve(ctx, lang, queries)),
+                                                      input=findings, prompt_4_sec_tail=MG_GUIDE_TAIL, **context),
+                           "advisor-guide", record=findings, system=MG_GUIDE_SYSTEM, max_tokens=MG_MAX_TOKENS)
+            guides.append((str(groups[0].get("group_name") or "group_0"), _mg_collapse(_mg_after(out))))
+        if draft_code:
+            quick = MG_QUICK_WINS.format(draft_code=draft_code)
+            out = _mg_turn(ctx, hist, MG_GUIDE.format(retrieved_snippets="", input=quick, prompt_4_sec_tail="", **context),
+                           "advisor-code", record=quick, system=MG_GUIDE_SYSTEM, max_tokens=MG_MAX_TOKENS).strip()
+            if "no additional guideline needed" not in out.lower():
+                guides.append(("others", _mg_collapse(out)))
+        summarized = "\n".join(g for _, g in guides)
+        out = ctx.llm.ask(MG_VALIDATE.format(language=lang, os_platform=MG_OS, question=f"{q}\n{pre}",
+                                             security_guidelines=summarized),
+                          role="advisor-validate", temperature=MG_TEMP, max_tokens=MG_MAX_TOKENS).strip()
+        if not out:
+            return "\n".join(f"{n}\n{g}" for n, g in guides if n != "others")
+        return _mg_collapse(_mg_after(out)).strip() or summarized
+
+    def _retrieve(self, ctx: Ctx, lang: str, queries: list[str]) -> list[dict]:
+        """Top-K practices per query over the language's merged stores (the general ASVS store when none is dedicated)."""
+        parts = [load_index(ctx.dir(self.hid), s) for s in MG_STORES.get(lang, ("asvs",))]
+        rows, vecs = [r for rs, _ in parts for r in rs], np.concatenate([v for _, v in parts])
+        return [rows[i] for v in embed(MG_EMBED, queries) for i in top_k(vecs, v, MG_RAG_K)]
+
+    def _review(self, task: Task, ctx: Ctx, q: str, header: str, code: str, req: str) -> str:
+        """Phase 2: the coder's session is reseeded with the code-generation turn (the plan reads None, as in the repository)."""
+        lang, seed_q = task.language, f"{q}\n\nNone".strip()
+        seed = (MG_CODE.format(language=lang, task_description=seed_q, implementation_plan="", security_requirements=req,
+                               action_prompt_header=header) if req.strip() else
+                MG_DRAFT.format(task_description=seed_q, action_prompt_header=header))
+        hist = [{"role": "user", "content": seed}, {"role": "assistant", "content": code}]
+        req = _mg_collapse(re.sub(r"<CODE>.*?</CODE>", "", re.sub(r"```.*?```", "", req, flags=re.S), flags=re.S | re.I)).strip()
+        current = code
+        for _ in range(MG_REFINE_ATTEMPTS):
+            func_ok, func_fb = self._functional(task, ctx, q, header, current)
+            sec_ok, sec_fb = self._secure(task, ctx, q, header, current, req)
+            if func_ok and sec_ok:
+                break
+            feedback = (f"Functionality: {'Passed' if func_ok else 'Failed'}, Security: {'Passed' if sec_ok else 'Failed'}"
+                        + ("" if func_ok else f"\n\nFunctionality Feedback:\n{func_fb}")
+                        + ("" if sec_ok else f"\n\nSecurity Feedback:\n{sec_fb}"))
+            out = _mg_turn(ctx, hist, MG_REFINE.format(problem_with_planning=q, language=lang, code=current, feedback=feedback,
+                                                       action_prompt_header=header), "coder-refine")
+            current = ctx.keep(_mg_code(out, lang) or current)
+        return self._syntax(task, ctx, current, q) if current.strip() != code.strip() else current
+
+    @staticmethod
+    def _functional(task: Task, ctx: Ctx, q: str, header: str, code: str) -> tuple[bool, str]:
+        hist: list = []
+        under = _mg_turn(ctx, hist, MG_FUNC.format(task_description=q, action_header=header, language=task.language,
+                                                   current_code=code), "reviewer-func")
+        if "the code is functional" in under.lower():
+            passed = True
+        else:
+            ans = ctx.llm.ask(_mg_judge(under), role="reviewer-judge", temperature=MG_TEMP).strip().lower()
+            passed = "yes" in ans and "no" not in ans
+        analysis = re.sub(r"\n{2,}", "\n", _mg_section(under).strip())
+        if not passed:
+            fix = _mg_turn(ctx, hist, MG_FIX.format(problem=q, feedback=analysis, language=task.language), "reviewer-func-fix")
+            analysis = _mg_collapse(fix).strip()
+            passed = "no actionable fix" in analysis.lower()
+        return passed, analysis
+
+    @staticmethod
+    def _secure(task: Task, ctx: Ctx, q: str, header: str, code: str, req: str) -> tuple[bool, str]:
+        hist: list = []
+        under = _mg_turn(ctx, hist, MG_SEC_REVIEW.format(task_description=q, action_header=header, language=task.language,
+                                                         current_code=code, security_requirements=req),
+                         "reviewer-sec", max_tokens=MG_MAX_TOKENS)
+        if "the code is safe" in under.lower():
+            return True, under
+        if "yes" in ctx.llm.ask(_mg_judge(under), role="reviewer-judge", temperature=MG_TEMP).lower():
+            return True, under
+        fix = _mg_turn(ctx, hist, MG_FIX.format(problem=q, feedback=_mg_section(under), language=task.language),
+                       "reviewer-sec-fix", max_tokens=MG_MAX_TOKENS)
+        m = re.search(r"(### Fix Approaches.*)", fix, re.S)
+        total = _mg_collapse(m.group(1) if m else fix).strip()
+        return "no actionable fix" in total.lower(), total
+
+    @staticmethod
+    def _syntax(task: Task, ctx: Ctx, code: str, q: str) -> str:
+        """compilation_check_and_repair: at most two syntax-fix calls with the compiler feedback."""
+        if task.language in MG_NO_COMPILE:
+            return code
+        ok, log = _mg_compiles(task, code)
+        for _ in range(MG_SYNTAX_FIXES):
+            if ok:
+                break
+            msgs = [{"role": "system", "content": MG_SYNTAX_SYSTEM},
+                    {"role": "user", "content": MG_SYNTAX.format(question=q, language=task.language, code=code,
+                                                                 compiler_feedback=("\n" + log)[:1000])}]
+            code = ctx.keep(_mg_code(ctx.llm.ask(msgs, role="coder-syntax", temperature=MG_TEMP), task.language))
+            ok, log = _mg_compiles(task, code)
+        return code
+
+
+def _mg_turn(ctx: Ctx, hist: list, content: str, role: str, record: str | None = None, system: str | None = None,
+             max_tokens: int | None = None) -> str:
+    """One call of an agent session: its history plus the new message; the session stores `record` (the chain input)."""
+    msgs = ([{"role": "system", "content": system}] if system else []) + hist + [{"role": "user", "content": content}]
+    out = ctx.llm.ask(msgs, role=role, temperature=MG_TEMP, max_tokens=max_tokens)
+    hist += [{"role": "user", "content": content if record is None else record}, {"role": "assistant", "content": out}]
+    return out
+
+
+def _mg_judge(analysis: str) -> list[dict]:
+    return [{"role": "system", "content": MG_JUDGE_SYSTEM}, {"role": "user", "content": MG_JUDGE_USER.format(MISTAKES=analysis)},
+            {"role": "assistant", "content": MG_JUDGE_PREFILL}]
+
+
+def _mg_code(text: str, lang: str) -> str:
+    """The repository's extract_code: the first fenced block, without its language tag."""
+    m = re.search(r"```(.*?)```", text or "", re.S)
+    code = (m.group(1) if m else text or "").strip()
+    head, _, rest = code.partition("\n")
+    return rest if head.strip().lower() in MG_FENCE_TAGS | {lang} else code
+
+
+def _mg_compiles(task: Task, code: str) -> tuple[bool, str]:
+    if task.language != "python":
+        return _compiles(task, code)
+    try:
+        ast.parse(code)
+        return True, ""
+    except SyntaxError as e:
+        return False, f"[SyntaxError] {e.msg} (Line {e.lineno}, Column {e.offset}): {(e.text or '').strip()}"
+
+
+def _mg_plan(plan: str) -> str:
+    """_normalize_plan_text: lower-cased, from the last plan marker (or the last 1200 characters), blank lines dropped."""
+    txt = plan.strip().lower()
+    if not txt:
+        return ""
+    at = max(txt.rfind(m) for m in MG_PLAN_MARKERS)
+    txt = txt[at:] if at != -1 else f"### Plan\n\n{txt[-1200:]}"
+    return "\n".join(l for l in txt.splitlines() if l.strip())
+
+
+def _mg_groups(raw: str) -> list[dict]:
+    """CWE groups from the first fenced block, sorted by likelihood; [] when it does not parse to a list of objects."""
+    m = re.search(r"```(.*?)```", raw or "", re.S)
+    block = (m.group(1) if m else raw or "").strip()
+    if block.lower().startswith("json\n"):
+        block = block[4:]
+    for a, b in ((']"', ']'), ('"[', '['), ("]'", ']'), ("'[", '['), ("cwe-", "CWE-"), ("CWE- ", "CWE-")):
+        block = block.replace(a, b)
+    try:
+        data = json.loads(block, strict=False)
+    except json.JSONDecodeError:
+        return []
+    for k in ("Security Requirements", "security_requirements"):
+        if isinstance(data, dict) and k in data:
+            data = data[k]
+    if not isinstance(data, list) or not all(isinstance(g, dict) for g in data):
+        return []
+    return sorted(data, key=lambda g: _num(g.get("likelihood", 0)), reverse=True)
+
+
+def _mg_snippets(docs: list[dict]) -> str:
+    """_format_docs_for_prompt: deduplicated practices of at least 50 characters, stopping once past 7000 characters."""
+    chunks, seen = [], set()
+    for d in docs:
+        txt = d["text"].strip()
+        key = f"{d['meta']}||{txt[:100]}"
+        if len(txt) < 50 or key in seen:
+            continue
+        seen.add(key)
+        chunks.append(txt)
+        if sum(len(c) for c in chunks) > MG_SNIPPET_CHARS:
+            break
+    return "\n\n".join(f"- {c}" for c in chunks) if chunks else "- (no high-quality practices found)"
+
+
+def _mg_after(text: str) -> str:
+    """extract_content_after_marker: the text after the first guideline marker found, else its last 700 characters."""
+    low = text.lower()
+    for m in MG_GUIDE_MARKERS:
+        i = low.find(m)
+        if i != -1:
+            return text[i + len(m):].strip()
+    return text[-700:].strip()
+
+
+def _mg_section(text: str) -> str:
+    m = re.search(r"(?:^|\n)###\s*Current Code Analysis.*?(.*)", text, re.S)
+    return m.group(0).strip() if m else text
+
+
+def _mg_collapse(text: str) -> str:
+    return re.sub(r"\n\s*\n+", "\n", text)

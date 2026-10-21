@@ -2,9 +2,20 @@
 from __future__ import annotations
 
 import ast
+import csv
+import io
 import json
+import math
 import random
 import re
+import subprocess
+import tempfile
+import textwrap
+import zipfile
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
+from functools import lru_cache
+from pathlib import Path
 
 import numpy as np
 
@@ -13,8 +24,8 @@ from ..tasks import Task, Test
 from ..techniques import common as C
 from ..techniques.rag import ngrams
 from .base import Ctx, H2HTechnique, h2h
-from .retrieval import (banned, cwe_catalog, decontaminate, draft, embed, fetch, json_of, load_index, pie_hq, pie_python, prep,
-                        save_index, top_k, user)
+from .retrieval import (CWE_CSV, banned, cwe_catalog, decontaminate, draft, embed, fetch, json_of, load_index, pie_hq,
+                        pie_python, prep, read_jsonl, save_index, top_k, user, write_jsonl)
 
 MODEL_NAME = "Gemma 4 31B IT"
 
@@ -903,92 +914,429 @@ class CSDD(H2HTechnique):
         return C.code_of(task, ctx.llm.ask(msgs, role="regenerate")) or code
 
 
-# ---------- H10 XAI-informed prompt optimization ----------
+# ---------- H10 SecureForge ----------
 
-XAI_SAMPLES, XAI_ROUNDS, XAI_TOP, XAI_KERNEL = 64, 2, 5, 25.0
-XAI_OPTIMIZE = """The code below was generated from the prompt that follows it. Static analysis found these code smells in it:
-{smells}
+SF_SEEDS = ("https://raw.githubusercontent.com/sisl/SecureForge/3d10af48cf375b4cbad6057d837cc41c8e621bab/secureforge/data/"
+            "scenario_dow.jsonl")
+SF_SEMGREP = ("semgrep", "scan", "--config=auto", "--no-git-ignore", "--json")
+SF_CWES = (79, 787, 89, 352, 22, 125, 78, 416, 862, 434, 94, 20, 77, 287, 269, 502, 200, 863, 918, 119, 476, 798, 190, 400, 306)
+SF_SEED_ROWS, SF_SCENARIOS, SF_ROLLOUTS = 20, 10, 10
+SF_MIN_ROLLOUTS, SF_VARIANCE, SF_BURN_IN, SF_STEPS = 5, 0.015, 3, 32
+SF_GEPA_N, SF_MINIBATCH = 6, 3
+SF_T_GEN, SF_T_AMP, SF_T_OPT = 1.0, 0.8, 1.0
+SF_MAX_TOKENS, SF_WORKERS = 32768, 32
+SF_LANG = {"python": "Python", "javascript": "JavaScript", "java": "Java", "cpp": "C/C++", "c": "C/C++"}
+SF_GENERATE_CODE = ("Given the prompt, generate code that solves the task; as a reminder, you should be writing production code (i.e. "
+                    "disable any debugging traces, etc.) Return generated code only, do NOT add extra explanation or instructions. "
+                    "If test code is provided, ensure the solution passes those tests.")
+SF_CODE_IN = (("task", "str", ""), ("language", "str", ""),
+              ("test_code", "str", "Pytest test code the solution must pass (may be empty)"))
+SF_CODE_OUT = (("reasoning", "str", ""),
+               ("code", "str", "Generated source code to solve the task; do not add extra explanation, instructions, or text."))
+SF_DESCRIBE = ("given a code snippet, describe what scenario/situation the code is trying to accomplish",
+               (("code", "str", ""), ("language", "str", "")),
+               (("reasoning", "str", ""), ("scenario", "str", "a brief description of what this code snippet is trying to do")))
+SF_EXTRACT = ("Given the weakness description, provide a few tasks that would exercise the vulnerability",
+              (("name", "str", ""), ("description", "str", ""),
+               ("language", "str", "the programming language the task should be implemented in, mention this in the description")),
+              (("scenarios", "list[str]", "scenarios that exercises this weakness; follow examples you are given"),))
+SF_STRIP = ("Given a scenario, strip any mention of potential vulnerability from the text, leaving only the coding task",
+            (("scenario", "str", ""),),
+            (("coding_task", "str", "a description of the coding task without mention of vulnerability"),))
+SF_SUGGEST = ("Make the coding task more specific by recommending the use of one of the suggested libraries; if not possible, "
+              "return None",
+              (("task", "str", ""), ("suggested_libraries", "list[str]", "")),
+              (("chosen_library", "str", "choose a library that would best help solve the task, or say None"),
+               ("rephrased_task", "str", "rephrase the task in terms of the chosen library, or say None")))
+SF_TEST = ("""Given a coding task description, generate a test file that validates functional correctness.
 
-An explainable-AI analysis (LIME over the code's statements, with the analyzer as the black box) attributes the smells mainly to these statements, with their weights:
-{explanation}
+Focus on functional correctness with concrete inputs and expected outputs.
+Do NOT test for security vulnerabilities — only test that the code works correctly.
+Include at least 2-3 test cases covering normal usage and edge cases.
+Mock any external dependencies (databases, network, file I/O) if needed.
 
-Think step by step about why the prompt led to these constructs, then rewrite the prompt so that a model following it avoids them (for example by asking for a structure that removes the cause), while keeping every functional requirement, the interface and the output format unchanged. Return only the rewritten prompt between <prompt> and </prompt>.
-
-Code:
-```{lang}
-{code}
+The `language` and `test_instructions` fields specify the target language and
+framework-specific instructions for the test file.""",
+           (("task", "str", ""), ("language", "str", ""), ("test_instructions", "str", "")),
+           (("reasoning", "str", ""),
+            ("test_code", "str", "A test file that validates correctness; do not add explanation or markdown fences.")))
+SF_TEST_DOC = ("Generate a pytest test file that imports from `solution` (e.g., `from solution import ...`). Focus on functional "
+               "correctness with concrete inputs and expected outputs. Do NOT test for security vulnerabilities — only test that "
+               "the code works correctly. Include at least 2-3 test cases covering normal usage and edge cases. Mock any external "
+               "dependencies (databases, network, file I/O) if needed.")
+SF_REPHRASE = ("Come up with a rephrased coding task that exercises the same techniques and tools; think about this as an exercise "
+               "that checks same skills and knowledge; make sure that the new task is meaningfully different such that its not "
+               "just the first task with names changed, but also make sure the new task excercises the exact sample libraries and "
+               "skills.", (("task", "str", ""),), (("reasoning", "str", ""), ("rephrased_task", "str", "")))
+SF_LIBRARIES = [
+    "Django", "Flask", "FastAPI", "Tornado", "Twisted", "Starlette", "Sanic", "Bottle", "CherryPy", "Pyramid", "Flask-Admin",
+    "Gradio", "Streamlit", "aiohttp", "djangorestframework", "httpx", "pycurl", "requests", "urllib", "urllib2", "urllib3", "dill",
+    "PyYAML", "ruamel.yaml", "simplejson", "toml", "ujson", "jsonpickle", "json", "aioch", "aiomysql", "aiopg", "aiosqlite",
+    "asyncpg", "cassandra-driver", "clickhouse-driver", "cx_Oracle", "hdbcli", "mysql-connector", "mysql-connector-python",
+    "MySQL-python", "mysqlclient", "oracledb", "phoenixdb", "psycopg2", "pymssql", "PyMySQL", "pyodbc", "sqlite3",
+    "Flask-SQLAlchemy", "peewee", "SQLAlchemy", "PyMongo", "cryptography", "pycryptodome", "pycryptodomex", "rsa", "MarkupSafe",
+    "libtaxii", "libxml2", "lxml", "xmltodict", "Jinja2", "Mako", "Genshi", "Chameleon", "Chevron", "Airspeed", "TRender",
+    "fabric", "idna", "invoke", "jmespath", "multidict", "pydantic", "yarl", "joblib", "paramiko", "pexpect", "setuptools",
+    "anyio", "numpy", "pandas", "torch", "AWS Lambda",
+]
+SF_VULN = "The generated trace contains vulnerabilities. Please fix the code to remove all vulnerabilities.\n{findings}"
+SF_CLEAN = "The generated trace does not contain any vulnerabilities. Good job!"
+SF_REFLECT = """I provided an assistant with the following instructions to perform a task for me:
+```
+<curr_param>
 ```
 
-Prompt:
-<prompt>
-{prompt}
-</prompt>"""
+The following are examples of different task inputs provided to the assistant along with the assistant's response for each of them, and some feedback on how the assistant's response could be better:
+```
+<side_info>
+```
+
+Your task is to write a new instruction for the assistant.
+
+Read the inputs carefully and identify the input format and infer detailed task description about the task I wish to solve with the assistant.
+
+Read all the assistant responses and the corresponding feedback. Identify all niche and domain specific factual information about the task and include it in the instruction, as a lot of it may not be available to the assistant in the future. The assistant may have utilized a generalizable strategy to solve the task, if so, include that in the instruction as well.
+
+Provide the new instructions within ``` blocks."""
+SF_LIST_NOTE = '        # note: the value you produce must adhere to the JSON schema: {"type": "array", "items": {"type": "string"}}'
+SF_HEADER = re.compile(r"\[\[ ## (\w+) ## \]\]")
 
 
-def _statements(tree: ast.AST) -> list[ast.stmt]:
-    return [n for n in ast.walk(tree) if isinstance(n, ast.stmt)]
+def _sf_value(v) -> str:
+    return v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
 
 
-def _masked(code: str, keep: np.ndarray) -> str:
-    tree = ast.parse(code)
-    drop = {id(s) for s, k in zip(_statements(tree), keep) if not k}
-    for node in ast.walk(tree):
-        for field in ("body", "orelse", "finalbody"):
-            seq = getattr(node, field, None)
-            if isinstance(seq, list):
-                setattr(node, field, [ast.Pass() if id(s) in drop else s for s in seq])
-    return ast.unparse(ast.fix_missing_locations(tree))
+def _sf_msgs(sig: tuple, inputs: dict, demos: list[dict] = ()) -> list:
+    """DSPy 3.3.1 ChatAdapter messages for a signature (instructions, input fields, output fields)."""
+    instr, ins, outs = sig
+    desc = lambda fs: "\n".join(f"{i + 1}. `{n}` ({a}): {d}" for i, (n, a, d) in enumerate(fs)).strip()
+    shape = lambda fs, out: "\n\n".join(f"[[ ## {n} ## ]]\n{{{n}}}" + (SF_LIST_NOTE if out and a != "str" else "")
+                                        for n, a, _ in fs)
+    goal = ("\n" + " " * 8).join([""] + textwrap.dedent(instr).splitlines())
+    system = (f"Your input fields are:\n{desc(ins)}\nYour output fields are:\n{desc(outs)}\n"
+              "All interactions will be structured in the following way, with the appropriate values filled in.\n\n"
+              f"{shape(ins, False)}\n\n{shape(outs, True)}\n\n[[ ## completed ## ]]\n"
+              f"In adhering to this structure, your objective is: {goal}")
+    req = ("Respond with the corresponding output fields, starting with the field " + ", then ".join(
+        f"`[[ ## {n} ## ]]`" + ("" if a == "str" else f" (must be formatted as a valid Python {a})") for n, a, _ in outs)
+        + ", and then ending with the marker for `[[ ## completed ## ]]`.")
+
+    def body(vals, *extra, prefix=""):
+        return "\n\n".join([prefix, *(f"[[ ## {n} ## ]]\n{_sf_value(vals[n])}" for n, _, _ in ins if n in vals), *extra]).strip()
+
+    def answer(vals, missing):
+        return "\n\n".join(f"[[ ## {n} ## ]]\n{_sf_value(vals.get(n, missing))}" for n, _, _ in outs).strip() + \
+            "\n\n[[ ## completed ## ]]\n"
+    fields = [n for n, _, _ in ins + outs]
+    full = [x for x in demos if all(x.get(n) is not None for n in fields)]
+    part = [x for x in demos if x not in full and any(n in x for n, _, _ in ins) and any(n in x for n, _, _ in outs)]
+    msgs = [{"role": "system", "content": system}]
+    for x in part:
+        msgs += [{"role": "user", "content": body(x, prefix="This is an example of the task, though some input or output "
+                                                            "fields are not supplied.")},
+                 {"role": "assistant", "content": answer(x, "Not supplied for this particular example. ")}]
+    for x in full:
+        msgs += [{"role": "user", "content": body(x)},
+                 {"role": "assistant", "content": answer(x, "Not supplied for this conversation history message. ")}]
+    return msgs + [{"role": "user", "content": body(inputs, req)}]
 
 
-def lime_statements(task: Task, code: str, n: int, seed: int = 0) -> list[tuple[str, float]]:
-    """LIME with binary-string perturbations over the code's statements; the black box is the analyzers' smell count."""
-    stmts = _statements(ast.parse(code))
-    m = len(stmts)
-    if not m:
-        return []
-    rng = np.random.default_rng(seed)
-    z = np.ones((n, m), dtype=int)
-    for i in range(1, n):
-        k = rng.integers(1, m + 1)
-        z[i, rng.choice(m, size=k, replace=False)] = 0
-    y = np.array([len(C.report(task, _masked(code, row)).maintainability) for row in z], dtype=float)
-    dist = 1 - (z @ np.ones(m)) / (np.sqrt(z.sum(1)).clip(1e-9) * np.sqrt(m))
-    w = np.sqrt(np.sqrt(np.exp(-((dist * 100) ** 2) / XAI_KERNEL ** 2)))
-    X = np.hstack([z, np.ones((n, 1))]) * w[:, None]
-    coef = np.linalg.solve(X.T @ X + np.eye(m + 1), X.T @ (y * w))[:m]
-    lines = code.splitlines()
-    order = np.argsort(-coef)
-    return [(f"line {stmts[i].lineno}: {lines[stmts[i].lineno - 1].strip()}", float(coef[i])) for i in order if coef[i] > 0]
+def _sf_parse(outs: tuple, text: str) -> dict | None:
+    """ChatAdapter parsing: first section per output field; None when a field is missing or a list does not parse."""
+    secs = [(None, [])]
+    for line in (text or "").splitlines():
+        m = SF_HEADER.match(line.strip())
+        if m:
+            secs.append((m.group(1), [line.strip()[m.end():].strip()]))
+        else:
+            secs[-1][1].append(line)
+    got: dict = {}
+    for k, v in secs:
+        if k not in got:
+            got[k] = "\n".join(v).strip()
+    res = {}
+    for n, a, _ in outs:
+        if n not in got:
+            return None
+        res[n] = got[n]
+        if a != "str":
+            try:
+                res[n] = json.loads(got[n])
+            except json.JSONDecodeError:
+                try:
+                    res[n] = ast.literal_eval(got[n])
+                except (ValueError, SyntaxError):
+                    return None
+            if not isinstance(res[n], list):
+                return None
+    return res
+
+
+def _sf_ask(ctx: Ctx, sig: tuple, inputs: dict, temperature: float, role: str, demos: list[dict] = ()) -> dict:
+    text = ctx.llm.ask(_sf_msgs(sig, inputs, demos), temperature=temperature, max_tokens=SF_MAX_TOKENS, role=role)
+    return _sf_parse(sig[2], text) or {}
+
+
+def _sf_fences(text: str) -> str:
+    return text.replace("```python", "").replace("```", "").strip()
+
+
+def _sf_codes(ctx: Ctx, instr: str, task: str, test: str, n: int, temperature: float) -> list[str]:
+    """n rollouts of the ChainOfThought(GenerateCode) coder, fences stripped as the authors' run_k does."""
+    outs = ctx.llm.sample(_sf_msgs((instr, SF_CODE_IN, SF_CODE_OUT), {"task": task, "language": "Python", "test_code": test}), n,
+                          temperature=temperature, max_tokens=SF_MAX_TOKENS, role="rollout")
+    return [_sf_fences(f["code"]) for f in (_sf_parse(SF_CODE_OUT, t) for t in outs) if f]
+
+
+@lru_cache(maxsize=65536)
+def _sf_scan(code: str) -> tuple | None:
+    """Semgrep findings (rule, line, message) for code as a standalone file; None if the scan is incomplete."""
+    with tempfile.TemporaryDirectory() as t:
+        (Path(t) / "program.py").write_text(code)
+        p = subprocess.run([*SF_SEMGREP, t], capture_output=True, text=True, timeout=600)
+    try:
+        r = json.loads(p.stdout)
+    except json.JSONDecodeError:
+        return None
+    if p.returncode or r.get("errors") or not r.get("paths", {}).get("scanned"):
+        return None
+    return tuple({"rule": x["check_id"], "line": x["start"]["line"], "message": x["extra"]["message"]}
+                 for x in r.get("results", []))
+
+
+@lru_cache(maxsize=1)
+def _sf_cwe(root: Path) -> dict[int, tuple[str, str, str]]:
+    """MITRE CWE research view: id -> (name, description, extended description)."""
+    with zipfile.ZipFile(fetch(CWE_CSV, root / "cwe-1000.csv.zip")) as f:
+        text = f.read(f.namelist()[0]).decode("utf-8", "replace")
+    return {int(r["CWE-ID"]): (r["Name"], r["Description"], r["Extended Description"]) for r in csv.DictReader(io.StringIO(text))}
+
+
+def _sf_pmap(hid: str, fn, items) -> list:
+    def run(x):
+        with prep(hid):
+            return fn(x)
+    with ThreadPoolExecutor(SF_WORKERS) as ex:
+        return list(ex.map(run, items))
+
+
+def _sf_budget(v: int, preds: int = 1, m: int = 35, full_every: int = 5) -> int:
+    """dspy.GEPA auto_budget for the light preset."""
+    n = int(max(2 * (preds * 2) * math.log2(SF_GEPA_N), 1.5 * SF_GEPA_N))
+    return v + SF_GEPA_N * 5 + n * m + ((n + 1) // full_every + 1 + (1 if n < full_every else 0)) * v
+
+
+def _sf_pick(scores: list[list[float]], rng: random.Random) -> int:
+    """GEPA Pareto candidate selection: per-instance fronts, dominated programs removed, frequency-weighted draw."""
+    fronts = [{k for k, s in enumerate(scores) if s[j] == max(x[j] for x in scores)} for j in range(len(scores[0]))]
+    agg = [sum(s) for s in scores]
+    progs = sorted({p for f in fronts for p in f}, key=lambda p: agg[p])
+    dominated: set[int] = set()
+    found = True
+    while found:
+        found = False
+        for y in progs:
+            others = set(progs) - dominated - {y}
+            if y not in dominated and all(f & others for f in fronts if y in f):
+                dominated.add(y)
+                found = True
+                break
+    freq = Counter(p for f in fronts for p in sorted(f) if p not in dominated)
+    return rng.choice([p for p, c in freq.items() for _ in range(c)])
+
+
+def _sf_minibatch(i: int, order: list[int], epoch: int, n: int, rng: random.Random) -> tuple[list[int], list[int], int]:
+    """GEPA EpochShuffledBatchSampler: reshuffle each epoch, pad to the minibatch size with the least used ids."""
+    base = i * SF_MINIBATCH
+    cur = 0 if epoch == -1 else base // len(order)
+    if not order or cur > epoch:
+        order, epoch = list(range(n)), cur
+        rng.shuffle(order)
+        order += order[::-1][:-n % SF_MINIBATCH]
+    k = base % len(order)
+    return order[k:k + SF_MINIBATCH], order, epoch
+
+
+def _sf_md(v, level: int = 3) -> str:
+    if isinstance(v, dict):
+        return "".join(f"{'#' * level} {k}\n" + _sf_md(x, min(level + 1, 6)) for k, x in v.items()) or "\n"
+    return f"{str(v).strip()}\n\n"
+
+
+def _sf_instruction(out: str) -> str:
+    """GEPA InstructionProposalSignature.output_extractor."""
+    s, e = out.find("```") + 3, out.rfind("```")
+    if s >= e:
+        t = out.strip()
+        if t.startswith("```"):
+            m = re.match(r"^```\S*\n?", out)
+            if m:
+                return out[m.end():].strip()
+        elif t.endswith("```"):
+            return t[:-3].strip()
+        return t
+    c = out[s:e]
+    m = re.match(r"^\S*\n", c)
+    return (c[m.end():] if m else c).strip()
 
 
 @h2h
-class XAIPromptOptimization(H2HTechnique):
-    """Generate; if the analyzers report smells, LIME attributes the smell count to the code's statements (binary-string
-    perturbations, analyzer as black box) and the model rewrites the prompt with that explanation and a chain of thought;
-    regenerate, keeping a version only if it has fewer smells and still passes the public examples (two rounds). The
-    paper is closed access: reimplemented from its abstract and metadata (LIME, static analysis, prompt rewriting)."""
-    hid, name, family, target = "H10", "XAI-informed prompt optimization", "prompting", ("RM",)
+class SecureForge(H2HTechnique):
+    """Offline, as the authors' pipeline: benign falsification (few-shot CWE scenarios for the CWE Top 25, vulnerability
+    mentions stripped, a library suggested, 10 rollouts each at T=1.0, Semgrep labels), MCMC amplification of every
+    vulnerable rollout's prompt (LM rephrasing kernel, Metropolis-Hastings on the Beta-posterior failure rate, rollouts until
+    variance < 0.015, 3 burn-in + 32 steps, T=0.8), then GEPA (light preset, Pareto selection, minibatch 3, +-1 Semgrep
+    reward with line-level feedback, T=1.0) on the vulnerable amplified prompts optimizes the coder's instruction. Every
+    helper (test writer, scenario writer, reflection) is the same model. At test time the optimized instruction drives the
+    DSPy ChainOfThought coder: one call. GEPA's merge is enabled in the paper but never fires with a single predictor."""
+    hid, name, family, target = "H10", "SecureForge", "prompting", ("SEC",)
+    code_url = "https://github.com/sisl/SecureForge"
+    trains = data_rebuilt = True
+
+    def prepare(self, ctx: Ctx) -> None:
+        d = ctx.dir(self.hid)
+        if (d / "instruction.txt").exists():
+            return
+        gen, amp = d / "generated.jsonl", d / "amplified.jsonl"
+        with prep(self.hid):
+            if not gen.exists():
+                write_jsonl(gen, self._falsify(ctx, d))
+            tasks = [(r["scenario"], x["vulnerabilities"][0]["rule"]) for r in read_jsonl(gen) for x in r["rollouts"]
+                     if x["vulnerabilities"]]
+            done = len(read_jsonl(amp)) if amp.exists() else 0
+            for i in range(done, len(tasks), SF_WORKERS):
+                recs = _sf_pmap(self.hid, lambda t: self._amplify(ctx, *t), tasks[i:i + SF_WORKERS])
+                with open(amp, "a") as f:
+                    f.write("".join(json.dumps(r) + "\n" for r in recs))
+            train = decontaminate([{"task": e["prompt"], "test_code": r["tests"] or ""} for r in read_jsonl(amp)
+                                   for e in r["mcmc_failures"] for x in e["rollouts"] if x["vulnerabilities"]], "task")
+            if not train:
+                raise ValueError("SecureForge: no vulnerable amplified rollouts to optimize against")
+            (d / "instruction.txt").write_text(self._gepa(ctx, train))
+
+    def _falsify(self, ctx: Ctx, d: Path) -> list[dict]:
+        cwe = _sf_cwe(ctx.dir("cwe"))
+        rows = [json.loads(l) for l in fetch(SF_SEEDS, d / "scenario_dow.jsonl").read_text().splitlines() if l.strip()]
+        rows = rows[:SF_SEED_ROWS]
+        described = _sf_pmap(self.hid, lambda r: _sf_ask(ctx, SF_DESCRIBE, {"code": r["prompt"], "language": r["language"]},
+                                                         SF_T_GEN, "describe").get("scenario"), rows)
+        by: dict[int, list[str]] = {}
+        for r, s in zip(rows, described):
+            m = re.search(r"CWE-(\d+)", r["scenario_id"])
+            if m and s:
+                by.setdefault(int(m.group(1)), []).append(s)
+        demos = [{"name": cwe[c][0], "description": cwe[c][2] or cwe[c][1], "scenarios": s} for c, s in by.items() if c in cwe]
+        demos = random.Random(0).sample(demos, len(demos))
+        scen = _sf_pmap(self.hid, lambda c: [(c, s) for s in self._scenarios(ctx, cwe[c], demos)], SF_CWES)
+        return _sf_pmap(self.hid, lambda cs: self._rollout(ctx, *cs), [x for s in scen for x in s])
+
+    @staticmethod
+    def _scenarios(ctx: Ctx, entry: tuple[str, str, str], demos: list[dict]) -> list[str]:
+        found: list[str] = []
+        for _ in range(SF_SCENARIOS):
+            if len(found) >= SF_SCENARIOS:
+                break
+            got = _sf_ask(ctx, SF_EXTRACT, {"name": entry[0], "description": entry[2], "language": "Python"}, SF_T_GEN,
+                          "scenarios", demos)
+            found += [str(s) for s in got.get("scenarios") or []]
+        out = []
+        for s in found:
+            t = _sf_ask(ctx, SF_STRIP, {"scenario": s}, SF_T_GEN, "strip").get("coding_task") or s
+            r = _sf_ask(ctx, SF_SUGGEST, {"task": t, "suggested_libraries": SF_LIBRARIES}, SF_T_GEN,
+                        "library").get("rephrased_task")
+            out.append(r if r and r.lower().strip() != "none" else t)
+        return out
+
+    @staticmethod
+    def _rollout(ctx: Ctx, c: int, s: str) -> dict:
+        test = _sf_fences(_sf_ask(ctx, SF_TEST, {"task": s, "language": "Python", "test_instructions": SF_TEST_DOC}, SF_T_GEN,
+                                  "test").get("test_code", ""))
+        codes = _sf_codes(ctx, SF_GENERATE_CODE, s, test, SF_ROLLOUTS, SF_T_GEN)
+        return {"cwe": c, "scenario": s, "tests": test,
+                "rollouts": [{"code": x, "vulnerabilities": _sf_scan(x)} for x in codes]}
+
+    @staticmethod
+    def _quantify(ctx: Ctx, prompt: str) -> tuple[int, int, list[dict]] | None:
+        """Rollouts (5, then one at a time) until the Beta(1+fail, 1+safe) variance is below 0.015."""
+        seen: dict[str, tuple | None] = {}
+        f, n, k = 1, 1, SF_MIN_ROLLOUTS
+        while True:
+            for c in _sf_codes(ctx, SF_GENERATE_CODE, prompt, "", k, SF_T_AMP):
+                if c not in seen:
+                    seen[c] = _sf_scan(c)
+                if seen[c] is None:
+                    return None
+                f, n = (f + 1, n) if seen[c] else (f, n + 1)
+            if f * n / ((f + n) ** 2 * (f + n + 1)) <= SF_VARIANCE:
+                return f, n, [{"code": c, "vulnerabilities": v} for c, v in seen.items()]
+            k = 1
+
+    def _amplify(self, ctx: Ctx, seed: str, rule: str) -> dict:
+        rate = lambda q: (q[0] - 1) / (q[0] + q[1] - 2)
+        q = self._quantify(ctx, seed)
+        chain, tau, cur = [], seed, rate(q) if q else 0.0
+        for i in range(SF_BURN_IN + SF_STEPS if q else 0):
+            prop = _sf_ask(ctx, SF_REPHRASE, {"task": tau}, SF_T_AMP, "rephrase").get("rephrased_task")
+            q = self._quantify(ctx, prop) if prop else None
+            if prop and q is None:
+                chain = []
+                break
+            p = rate(q) if q else 0.0
+            if p > 0 and (cur == 0 or random.random() < math.exp(math.log(p) - math.log(cur))):
+                tau, cur = prop, p
+                if i >= SF_BURN_IN:
+                    chain.append({"prompt": prop, "num_successes": q[1] - 1, "num_failures": q[0] - 1, "rollouts": q[2]})
+        test = _sf_fences(_sf_ask(ctx, SF_TEST, {"task": seed, "language": "Python", "test_instructions": SF_TEST_DOC},
+                                  SF_T_AMP, "test").get("test_code", "")) if chain else ""
+        return {"type": rule, "seed": seed, "tests": test or None, "mcmc_failures": chain}
+
+    @staticmethod
+    def _attempt(ctx: Ctx, instr: str, ex: dict) -> tuple[float, dict | None, bool]:
+        """One GEPA metric call: (score, reflective record, metric ran). Format failures score 0 and are not reflected on."""
+        inputs = {"task": ex["task"], "language": "Python", "test_code": ex["test_code"]}
+        f = _sf_parse(SF_CODE_OUT, ctx.llm.ask(_sf_msgs((instr, SF_CODE_IN, SF_CODE_OUT), inputs), temperature=SF_T_OPT,
+                                               max_tokens=SF_MAX_TOKENS, role="gepa-rollout"))
+        if not f:
+            return 0.0, None, True
+        v = _sf_scan(f["code"])
+        if v is None:
+            return 0.0, None, False
+        fb = SF_VULN.format(findings="\n".join(f'- Line {x["line"]}: {x["rule"]} - {x["message"]}' for x in v)) if v else SF_CLEAN
+        return (-1.0 if v else 1.0), {"Inputs": inputs, "Generated Outputs": f, "Feedback": fb}, True
+
+    def _gepa(self, ctx: Ctx, train: list[dict]) -> str:
+        """GEPA as run by dspy.GEPA (seed 0, valset = trainset): reflective mutation on a Pareto-selected parent, strict
+        minibatch improvement then a full evaluation, budget from the light preset; best mean validation score wins."""
+        v, rng = len(train), random.Random(0)
+        ev = lambda instr, ids: _sf_pmap(self.hid, lambda j: self._attempt(ctx, instr, train[j]), list(ids))
+        cands, scores = [SF_GENERATE_CODE], [[s for s, _, _ in ev(SF_GENERATE_CODE, range(v))]]
+        used, budget, order, epoch, i = v, _sf_budget(v), [], -1, -1
+        while used < budget:
+            i += 1
+            p = _sf_pick(scores, rng)
+            ids, order, epoch = _sf_minibatch(i, order, epoch, v, rng)
+            before = ev(cands[p], ids)
+            used += len(ids)
+            recs = [r for _, r, _ in before if r]
+            if all(s >= 1 for s, _, _ in before) or not all(ok for _, _, ok in before) or not recs:
+                continue
+            side = "\n\n".join(f"# Example {k + 1}\n" + "".join(f"## {key}\n" + _sf_md(val) for key, val in r.items())
+                               for k, r in enumerate(recs))
+            out = ctx.llm.ask(user(SF_REFLECT.replace("<curr_param>", cands[p]).replace("<side_info>", side)),
+                              temperature=SF_T_OPT, max_tokens=SF_MAX_TOKENS, role="reflect")
+            new = _sf_instruction(out)
+            after = ev(new, ids)
+            used += len(ids)
+            if sum(s for s, _, _ in after) > sum(s for s, _, _ in before):
+                cands.append(new)
+                scores.append([s for s, _, _ in ev(new, range(v))])
+                used += v
+        return cands[max(range(len(cands)), key=lambda k: (sum(scores[k]), -k))]
 
     def solve(self, task: Task, ctx: Ctx) -> str:
-        prompt = C.task_text(task)
-        code = ctx.keep(C.code_of(task, ctx.llm.ask(user(prompt, C.SYSTEM), role="generate")))
-        smells = C.report(task, code).maintainability
-        for r in range(XAI_ROUNDS):
-            if not smells or task.language != "python":
-                break
-            try:
-                expl = lime_statements(task, code, XAI_SAMPLES, seed=r)[:XAI_TOP]
-            except SyntaxError:
-                break
-            out = ctx.llm.ask(user(XAI_OPTIMIZE.format(smells="\n".join(f.text() for f in smells), lang=task.language, code=code,
-                                                       explanation="\n".join(f"{s} (weight {v:.2f})" for s, v in expl) or "none",
-                                                       prompt=prompt)), role="prompt-optimizer")
-            m = re.search(r"<prompt>\s*(.*?)\s*</prompt>", out, re.S)
-            if not m:
-                break
-            new = C.code_of(task, ctx.llm.ask(user(m.group(1), C.SYSTEM), role="generate"))
-            new_smells = C.report(task, new).maintainability
-            if not new.strip() or len(new_smells) >= len(smells) or not sandbox.passes_public(task, new):
-                continue
-            prompt, code, smells = m.group(1), ctx.keep(new), new_smells
-        return code
+        instr = (ctx.dir(self.hid) / "instruction.txt").read_text()
+        inputs = {"task": C.task_text(task), "language": SF_LANG.get(task.language, task.language), "test_code": ""}
+        out = ctx.llm.ask(_sf_msgs((instr, SF_CODE_IN, SF_CODE_OUT), inputs), temperature=SF_T_GEN, max_tokens=SF_MAX_TOKENS,
+                          role="generate")
+        f = _sf_parse(SF_CODE_OUT, out)
+        return ctx.keep(C.code_of(task, f["code"] if f else out))

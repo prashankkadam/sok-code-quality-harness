@@ -70,8 +70,32 @@ def split(s):
     return [t.strip() for t in re.split(r"[;,]", s or "") if t.strip()]
 
 
+RUN = "main"
+
+
+def retrieved(run: str = RUN) -> set[str]:
+    """Records with a retrieved full text in any manifest. Only these are assessed: a report without a full text is
+    excluded as not retrieved, never judged on its abstract."""
+    ok = set()
+    for p in (SLR / "runs" / run).glob("fulltext_manifest*.csv"):
+        for m in csv.DictReader(open(p)):
+            if m["source"] and not m["source"].startswith("abstract-only"):
+                ok.add(m["rid"])
+    return ok
+
+
+def snow_pending(run: str = RUN) -> set[str]:
+    p = SLR / "runs" / run / "snow_pending_ids.txt"
+    return set(p.read_text().split()) if p.exists() else set()
+
+
+def peer_reviewed(study: dict) -> bool:
+    return study["venue_type"].startswith("peer-reviewed") or study["venue_type"] == "workshop"
+
+
 def load_extraction():
-    rows = list(csv.DictReader(open(SLR / "extraction.csv")))
+    ok = retrieved()
+    rows = [r for r in csv.DictReader(open(SLR / "extraction.csv")) if r["rid"] in ok]
     # one record per study (rid); technique rows of the same study are merged for study-level counts
     studies = {}
     for r in rows:
@@ -102,38 +126,56 @@ def prisma_counts(run):
     c["duplicates"] = st["duplicates_removed"]
     c["screened_db"] = st["unique_after_dedup"]
     dec = list(csv.DictReader(open(rd / "decisions_ta.csv")))
-    db = [d for d in dec if d["rid"].startswith("R")]
+    fwd = {d["rid"] for d in dec if d["forward_to_fulltext"] == "True"}
+    db = [d for d in dec if d["rid"][0] in "RA"]
     c["ta_excluded_db"] = sum(1 for d in db if d["forward_to_fulltext"] == "False")
     c["ta_forward_db"] = sum(1 for d in db if d["forward_to_fulltext"] == "True")
-    other = [d for d in dec if d["rid"][0] in "VO"]
+    other = [d for d in dec if d["rid"][0] in "VOM"]
     c["other_identified"] = len(other)
     c["other_forward"] = sum(1 for d in other if d["forward_to_fulltext"] == "True")
     c["other_excluded_ta"] = sum(1 for d in other if d["forward_to_fulltext"] == "False")
     snow = [d for d in dec if d["rid"].startswith("S")]
     c["snow_identified"] = len(snow)
     c["snow_forward"] = sum(1 for d in snow if d["forward_to_fulltext"] == "True")
-    sa = {}
+    ok = retrieved(run)
+    c["ft_sought"] = len(fwd)
+    c["ft_not_retrieved"] = len(fwd - ok)
+    assessed = fwd & ok
+    c["ft_assessed"] = len(assessed)
+    _, studies = load_extraction()
+    inc = set(studies)
+    pend = snow_pending(run) & assessed
+    c["snow_pending"] = len(pend)
+    side = {s["rid"]: s for s in csv.DictReader(open(rd / "side_lists.csv")) if s["rid"] in assessed}
+    stage_a = {}
     pa = rd / "extraction" / "batch_snowA" / "parsed.jsonl"
     if pa.exists():
         for l in pa.open():
             x = json.loads(l)
-            sa[x["rid"]] = x["extraction"].get("eligibility")
-    c["snow_stageA_excluded"] = sum(1 for v in sa.values() if v == "exclude")
-    c["snow_awaiting"] = c["snow_forward"] - c["snow_stageA_excluded"]
-    man = list(csv.DictReader(open(rd / "fulltext_manifest.csv")))
-    c["ft_not_retrieved"] = sum(1 for m in man if m["source"] == "abstract-only")
-    side = [s for s in csv.DictReader(open(rd / "side_lists.csv")) if not s["rid"].startswith("S")]
-    c["ft_excluded"] = len(side)
-    ex = Counter(s["exclusion_criterion"] or "other" for s in side)
-    c["ft_excluded_by"] = dict(ex.most_common())
-    c["side_context"] = sum(1 for s in side if s["side_list"] == "context")
-    c["side_adjacent"] = sum(1 for s in side if s["side_list"] == "adjacent")
-    c["side_correctness"] = sum(1 for s in side if s["side_list"] == "correctness-only")
-    c["side_secondary"] = sum(1 for s in side if s["side_list"] == "secondary")
-    _, studies = load_extraction()
-    c["included"] = len(studies)
-    c["included_db"] = sum(1 for k in studies if k.startswith("R"))
-    c["included_other"] = c["included"] - c["included_db"]
+            stage_a[x["rid"]] = x["extraction"]
+    excluded = assessed - inc - pend
+    by = Counter()
+    for rid in excluded:
+        s = side.get(rid) or {}
+        by[s.get("exclusion_criterion") or (stage_a.get(rid) or {}).get("exclusion_criterion") or "other"] += 1
+    c["ft_excluded"] = len(excluded)
+    c["ft_excluded_by"] = dict(by.most_common())
+    sl = [s for rid, s in side.items() if rid in excluded]
+    c["side_context"] = sum(1 for s in sl if s["side_list"] == "context")
+    c["side_adjacent"] = sum(1 for s in sl if s["side_list"] == "adjacent")
+    c["side_correctness"] = sum(1 for s in sl if s["side_list"] == "correctness-only")
+    c["side_secondary"] = sum(1 for s in sl if s["side_list"] == "secondary")
+    c["included"] = len(inc)
+    c["included_db"] = sum(1 for k in inc if k[0] in "RA")
+    c["included_other"] = sum(1 for k in inc if k[0] in "VOM")
+    c["included_snow"] = sum(1 for k in inc if k.startswith("S"))
+    rate = c["included"] / max(1, c["ft_assessed"] - c["snow_pending"])
+    c["snow_pending_included_est"] = round(rate * c["snow_pending"])
+    est = rd / "round2_estimates.json"
+    c["round2"] = json.loads(est.read_text()) if est.exists() and c["snow_pending"] else {}
+    c["round2_included_est"] = c["round2"].get("openalex_included", 0) + c["round2"].get("manual_included", 0)
+    assert c["ft_excluded"] + c["included"] + c["snow_pending"] == c["ft_assessed"]
+    assert sum(by.values()) == c["ft_excluded"]
     return c
 
 
@@ -146,39 +188,51 @@ def arrow(ax, x1, y1, x2, y2):
     ax.annotate("", xy=(x2, y2), xytext=(x1, y1), arrowprops=dict(arrowstyle="-|>", color=INK2, lw=0.6))
 
 
+EST = "#0000ff"
+
+
 def fig_prisma(c):
-    fig, ax = plt.subplots(figsize=(6.6, 5.6))
+    """PRISMA 2020 flow. Numbers that still include an estimate for the snowballing reports awaiting extraction are blue."""
+    inc = c["included"] + c["snow_pending_included_est"] + c["round2_included_est"]
+    exc = c["ft_excluded"] + c["snow_pending"] - c["snow_pending_included_est"]
+    est = c["snow_pending"] > 0
+    fig, ax = plt.subplots(figsize=(6.6, 6.0))
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.axis("off")
     L, R, W = 0.0, 0.53, 0.47
-    box(ax, L, 0.86, W, 0.13, f"Records identified (database search)\nOpenAlex n={c['hits_openalex']}; Semantic Scholar "
-        f"n={c['hits_s2']};\narXiv n={c['hits_arxiv']} (raw hits over all string\niterations, overlapping)")
-    box(ax, R, 0.88, W, 0.09, f"Removed before screening:\nduplicates n={c['duplicates']}")
-    box(ax, L, 0.69, W, 0.10, f"Records screened (title/abstract)\nn={c['screened_db']}")
-    box(ax, R, 0.69, W, 0.10, f"Excluded at title/abstract\nn={c['ta_excluded_db']}")
-    box(ax, L, 0.49, W, 0.13, f"Reports assessed in full text\nn={c['ta_forward_db'] + c['other_forward']}\n"
-        f"(database {c['ta_forward_db']}; other methods {c['other_forward']})")
+    box(ax, L, 0.88, W, 0.11, f"Records identified (database search)\nOpenAlex n={c['hits_openalex']}; Semantic Scholar "
+        f"n={c['hits_s2']};\narXiv n={c['hits_arxiv']} (raw hits, overlapping)")
+    box(ax, R, 0.90, W, 0.07, f"Removed before screening:\nduplicates n={c['duplicates']}")
+    box(ax, L, 0.73, W, 0.09, f"Records screened (title/abstract)\nn={c['screened_db']}")
+    box(ax, R, 0.73, W, 0.09, f"Excluded at title/abstract\nn={c['ta_excluded_db']}")
+    box(ax, L, 0.56, W, 0.11, f"Reports sought for retrieval\nn={c['ft_sought']} (database {c['ta_forward_db']}; "
+        f"venue sweep\nand section searches {c['other_forward']}; snowballing {c['snow_forward']})")
+    box(ax, R, 0.58, W, 0.07, f"Reports not retrieved (no full text)\nn={c['ft_not_retrieved']}")
+    box(ax, L, 0.40, W, 0.10, f"Reports assessed for eligibility\nn={c['ft_assessed']}")
     items = list(c["ft_excluded_by"].items())
-    ex1 = ", ".join(f"{k} {v}" for k, v in items[:4])
-    ex2 = ", ".join(f"{k} {v}" for k, v in items[4:9])
-    box(ax, R, 0.44, W, 0.21, f"Excluded at full text n={c['ft_excluded']}\n{ex1}\n{ex2}\n"
-        f"(no open full text, judged on\nabstract: {c['ft_not_retrieved']})")
-    box(ax, R, 0.17, W, 0.24, f"Other methods: venue sweep and section-\nlevel searches n={c['other_identified']} "
-        f"(excluded at\ntitle/abstract {c['other_excluded_ta']}); snowballing (1 back-\nward + 1 forward) n={c['snow_identified']}: "
-        f"forwarded {c['snow_forward']},\nexcluded at full text (stage A) {c['snow_stageA_excluded']},\n"
-        f"not extracted {c['snow_awaiting']}")
-    box(ax, L, 0.24, W, 0.13, f"Studies included\nn={c['included']}\n(database {c['included_db']}; "
-        f"other methods {c['included_other']})", fc="#e6effb")
-    box(ax, L, 0.0, 1.0, 0.13, f"Side lists (not primary studies): context {c['side_context']}, adjacent "
-        f"{c['side_adjacent']}, correctness-only {c['side_correctness']},\nsecondary {c['side_secondary']}.")
-    arrow(ax, L + W / 2, 0.86, L + W / 2, 0.79)
-    arrow(ax, L + W, 0.925, R, 0.925)
-    arrow(ax, L + W / 2, 0.69, L + W / 2, 0.62)
-    arrow(ax, L + W, 0.74, R, 0.74)
-    arrow(ax, L + W / 2, 0.49, L + W / 2, 0.37)
-    arrow(ax, L + W, 0.555, R, 0.555)
-    arrow(ax, R, 0.29, L + W, 0.31)
+    lines = "\n".join(", ".join(f"{k} {v}" for k, v in items[i:i + 4]) for i in range(0, len(items), 4))
+    box(ax, R, 0.30, W, 0.22, "")
+    ax.text(R + W / 2, 0.47, f"Reports excluded n={exc}", ha="center", va="center", fontsize=7,
+            color=EST if est else INK)
+    ax.text(R + W / 2, 0.39, lines + (f"\nsnowballing reports {c['snow_pending'] - c['snow_pending_included_est']}" if est else ""),
+            ha="center", va="center", fontsize=6.5, color=INK, linespacing=1.25)
+    box(ax, R, 0.14, W, 0.12, f"Other methods: venue sweep and section-level\nsearches n={c['other_identified']}; "
+        f"snowballing (1 backward +\n1 forward) n={c['snow_identified']}, forwarded {c['snow_forward']}")
+    box(ax, L, 0.20, W, 0.12, "", fc="#e6effb")
+    ax.text(L + W / 2, 0.28, "Studies included", ha="center", va="center", fontsize=7, color=INK)
+    ax.text(L + W / 2, 0.235, f"n={inc}", ha="center", va="center", fontsize=7, color=EST if est else INK)
+    box(ax, L, 0.0, 1.0, 0.10, f"Side lists (not primary studies): context {c['side_context']}, adjacent "
+        f"{c['side_adjacent']}, correctness-only {c['side_correctness']}, secondary {c['side_secondary']}.")
+    arrow(ax, L + W / 2, 0.88, L + W / 2, 0.82)
+    arrow(ax, L + W, 0.935, R, 0.935)
+    arrow(ax, L + W / 2, 0.73, L + W / 2, 0.67)
+    arrow(ax, L + W, 0.775, R, 0.775)
+    arrow(ax, L + W / 2, 0.56, L + W / 2, 0.50)
+    arrow(ax, L + W, 0.615, R, 0.615)
+    arrow(ax, L + W / 2, 0.40, L + W / 2, 0.32)
+    arrow(ax, L + W, 0.45, R, 0.45)
+    arrow(ax, R, 0.20, L + W, 0.62)
     fig.savefig(FIG / "prisma.pdf", bbox_inches="tight")
     plt.close(fig)
 
@@ -437,8 +491,9 @@ def tex_escape(s):
 def appendix_tables(rows, studies):
     lines = ["{\\scriptsize", "\\begin{longtable}{@{}p{0.07\\linewidth}p{0.37\\linewidth}p{0.05\\linewidth}"
              "p{0.12\\linewidth}p{0.08\\linewidth}p{0.16\\linewidth}@{}}",
-             "\\caption{Included primary studies (provisional; LLM-assisted screening and extraction, human review "
-             "pending). ID = record identifier in \\texttt{sok/slr/extraction.csv}; Src = arXiv ID or DOI.}"
+             "\\caption{Included primary studies (LLM-assisted screening and extraction, reviewed by an author). ID = record "
+             "identifier in the replication package; Targets = targeted dimensions (none: the study targets correctness "
+             "and reports the quality dimensions listed); Src = arXiv ID or DOI.}"
              "\\label{tab:app-studies}\\\\", "\\toprule", "ID & Title & Year & Family & Targets & Src \\\\",
              "\\midrule", "\\endfirsthead", "\\toprule", "ID & Title & Year & Family & Targets & Src \\\\", "\\midrule",
              "\\endhead"]
@@ -447,6 +502,9 @@ def appendix_tables(rows, studies):
         r = s["rows"][0]
         fams = sorted({FAM_LABEL[fam(x["family_v0"])] for x in s["rows"]})
         tg = sorted({DIM_LABEL.get(d, d) for x in s["rows"] for d in split(x["dims_targeted"])})
+        if not tg:
+            ms = sorted({DIM_LABEL.get(d, d) for x in s["rows"] for d in split(x["dims_measured"]) if d in DIM_LABEL})
+            tg = ["none; measures " + "/".join(ms)] if ms else ["none"]
         src = ("arXiv:" + r["arxiv_id"]) if r["arxiv_id"] else (r["doi"] or "")
         src_tex = re.sub(r"([/.\-_:])", lambda m: tex_escape(m.group(1)) + "\\allowbreak{}", src)
         lines.append(f"{rid} & {tex_escape(s['title'])} & {s['year']} & {', '.join(fams)} & {', '.join(tg)} & "
@@ -478,10 +536,13 @@ def counts_tex(c, rows, studies, extra):
         "nHitsOpenAlex": c["hits_openalex"], "nHitsSS": c["hits_s2"], "nHitsArxiv": c["hits_arxiv"],
         "nRecordsIn": c["records_in"], "nDuplicates": c["duplicates"], "nScreened": c["screened_db"],
         "nTaExcluded": c["ta_excluded_db"], "nTaForward": c["ta_forward_db"], "nOtherIdentified": c["other_identified"],
-        "nOtherForward": c["other_forward"], "nFtAssessed": c["ta_forward_db"] + c["other_forward"],
+        "nOtherForward": c["other_forward"],
         "nSnowIdentified": c["snow_identified"], "nSnowForward": c["snow_forward"],
-        "nSnowStageAExcluded": c["snow_stageA_excluded"], "nSnowAwaiting": c["snow_awaiting"],
-        "nFtExcluded": c["ft_excluded"], "nFtAbstractOnly": c["ft_not_retrieved"], "nIncluded": c["included"],
+        "nFtSought": c["ft_sought"], "nFtNotRetrieved": c["ft_not_retrieved"], "nFtAssessedRetrieved": c["ft_assessed"],
+        "nSnowIncluded": c["included_snow"] + c["snow_pending_included_est"],
+        "nFtExcluded": c["ft_excluded"] + c["snow_pending"] - c["snow_pending_included_est"],
+        "nIncluded": c["included"] + c["snow_pending_included_est"] + c["round2_included_est"],
+        **{f"nRtwo{k.title().replace('_', '')}": v for k, v in c["round2"].items() if not k.startswith("_")},
         "nIncludedDb": c["included_db"], "nIncludedOther": c["included_other"], "nTechRows": len(rows),
         "nSideContext": c["side_context"], "nSideAdjacent": c["side_adjacent"],
         "nSideCorrectness": c["side_correctness"], "nSideSecondary": c["side_secondary"],
@@ -492,6 +553,8 @@ def counts_tex(c, rows, studies, extra):
         "nDimSec": dims["security"],
         "nNonTargetedMeasured": extra["tot_other"], "nCorrectnessMeasured": extra["tot_corr"],
         "nLowConfidence": sum(1 for s in studies.values() if s["row0"]["confidence"] == "low"),
+        "nPreprint": sum(1 for s in studies.values() if not peer_reviewed(s)),
+        "nPeerReviewed": sum(1 for s in studies.values() if peer_reviewed(s)),
     }
     tag = {"prompting": "Prompting", "feedback-loop": "Feedback", "self-refinement": "SelfRefine",
            "multi-agent": "MultiAgent", "retrieval": "Retrieval", "decoding": "Decoding", "training": "Training",
@@ -499,20 +562,24 @@ def counts_tex(c, rows, studies, extra):
     for f, (n, o, cm) in extra.get("nt", {}).items():
         m[f"nNonTarg{tag[f]}"] = o
         m[f"nCorr{tag[f]}"] = cm
-    lines = ["% GENERATED by src/slr/synth.py. Counts are provisional (human calibration pending, B-4).",
-             "% Use \\cnt{name} in text; it renders as N in drafts and is an error in the submission build."]
+    pending = c["snow_pending"] > 0
+    fixed = {"nHitsOpenAlex", "nHitsSS", "nHitsArxiv", "nRecordsIn", "nDuplicates", "nScreened", "nTaExcluded", "nTaForward",
+             "nOtherIdentified", "nOtherForward", "nSnowIdentified", "nSnowForward", "nFtSought", "nFtNotRetrieved",
+             "nFtAssessedRetrieved"}
+    lines = ["% GENERATED by src/slr/synth.py. Use \\cnt{name} in text. While snowballing reports await extraction,",
+             "% counts that depend on the included set include an estimate and render blue."]
     for k, v in m.items():
         lines.append(f"\\expandafter\\def\\csname cnt@{k}\\endcsname{{{v}}}")
-    # Counts are real but provisional (human calibration B-4 pending, disclosed in the text): plain numbers
-    # in drafts, a hard error in the submission build until the calibration is done.
-    lines.append("\\makeatletter\\ifsubmission\\newcommand{\\cnt}[1]{\\PackageError{sok}{Provisional count #1}{}}"
-                 "\\else\\newcommand{\\cnt}[1]{\\@nameuse{cnt@#1}}\\fi"
-                 "\\newcommand{\\cntraw}[1]{\\@nameuse{cnt@#1}}\\makeatother")
+        if pending and k not in fixed:
+            lines.append(f"\\expandafter\\def\\csname cntblue@{k}\\endcsname{{}}")
+    lines.append("\\makeatletter\\newcommand{\\cnt}[1]{\\ifcsname cntblue@#1\\endcsname\\textcolor{blue}{\\@nameuse{cnt@#1}}"
+                 "\\else\\@nameuse{cnt@#1}\\fi}\\newcommand{\\cntraw}[1]{\\@nameuse{cnt@#1}}\\makeatother")
     (GEN / "counts.tex").write_text("\n".join(lines) + "\n")
     return m
 
 
 def main() -> int:
+    global GEN
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", required=True)
     a = ap.parse_args()
@@ -529,9 +596,16 @@ def main() -> int:
     qa = qa_table(rows, studies)
     appendix_tables(rows, studies)
     m = counts_tex(c, rows, studies, {"tot_other": tot_other, "tot_corr": tot_corr, "nt": nt})
+    # Sensitivity: the synthesis tables re-counted on peer-reviewed studies only -> generated/peer/
+    full, GEN = GEN, GEN / "peer"
+    GEN.mkdir(parents=True, exist_ok=True)
+    peer = {k: s for k, s in studies.items() if peer_reviewed(s)}
+    prows = [r for r in rows if r["rid"] in peer]
+    sens = {"effects": effect_table(prows), "nontargeted": nontargeted_table(prows, peer)[:2], "qa": qa_table(prows, peer)}
+    GEN = full
     summary = {"prisma": c, "counts": m, "effects": eff, "nontargeted": nt, "qa": qa,
                "map_family": dict(zip(FAMILIES, M1)), "map_signal": dict(zip(SIGNALS, M2)),
-               "per_year": per, "benchmarks": bench}
+               "per_year": per, "benchmarks": bench, "peer_reviewed_only": sens}
     (SLR / "runs" / a.run / "synthesis_summary.json").write_text(json.dumps(summary, indent=1))
     print(json.dumps({"prisma": c, "counts": m}, indent=1))
     return 0

@@ -1,4 +1,4 @@
-"""E7 decoding family (H49-H58) on the local Gemma 4 31B IT weights: tree search, constrained and co-decoding,
+"""E7 decoding family (H47-H56) on the local Gemma 4 31B IT weights: tree search, constrained and co-decoding,
 activation steering and reranking. Every locally generated sequence or rollout is charged as one call."""
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ import math
 import random
 import re
 import subprocess
-import sys
 import tempfile
+from functools import lru_cache
 from pathlib import Path
 
 from ..llm import current_scope, scope
@@ -64,12 +64,6 @@ def _resp_logprob(lm, ids, n0: int) -> float:
     return lp.mean().item()
 
 
-def _resid_means(lm, ids, n0: int):
-    """Response-token mean of the residual stream after every decoder layer: (L, d)."""
-    hs = lm.forward(ids, output_hidden_states=True).hidden_states
-    return lm.torch.stack([h[0, n0:].float().mean(0).cpu() for h in hs[1:]])
-
-
 def _head_dims(lm) -> list[tuple[int, int]]:
     out = []
     for layer in lm.layers():
@@ -110,28 +104,6 @@ def _knockout(lm, layer: int, head: int, hd: int, n0: int):
         yield
     finally:
         h.remove()
-
-
-@contextlib.contextmanager
-def _patch_direction(lm, layer: int, U, target):
-    """Sets the residual-stream component along each orthonormal row of U to its secure-class mean (all positions)."""
-    def hook(_m, _i, out):
-        h = out[0] if isinstance(out, tuple) else out
-        u = U.to(h.device, h.dtype)
-        coeff = h @ u.T
-        h += (target.to(h.device, h.dtype) - coeff) @ u
-        return out
-    handle = lm.layers()[layer].register_forward_hook(hook)
-    try:
-        yield
-    finally:
-        handle.remove()
-
-
-def _orthonormal(vectors):
-    import torch
-    q, _ = torch.linalg.qr(torch.stack(vectors).float().T)
-    return q.T * torch.sign(torch.einsum("kd,kd->k", q.T, torch.stack(vectors).float())).unsqueeze(1)
 
 
 def _strip_fence(text: str) -> str:
@@ -175,62 +147,6 @@ def _sigma_vector(pos, neg):
     return unit * (torch.cat([pos, neg]) @ unit).std()
 
 
-def _lora_train(base: str, rows: list[dict], out: Path, lora: dict, lr: float, epochs: int, accum: int = 16) -> Path:
-    """LoRA fine-tuning with a per-token likelihood mask ('lm') and unlikelihood mask ('ul'); saves the merged model."""
-    import torch
-    from peft import LoraConfig, get_peft_model
-    from transformers import AutoModelForCausalLM, AutoTokenizer
-    model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map="auto")
-    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
-    model.enable_input_require_grads()
-    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", **lora))
-    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=lr)
-    dev = next(model.parameters()).device
-    rng = random.Random(0)
-    model.train()
-    for _ in range(epochs):
-        rng.shuffle(rows)
-        for i, r in enumerate(rows):
-            ids = torch.tensor([r["ids"]], device=dev)
-            lp = torch.log_softmax(model(input_ids=ids).logits[0, :-1].float(), -1)
-            lp = lp.gather(1, ids[0, 1:, None])[:, 0]
-            lm_w = torch.tensor(r["lm"][1:], device=dev)
-            ul_w = torch.tensor(r["ul"][1:], device=dev)
-            loss = lp.new_zeros(())
-            if lm_w.sum() > 0:
-                loss = loss - (lp * lm_w).sum() / lm_w.sum()
-            if ul_w.sum() > 0:
-                loss = loss - (torch.log1p(-lp.exp().clamp(max=1 - 1e-6)) * ul_w).sum() / ul_w.sum()
-            (loss / accum).backward()
-            if (i + 1) % accum == 0 or i + 1 == len(rows):
-                opt.step()
-                opt.zero_grad()
-    merged = model.merge_and_unload()
-    merged.save_pretrained(out)
-    AutoTokenizer.from_pretrained(base).save_pretrained(out)
-    return out
-
-
-def _masked_row(tok, user: str, response: str, spans: list[tuple[int, int]] | None, offset: int, kind: str) -> dict:
-    """Tokenizes a one-turn chat. kind: 'all' (loss on the whole response), 'lm' or 'ul' (only on tokens overlapping
-    spans, which are character ranges of the code starting at `offset` inside the response)."""
-    response = response.strip()
-    text = tok.apply_chat_template([{"role": "user", "content": user}, {"role": "assistant", "content": response}],
-                                   tokenize=False)
-    r0 = text.rindex(response)
-    enc = tok(text, add_special_tokens=False, return_offsets_mapping=True)
-    lm, ul = [], []
-    for s, e in enc["offset_mapping"]:
-        in_resp = s >= r0
-        if kind == "all":
-            hit = in_resp
-        else:
-            hit = in_resp and any(s < r0 + offset + ce and e > r0 + offset + cs for cs, ce in spans or [])
-        lm.append(1.0 if hit and kind in ("all", "lm") else 0.0)
-        ul.append(1.0 if hit and kind == "ul" else 0.0)
-    return {"ids": enc["input_ids"], "lm": lm, "ul": ul}
-
-
 PGTD_WIDTH = 3
 PGTD_UCB_C = 4.0
 PGTD_UCB_BASE = 10.0
@@ -259,7 +175,7 @@ class _Node:
 class PGTD(H2HTechnique):
     """MCTS over tokens (P-UCB, top-k children, greedy rollouts) whose reward is the public-test pass rate plus the
     code-length penalty of Appendix C; the program with the best reward is returned."""
-    hid, name, family, target = "H49", "Planning-Guided Transformer Decoding", "decoding", ("RM",)
+    hid, name, family, target = "H47", "Planning-Guided Transformer Decoding", "decoding", ("RM",)
     code_url = "https://github.com/shunzh/Code-AI-Tree-Search"
     whitebox = True
 
@@ -522,7 +438,7 @@ def _beam_sample(lm, prompt, pos: list[str], neg: list[str], beams: int, max_new
 class ConstrainedBeamSampling(H2HTechnique):
     """B=25 beam sampling with the CodeGuard+ positive/negative key phrases of the task's CWE; an output that misses a
     constraint is redrawn, up to the published 10 rounds."""
-    hid, name, family, target = "H50", "Constrained Beam Sampling", "decoding", ("SEC",)
+    hid, name, family, target = "H48", "Constrained Beam Sampling", "decoding", ("SEC",)
     code_url = "https://github.com/CodeGuardPlus/CodeGuardPlus"
     whitebox = True
 
@@ -537,120 +453,6 @@ class ConstrainedBeamSampling(H2HTechnique):
             if _check_constraints(code, pos, neg):
                 break
         return code
-
-
-EXPERT_HF = "google/gemma-4-E2B-it"
-EXPERT_LORA = {"r": 16, "lora_alpha": 32, "lora_dropout": 0.05, "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"]}
-EXPERT_LR, EXPERT_EPOCHS = 1e-4, 2
-DISTILL_TASKS, DISTILL_SAMPLES = 2000, 4
-COSEC_A, COSEC_T, COSEC_TOP_P = 0.3, 0.6, 0.95
-SVEN = "https://raw.githubusercontent.com/eth-sri/sven/master/data_train_val/train/{}.jsonl"
-SVEN_CWES = ["cwe-022", "cwe-078", "cwe-079", "cwe-089", "cwe-125", "cwe-190", "cwe-416", "cwe-476", "cwe-787"]
-EXT_LANG = {".py": "python", ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp", ".cxx": "cpp", ".hpp": "cpp"}
-SECURITY_USER = "Write the {lang} function `{name}` of the file {file}."
-
-
-def _security_rows(tok) -> list[dict]:
-    """SVEN training pairs: likelihood on the lines the fix added, unlikelihood on the lines it deleted."""
-    rows = []
-    for cwe in SVEN_CWES:
-        for d in _jsonl(SVEN.format(cwe)):
-            lang = EXT_LANG.get(Path(d["file_name"]).suffix, "c")
-            user = SECURITY_USER.format(lang=lang, name=d["func_name"], file=d["file_name"])
-            off = len(f"```{lang}\n")
-            for code, key, kind in ((d["func_src_after"], "added", "lm"), (d["func_src_before"], "deleted", "ul")):
-                spans = [(c["char_start"], c["char_end"]) for c in d["line_changes"][key]]
-                if spans:
-                    rows.append(_masked_row(tok, user, f"```{lang}\n{code}\n```", spans, off, kind))
-    return rows
-
-
-def _co_decode(base, expert, ids, max_new: int = MAX_NEW) -> list[int]:
-    """The expert proposes x ~ S_t; it is kept iff a < min(1, B_t(x)/S_t(x)), otherwise x ~ B_t."""
-    torch = base.torch
-
-    def dist(logits):
-        p = torch.softmax(logits.float() / COSEC_T, -1)
-        sp, si = torch.sort(p, descending=True)
-        sp[(sp.cumsum(-1) - sp) > COSEC_TOP_P] = 0
-        return torch.zeros_like(p).scatter(0, si, sp / sp.sum())
-
-    out_b, out_e = base.forward(ids), expert.forward(ids.to(expert.device))
-    pb_, pe_ = out_b.past_key_values, out_e.past_key_values
-    lb, le = out_b.logits[0, -1], out_e.logits[0, -1]
-    toks, eos = [], set(base.eos_ids)
-    for _ in range(max_new):
-        V = min(lb.shape[-1], le.shape[-1])
-        B, S = dist(lb[:V]), dist(le[:V].to(lb.device))
-        x = int(torch.multinomial(S, 1))
-        if not COSEC_A < min(1.0, (B[x] / S[x]).item()):
-            x = int(torch.multinomial(B, 1))
-        toks.append(x)
-        if x in eos:
-            break
-        nxt = torch.tensor([[x]], device=base.device)
-        out_b, out_e = base.forward(nxt, pb_), expert.forward(nxt.to(expert.device), pe_)
-        pb_, pe_ = out_b.past_key_values, out_e.past_key_values
-        lb, le = out_b.logits[0, -1], out_e.logits[0, -1]
-    return toks
-
-
-class _CoSecBase(H2HTechnique):
-    family, target = "decoding", ("SEC",)
-    whitebox = trains = True
-    distill = False
-
-    def prepare(self, ctx: Ctx) -> None:
-        from transformers import AutoTokenizer
-        out = ctx.dir(self.hid)
-        if (out / "expert" / "config.json").exists():
-            return
-        tok = AutoTokenizer.from_pretrained(EXPERT_HF)
-        if tok.get_vocab() != AutoTokenizer.from_pretrained(ctx.hf_id).get_vocab():
-            raise ValueError(f"{EXPERT_HF} does not share the target's vocabulary")
-        base = EXPERT_HF
-        if self.distill:
-            base = str(_lora_train(EXPERT_HF, self._distill_rows(ctx, tok), out / "aligned", EXPERT_LORA, EXPERT_LR,
-                                   EXPERT_EPOCHS))
-        _lora_train(base, _security_rows(tok), out / "expert", EXPERT_LORA, EXPERT_LR, EXPERT_EPOCHS)
-
-    def _distill_rows(self, ctx: Ctx, tok) -> list[dict]:
-        """Functional-correctness alignment: the target's own test-passing solutions on training tasks."""
-        path, rows = ctx.dir(self.hid) / "distill.jsonl", []
-        if not path.exists():
-            with open(path, "w") as f:
-                for t in ctx.train_tasks[:DISTILL_TASKS]:
-                    with scope(t.id, f"{self.hid}-distill", None):
-                        texts = ctx.llm.sample(C.messages(t), DISTILL_SAMPLES)
-                    for x in texts:
-                        k, m = passes(t, C.code_of(t, x), t.hidden_tests)
-                        if m and k == m:
-                            f.write(json.dumps({"user": C.messages(t)[-1]["content"], "response": x}) + "\n")
-                            break
-        for l in path.read_text().splitlines():
-            d = json.loads(l)
-            rows.append(_masked_row(tok, d["user"], d["response"], None, 0, "all"))
-        return rows
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        from ..whitebox import local_lm
-        base, expert = ctx.lm(), local_lm(str(ctx.dir(self.hid) / "expert"))
-        ctx.charge(1, "co-decode")
-        return ctx.keep(_decode_code(base, task, _co_decode(base, expert, _prompt(base, task))))
-
-
-@h2h
-class CoSec(_CoSecBase):
-    """Smallest same-family model security-trained on SVEN, co-decoding with the target."""
-    hid, name = "H51", "CoSec"
-
-
-@h2h
-class CoSecPlus(_CoSecBase):
-    """CoSec with the security base first aligned to the target's correct solutions by distillation."""
-    hid, name = "H53", "CoSec+"
-    distill = True
-    data_rebuilt = True
 
 
 RPG_LAMBDA, RPG_EOS_LAMBDA = 0.9, 0.8
@@ -777,7 +579,7 @@ class _RPGProcessor:
 @h2h
 class RPG(H2HTechnique):
     """Greedy decoding with RPG's grammar-based repetition penalty."""
-    hid, name, family, target = "H52", "RPG", "decoding", ("RM",)
+    hid, name, family, target = "H49", "RPG", "decoding", ("RM",)
     code_url = "https://github.com/LYC127/RPG"
     whitebox = True
 
@@ -795,7 +597,7 @@ SURPRISAL_K, SURPRISAL_T, SURPRISAL_TOP = 64, 0.25, 3
 class SurprisalSelection(H2HTechnique):
     """K samples; among those passing the public examples, the 3 with the highest surprisal (lowest sequence
     log-probability) are timed and the fastest is kept (surprisal-guided-top3)."""
-    hid, name, family, target = "H54", "Surprisal-guided Best-of-N selection", "decoding", ("EFF",)
+    hid, name, family, target = "H50", "Surprisal-guided Best-of-N selection", "decoding", ("EFF",)
 
     def solve(self, task: Task, ctx: Ctx) -> str:
         k = min(SURPRISAL_K, current_scope().budget.left)
@@ -919,7 +721,7 @@ def _judge_correct(llm, question: str, code: str) -> bool:
 class DuoSteer(H2HTechnique):
     """Safety and correctness mean-difference vectors (sigma-scaled) added at their causally ranked attention heads;
     per-CWE configuration from the held-out protocol, a pooled direction for tasks outside the five CWEs."""
-    hid, name, family, target = "H55", "DuoSteer", "decoding", ("SEC",)
+    hid, name, family, target = "H51", "DuoSteer", "decoding", ("SEC",)
     code_url = "https://github.com/Ziyu-Yao-NLP-Lab/DuoSteer-Safe-Correct-Code-Gen"
     whitebox = trains = True
     data_rebuilt = True
@@ -1109,7 +911,6 @@ COF_SHOT_USER = """Solve the following problem in Python 3. Read from standard i
 Given n integers, print the sum of the even ones and the count of the odd ones, separated by a space."""
 
 COF_SHOT_ANSWER = '''```python
-import sys
 
 
 def main():
@@ -1205,7 +1006,7 @@ class _PRM:
 class FunPRM(H2HTechnique):
     """Chain-of-Function sampling, N=8, selected by a function-as-step PRM whose Monte Carlo step labels are corrected
     by meta-learning on unit-test outcomes."""
-    hid, name, family, target = "H56", "FunPRM", "decoding", ("RM",)
+    hid, name, family, target = "H52", "FunPRM", "decoding", ("RM",)
     trains = True
     data_rebuilt = True
 
@@ -1340,98 +1141,6 @@ class FunPRM(H2HTechnique):
         return ctx.keep(codes[max(scored)[1]])
 
 
-THEA_DATA = "CyberNative/Code_Vulnerability_Security_DPO"
-THEA_MIN_PAIRS = 10
-ICD_SCRIPT = """
-import asyncio, json, sys
-from codeshield.cs import CodeShield
-
-async def scan(codes):
-    out = []
-    for c in codes:
-        r = await CodeShield.scan_code(c)
-        out.append(sorted({str(i.cwe_id) for i in (r.issues_found or [])}))
-    return out
-
-print(json.dumps(asyncio.run(scan(json.loads(sys.stdin.read())))))
-"""
-ICD_CMD = [sys.executable, "-c", ICD_SCRIPT]
-CN_LANG = {"python": "python", "c++": "cpp", "java": "java", "javascript": "javascript", "ruby": "ruby", "go": "go",
-           "php": "php", "c#": "csharp", "kotlin": "kotlin", "swift": "swift", "fortran": "fortran"}
-
-
-def _icd_cwes(codes: list[str]) -> list[set[str]]:
-    """CWE numbers flagged in each code by CyberSecEval's Insecure Code Detector (CodeShield)."""
-    p = subprocess.run(ICD_CMD, input=json.dumps(codes), capture_output=True, text=True, check=True)
-    return [{re.sub(r"\D", "", c).lstrip("0") for c in cs} - {""} for cs in json.loads(p.stdout.strip().splitlines()[-1])]
-
-
-@h2h
-class Thea(H2HTechnique):
-    """Per-CWE vulnerability directions in the residual stream (secure vs vulnerable code labelled by the CyberSecEval
-    detector), each located at the layer where patching it most raises the secure-over-vulnerable likelihood margin,
-    disentangled by orthonormalisation; at inference the model's access along them is set to the secure mean."""
-    hid, name, family, target = "H57", "Thea", "decoding", ("SEC",)
-    whitebox = trains = True
-    data_rebuilt = True
-
-    def prepare(self, ctx: Ctx) -> None:
-        import torch
-        from datasets import load_dataset
-        path = ctx.dir(self.hid) / "directions.pt"
-        if path.exists():
-            return
-        lm = ctx.lm()
-        data = list(load_dataset(THEA_DATA, split="train"))
-        flags = _icd_cwes([_strip_fence(r[side]) for side in ("chosen", "rejected") for r in data])
-        by_cwe: dict[str, list[dict]] = {}
-        for r, good, bad in zip(data, flags[:len(data)], flags[len(data):]):
-            for cwe in bad - good:
-                by_cwe.setdefault(cwe, []).append(r)
-        located = {}
-        for cwe, rows in by_cwe.items():
-            if len(rows) < THEA_MIN_PAIRS:
-                continue
-            train, val = _split(rows, key=lambda r: r["question"])
-            if not train:
-                continue
-            ids = lambda r, side: _chat_ids(lm, [{"role": "user", "content": r["question"]}], r[side])
-            good = torch.stack([_resid_means(lm, *ids(r, "chosen")) for r in train])
-            bad = torch.stack([_resid_means(lm, *ids(r, "rejected")) for r in train])
-            d = good.mean(0) - bad.mean(0)
-            u = d / d.norm(dim=-1, keepdim=True).clamp_min(1e-8)
-            held = [(ids(r, "chosen"), ids(r, "rejected")) for r in val]
-            margin = lambda: sum(_resp_logprob(lm, *g) - _resp_logprob(lm, *b) for g, b in held) / len(held)
-            base, gains = margin(), []
-            for layer in range(u.shape[0]):
-                target = (good[:, layer] @ u[layer]).mean()
-                with _patch_direction(lm, layer, u[layer][None], target[None]):
-                    gains.append(margin() - base)
-            layer = max(range(len(gains)), key=gains.__getitem__)
-            located[cwe] = {"layer": layer, "u": u[layer], "secure_mean": good[:, layer].mean(0), "n": len(rows),
-                            "langs": sorted({CN_LANG.get(r["lang"], r["lang"]) for r in rows}), "gain": gains[layer]}
-        torch.save(located, path)
-
-    def solve(self, task: Task, ctx: Ctx) -> str:
-        import torch
-        lm = ctx.lm()
-        if not hasattr(self, "_dirs"):
-            self._dirs = torch.load(ctx.dir(self.hid) / "directions.pt", weights_only=False)
-        chosen = [c for c in self._dirs if c in _task_cwes(task)]
-        chosen = chosen or [c for c, d in self._dirs.items() if task.language in d["langs"]] or list(self._dirs)
-        by_layer: dict[int, list[str]] = {}
-        for c in sorted(chosen, key=lambda c: -self._dirs[c]["n"]):
-            by_layer.setdefault(self._dirs[c]["layer"], []).append(c)
-        ctx.charge(1, "intervened")
-        with contextlib.ExitStack() as stack:
-            for layer, cs in by_layer.items():
-                U = _orthonormal([self._dirs[c]["u"] for c in cs])
-                target = torch.stack([self._dirs[c]["secure_mean"] for c in cs]).float() @ U.T
-                stack.enter_context(_patch_direction(lm, layer, U, target.diagonal()))
-            new, _ = _generate(lm, _prompt(lm, task))
-        return ctx.keep(_decode_code(lm, task, new))
-
-
 SCS_DATA = "CyberNative/Code_Vulnerability_Security_DPO"
 SCS_N, SCS_CHECK = 50, 100
 SCS_ALPHA, SCS_T, SCS_TOP_P = 1.0, 0.4, 0.95
@@ -1454,7 +1163,7 @@ Which snippet do you choose, (A) or (B)?"""
 class SCSCode(H2HTechnique):
     """Secure-code concept vector: difference in means of the residual stream at the answer token of two-choice prompts
     (secure vs insecure answer), added with alpha=1 at the layer where it flips the most choices, at every position."""
-    hid, name, family, target = "H58", "SCS-Code", "decoding", ("SEC",)
+    hid, name, family, target = "H53", "SCS-Code", "decoding", ("SEC",)
     code_url = "https://anonymous.4open.science/r/codellm-steering-BED7"
     whitebox = trains = True
 
@@ -1503,3 +1212,495 @@ class SCSCode(H2HTechnique):
         with lm.steer(self._concept["layer"], self._concept["v"], SCS_ALPHA):
             new, _ = _generate(lm, _prompt(lm, task), temperature=SCS_T, top_p=SCS_TOP_P)
         return ctx.keep(_decode_code(lm, task, new))
+
+
+MOC_DATA = "https://raw.githubusercontent.com/viviable/MoC/main/code/data/sven/train/{}.jsonl"
+MOC_CWES = ["cwe-022", "cwe-078", "cwe-079", "cwe-089", "cwe-125", "cwe-190", "cwe-416", "cwe-476", "cwe-787"]
+MOC_CWE_TEXT = {
+    "cwe-022": 'CWE-022, commonly called "Path Traversal," is a vulnerability where an application uses external input to '
+               'construct a pathname intended to identify a resource, but does not properly neutralize special elements '
+               'that could resolve outside the intended directory.',
+    "cwe-078": 'CWE-078, "OS Command Injection," is a vulnerability where software constructs an OS command from external '
+               'input without neutralizing meta characters that could modify the intended command.',
+    "cwe-079": 'CWE-079, "Cross-site Scripting (XSS)," is a vulnerability where software includes user-controllable input in '
+               'web output without properly escaping characters that can be interpreted as active content by a browser.',
+    "cwe-089": 'CWE-089, "SQL Injection," is a vulnerability where software constructs a SQL query from user-controllable '
+               'input without properly neutralizing elements that can alter the intended query.',
+    "cwe-125": 'CWE-125, "Out-of-bounds Read," is a vulnerability where software reads data from a buffer using an index or '
+               'pointer that references a memory location outside of the bounds of the buffer.',
+    "cwe-190": 'CWE-190, "Integer Overflow or Wraparound," is a vulnerability where an arithmetic operation produces a value '
+               'too large to be stored in the destination integer type, causing the value to wrap around.',
+    "cwe-416": 'CWE-416, "Use After Free," is a vulnerability where memory is referenced after it has been freed, which can '
+               'cause undefined behavior or arbitrary code execution.',
+    "cwe-476": 'CWE-476, "NULL Pointer Dereference," is a vulnerability where the software dereferences a pointer that it '
+               'expects to be valid, but is NULL, typically causing a crash.',
+    "cwe-787": 'CWE-787, "Out-of-bounds Write," is a vulnerability where software writes data past the end, or before the '
+               'beginning, of the intended buffer.',
+}
+MOC_SHOTS, MOC_SEED, MOC_NET_SEED, MOC_MAX_LEN = 2, 42, 0, 4096
+MOC_LAYER = -1
+MOC_METHOD = "t"
+MOC_VAL, MOC_PCA_DIM = 0.2, 64
+MOC_PROBE_EPOCHS, MOC_PROBE_BATCH, MOC_PROBE_LR, MOC_PROBE_MOMENTUM, MOC_PROBE_WD = 150, 64, 5e-4, 0.9, 1e-4
+MOC_NET_HIDDEN, MOC_NET_DROPOUT, MOC_NET_EPOCHS, MOC_NET_BATCH, MOC_NET_LR, MOC_NET_WD = 1024, 0.1, 200, 32, 1e-3, 1e-3
+MOC_BETA_MSE = MOC_BETA_CE = MOC_BETA_KL = 1.0
+MOC_DECAY = 0.05
+
+
+def _moc_prompt(cwe: str, code: str, shots: list[tuple[str, bool]]) -> str:
+    parts = [f"// CWE description\n{MOC_CWE_TEXT[cwe]}"]
+    if shots:
+        parts.append("// Few-shot examples\nFor example, " + "; ".join(
+            f"```\n{c}\n``` is {'vulnerable' if v else 'not vulnerable'}" for c, v in shots) + ".")
+    parts += ["// Prompt\nIs the subsequent code susceptible to the specified vulnerability?",
+              f"// Test code\n```\n{code}\n```", "Answer the question with simply yes or no."]
+    return "\n".join(parts)
+
+
+def _moc_span(offsets: list, text: str, code: str, changes: dict) -> tuple[int, int]:
+    """MoC find_change_token_span: tokens covering the changed lines ('added', else 'deleted') of the test code."""
+    T = len(offsets)
+    c0 = text.find(code)
+    if c0 < 0:
+        return T - 1, T
+    spans = changes.get("added") or changes.get("deleted") or []
+    a = c0 + min(s["char_start"] for s in spans) if spans else c0
+    b = c0 + max(s["char_end"] for s in spans) if spans else c0 + len(code)
+    m = next((i for i, (_, e) in enumerate(offsets) if e > a), T - 1)
+    n = next((i for i, (s, _) in enumerate(offsets) if s >= b), T)
+    return m, n if n > m else min(m + 1, T)
+
+
+@contextlib.contextmanager
+def _capture_block(lm, layer: int):
+    store = {}
+
+    def hook(_m, _i, out):
+        store["h"] = (out[0] if isinstance(out, tuple) else out).detach()
+    h = lm.layers()[layer].register_forward_hook(hook)
+    try:
+        yield store
+    finally:
+        h.remove()
+
+
+def _moc_logits(p: dict, s):
+    if p["comps"] is not None:
+        s = (s - p["mean"]) @ p["comps"].T
+    return s @ p["W"].T + p["b"]
+
+
+def _moc_probe(X, y, pca_dim: int) -> tuple[dict, float]:
+    """Two-class linear probe (1 = secure), optional PCA, standardized inputs folded into W and b; best validation accuracy."""
+    import torch
+    from sklearn.model_selection import train_test_split
+    tr, va = train_test_split(list(range(len(y))), test_size=MOC_VAL, random_state=MOC_SEED, stratify=y.tolist())
+    Xtr, Xva, ytr, yva = X[tr], X[va], y[tr], y[va]
+    mean = comps = None
+    if pca_dim:
+        mean = Xtr.mean(0, keepdim=True)
+        comps = torch.linalg.svd(Xtr - mean, full_matrices=False)[2][:pca_dim]
+        Xtr, Xva = (Xtr - mean) @ comps.T, (Xva - mean) @ comps.T
+    mu, sd = Xtr.mean(0), Xtr.std(0).clamp_min(1e-6)
+    lin = torch.nn.Linear(Xtr.shape[1], 2)
+    opt = torch.optim.SGD(lin.parameters(), lr=MOC_PROBE_LR, momentum=MOC_PROBE_MOMENTUM, weight_decay=MOC_PROBE_WD)
+    best, state = -1.0, None
+    for _ in range(MOC_PROBE_EPOCHS):
+        perm = torch.randperm(len(Xtr))
+        for s in range(0, len(Xtr), MOC_PROBE_BATCH):
+            i = perm[s:s + MOC_PROBE_BATCH]
+            loss = torch.nn.functional.cross_entropy(lin((Xtr[i] - mu) / sd), ytr[i])
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+        with torch.no_grad():
+            acc = (lin((Xva - mu) / sd).argmax(-1) == yva).float().mean().item()
+        if acc > best:
+            best, state = acc, {k: v.detach().clone() for k, v in lin.state_dict().items()}
+    W = state["weight"] / sd
+    return {"W": W, "b": state["bias"] - W @ mu, "mean": mean, "comps": comps}, best
+
+
+def _moc_net(dim: int):
+    import torch
+    nn, H, p = torch.nn, MOC_NET_HIDDEN, MOC_NET_DROPOUT
+    return nn.Sequential(nn.Linear(dim, H), nn.LayerNorm(H), nn.GELU(), nn.Dropout(p),
+                         nn.Linear(H, H), nn.LayerNorm(H), nn.GELU(), nn.Dropout(p), nn.Linear(H, dim))
+
+
+@h2h
+class MoC(H2HTechnique):
+    """Per-CWE linear probes on the last block (span-mean states of SVEN pairs in the few-shot detection prompt) and
+    per-CWE corrections; while decoding, each correction is added to the last position only when its probe flags the
+    state as vulnerable, scaled by exp(-0.05 t)."""
+    hid, name, family, target = "H54", "MoC", "decoding", ("SEC",)
+    code_url = "https://github.com/viviable/MoC"
+    whitebox = trains = True
+
+    def prepare(self, ctx: Ctx) -> None:
+        import torch
+        out = ctx.dir(self.hid)
+        if (out / "moc.pt").exists():
+            return
+        if not (out / "reps.pt").exists():
+            torch.save(self._reps(ctx.lm()), out / "reps.pt")
+        reps = torch.load(out / "reps.pt")
+        art = {}
+        for cwe, (sec, vul) in reps.items():
+            torch.manual_seed(MOC_SEED)
+            X, y = torch.cat([sec, vul]), torch.cat([torch.ones(len(sec)), torch.zeros(len(vul))]).long()
+            probe, acc = _moc_probe(X, y, MOC_PCA_DIM if MOC_METHOD == "r" else 0)
+            art[cwe] = {"probe": probe, "val_acc": acc, **self._correction(probe, sec, vul)}
+        torch.save(art, out / "moc.pt")
+
+    @staticmethod
+    def _reps(lm) -> dict:
+        """Span-mean output of the steered block for each secure (func_src_after) and vulnerable (func_src_before) code."""
+        import torch
+        reps = {}
+        for cwe in MOC_CWES:
+            recs, sec, vul = _jsonl(MOC_DATA.format(cwe)), [], []
+            for i, r in enumerate(recs):
+                rng = random.Random(MOC_SEED + i)
+                shots = []
+                for j in rng.sample([j for j in range(len(recs)) if j != i], min(MOC_SHOTS, len(recs) - 1)):
+                    shots += [(recs[j]["func_src_before"], True), (recs[j]["func_src_after"], False)]
+                rng.shuffle(shots)
+                for code, store in ((r["func_src_after"], sec), (r["func_src_before"], vul)):
+                    text = _moc_prompt(cwe, code, shots)
+                    enc = lm.tok(text, truncation=True, max_length=MOC_MAX_LEN, return_offsets_mapping=True,
+                                 return_tensors="pt")
+                    m, n = _moc_span(enc["offset_mapping"][0].tolist(), text, code, r.get("line_changes", {}))
+                    with _capture_block(lm, MOC_LAYER) as st:
+                        lm.forward(enc["input_ids"].to(lm.device))
+                    store.append(st["h"][0, m:n].float().mean(0).cpu())
+            reps[cwe] = (torch.stack(sec), torch.stack(vul))
+        return reps
+
+    @staticmethod
+    def _correction(probe: dict, sec, vul) -> dict:
+        """g: group mean difference, n: probe normal, r: PCA normal projected back, t: dynamic network."""
+        import torch
+        F = torch.nn.functional
+        if MOC_METHOD == "g":
+            return {"delta": sec.mean(0) - vul.mean(0)}
+        if MOC_METHOD == "n":
+            return {"delta": probe["W"][1] - probe["W"][0]}
+        if MOC_METHOD == "r":
+            back = probe["W"] @ probe["comps"]
+            return {"delta": back[1] - back[0] + sec.mean(0) - vul.mean(0)}
+        torch.manual_seed(MOC_NET_SEED)
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+        p = {k: v.to(dev) if v is not None else None for k, v in probe.items()}
+        sec, vul = sec.to(dev), vul.to(dev)
+        net = _moc_net(sec.shape[1]).to(dev)
+        opt = torch.optim.Adam(net.parameters(), lr=MOC_NET_LR, weight_decay=MOC_NET_WD)
+        best, state = float("inf"), None
+        for _ in range(MOC_NET_EPOCHS):
+            net.train()
+            perm, total = torch.randperm(len(vul), device=dev), 0.0
+            for s in range(0, len(vul), MOC_NET_BATCH):
+                i = perm[s:s + MOC_NET_BATCH]
+                corr = vul[i] + net(vul[i])
+                lc, lp = _moc_logits(p, corr), _moc_logits(p, sec[i])
+                loss = (MOC_BETA_MSE * F.mse_loss(corr, sec[i])
+                        + MOC_BETA_CE * F.cross_entropy(lc, torch.ones(len(i), dtype=torch.long, device=dev))
+                        + MOC_BETA_KL * F.kl_div(F.log_softmax(lc, -1), F.softmax(lp, -1), reduction="batchmean"))
+                opt.zero_grad()
+                loss.backward()
+                opt.step()
+                total += loss.item() * len(i)
+            if total / len(vul) < best:
+                best, state = total / len(vul), {k: v.detach().cpu().clone() for k, v in net.state_dict().items()}
+        return {"net": state, "dim": sec.shape[1]}
+
+    def _mixture(self, ctx: Ctx, dev) -> list:
+        import torch
+        if not hasattr(self, "_mix"):
+            self._mix = []
+            for a in torch.load(ctx.dir(self.hid) / "moc.pt", weights_only=False).values():
+                probe = {k: v.to(dev) if v is not None else None for k, v in a["probe"].items()}
+                if "net" in a:
+                    corr = _moc_net(a["dim"]).to(dev).eval()
+                    corr.load_state_dict(a["net"])
+                else:
+                    corr = a["delta"].to(dev)
+                self._mix.append((probe, corr))
+        return self._mix
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        import torch
+        lm = ctx.lm()
+        block = lm.layers()[MOC_LAYER]
+        mix = self._mixture(ctx, next(block.parameters()).device)
+        state = {"t": 0, "prompt": True}
+
+        def hook(_m, _i, out):
+            if state["prompt"]:
+                state["prompt"] = False
+                return out
+            h = out[0] if isinstance(out, tuple) else out
+            last = h[:, -1, :].float()
+            total = torch.zeros_like(last)
+            for probe, corr in mix:
+                gate = (torch.softmax(_moc_logits(probe, last), -1)[:, 0] > 0.5).float()[:, None]
+                total += gate * (corr(last) if isinstance(corr, torch.nn.Module) else corr)
+            h[:, -1, :] += (math.exp(-MOC_DECAY * state["t"]) * total).to(h.dtype)
+            state["t"] += 1
+            return out
+
+        handle = block.register_forward_hook(hook)
+        ctx.charge(1, "steered")
+        try:
+            new, _ = _generate(lm, _prompt(lm, task))
+        finally:
+            handle.remove()
+        return ctx.keep(_decode_code(lm, task, new))
+
+
+SCP_BACKBONE = "Qwen/Qwen2.5-Coder-7B-Instruct"
+SCP_STAGES = [("vivi-yu/all_processed_31340", 3, 1e-4, 32, True), ("vivi-yu/vul_code_sven", 1, 1e-6, 6, False)]
+SCP_BETAS, SCP_WD, SCP_MAX_LEN = (0.9, 0.95), 0.1, 128000
+SCP_SEP = "\n\n"
+SCP_N, SCP_N_DEFAULT = {"cweval": 20}, 10
+SCP_T = 0.8
+SCP_TAU = 0.1
+SCP_VD_QUESTION = "Determine whether the code is vulnerable or not."
+
+
+@lru_cache(maxsize=1)
+def _token_classifier(path: str):
+    import torch
+    from transformers import AutoModelForTokenClassification, AutoTokenizer
+    model = AutoModelForTokenClassification.from_pretrained(path, torch_dtype=torch.bfloat16, device_map="auto")
+    return AutoTokenizer.from_pretrained(path), model.eval()
+
+
+def _scp_score(tok, model, question: str, code: str) -> float:
+    """Step rewards p(secure) - p(vulnerable) at each separator, softmax(-r/tau)-weighted, averaged over steps."""
+    import torch
+    enc = lambda s: tok(s, add_special_tokens=False, return_tensors="pt")["input_ids"]
+    sep, ids, pos = enc(SCP_SEP), enc(question), []
+    for step in code.split(SCP_SEP):
+        ids = torch.cat([ids, enc(step.rstrip()), sep], -1)
+        pos.append(ids.shape[-1] - 1)
+    with torch.no_grad():
+        p = model(input_ids=ids.to(model.device)).logits[0, pos].float().softmax(-1)
+    r = p[:, 1] - p[:, 0]
+    return (torch.softmax(-r / SCP_TAU, -1) * r).mean().item()
+
+
+@h2h
+class SecCodePRM(H2HTechnique):
+    """Best-of-N (N=20 on CWEval, 10 elsewhere) ranked by a step-level security PRM: a token-classification head on
+    Qwen2.5-Coder-7B-Instruct, trained head-only on the authors' combined vulnerability data, then fully on SVEN."""
+    hid, name, family, target = "H55", "SecCodePRM", "decoding", ("SEC",)
+    code_url = "https://github.com/viviable/seccodeprm"
+    trains = True
+
+    def prepare(self, ctx: Ctx) -> None:
+        import torch
+        from datasets import load_dataset
+        from transformers import AutoModelForTokenClassification, AutoTokenizer
+        from trl import PRMConfig, PRMTrainer
+        init = SCP_BACKBONE
+        for k, (data, epochs, lr, batch, head_only) in enumerate(SCP_STAGES, 1):
+            out = ctx.dir(self.hid) / f"stage{k}"
+            if not (out / "config.json").exists():
+                tok = AutoTokenizer.from_pretrained(init)
+                model = AutoModelForTokenClassification.from_pretrained(init, num_labels=2, torch_dtype=torch.bfloat16,
+                                                                        use_cache=False)
+                if head_only:
+                    model.model.requires_grad_(False)
+                ds = load_dataset(data, split="train")
+                ds = ds.remove_columns([c for c in ("other_info",) if c in ds.column_names])
+                args = PRMConfig(output_dir=str(out), num_train_epochs=epochs, learning_rate=lr,
+                                 per_device_train_batch_size=batch, gradient_accumulation_steps=1,
+                                 lr_scheduler_type="constant", warmup_ratio=0.0, adam_beta1=SCP_BETAS[0],
+                                 adam_beta2=SCP_BETAS[1], weight_decay=SCP_WD, bf16=True,
+                                 gradient_checkpointing=not head_only, max_length=SCP_MAX_LEN, step_separator=SCP_SEP,
+                                 save_strategy="no", report_to="none")
+                trainer = PRMTrainer(model=model, args=args, processing_class=tok, train_dataset=ds)
+                trainer.train()
+                trainer.save_model(str(out))
+                tok.save_pretrained(out)
+            init = str(out)
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        n = SCP_N.get(task.benchmark, SCP_N_DEFAULT)
+        k = min(n, current_scope().budget.left)
+        codes = [C.code_of(task, t) for t in ctx.llm.sample(C.messages(task), k, temperature=SCP_T)]
+        tok, model = _token_classifier(str(ctx.dir(self.hid) / f"stage{len(SCP_STAGES)}"))
+        question = SCP_VD_QUESTION if task.meta.get("target_dim") == "SEC" else task.prompt
+        scores = [_scp_score(tok, model, question, c) for c in codes]
+        code = ctx.keep(codes[max(range(len(codes)), key=lambda i: (scores[i], -i))])
+        _beyond_ceiling(n - k)
+        return code
+
+
+COGATE_EXPERT = "google/gemma-4-E2B-it"
+COGATE_LORA = {"r": 16, "lora_alpha": 32, "lora_dropout": 0.05, "target_modules": ["q_proj", "k_proj", "v_proj", "o_proj"]}
+COGATE_LR, COGATE_EPOCHS = 1e-4, 2
+COGATE_DISTILL_TASKS, COGATE_DISTILL_SAMPLES = 2000, 4
+COGATE_A, COGATE_T, COGATE_TOP_P = 0.3, 0.6, 0.95
+COGATE_SIGNAL, COGATE_TAU = "entropy", 0.6
+SVEN = "https://raw.githubusercontent.com/eth-sri/sven/master/data_train_val/train/{}.jsonl"
+SVEN_CWES = ["cwe-022", "cwe-078", "cwe-079", "cwe-089", "cwe-125", "cwe-190", "cwe-416", "cwe-476", "cwe-787"]
+EXT_LANG = {".py": "python", ".c": "c", ".h": "c", ".cc": "cpp", ".cpp": "cpp", ".cxx": "cpp", ".hpp": "cpp"}
+SECURITY_USER = "Write the {lang} function `{name}` of the file {file}."
+
+
+def _lora_train(base: str, rows: list[dict], out: Path, lora: dict, lr: float, epochs: int, accum: int = 16) -> Path:
+    """LoRA fine-tuning with a per-token likelihood mask ('lm') and unlikelihood mask ('ul'); saves the merged model."""
+    import torch
+    from peft import LoraConfig, get_peft_model
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+    model = AutoModelForCausalLM.from_pretrained(base, torch_dtype=torch.bfloat16, device_map="auto")
+    model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+    model.enable_input_require_grads()
+    model = get_peft_model(model, LoraConfig(task_type="CAUSAL_LM", **lora))
+    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=lr)
+    dev = next(model.parameters()).device
+    rng = random.Random(0)
+    model.train()
+    for _ in range(epochs):
+        rng.shuffle(rows)
+        for i, r in enumerate(rows):
+            ids = torch.tensor([r["ids"]], device=dev)
+            lp = torch.log_softmax(model(input_ids=ids).logits[0, :-1].float(), -1)
+            lp = lp.gather(1, ids[0, 1:, None])[:, 0]
+            lm_w = torch.tensor(r["lm"][1:], device=dev)
+            ul_w = torch.tensor(r["ul"][1:], device=dev)
+            loss = lp.new_zeros(())
+            if lm_w.sum() > 0:
+                loss = loss - (lp * lm_w).sum() / lm_w.sum()
+            if ul_w.sum() > 0:
+                loss = loss - (torch.log1p(-lp.exp().clamp(max=1 - 1e-6)) * ul_w).sum() / ul_w.sum()
+            (loss / accum).backward()
+            if (i + 1) % accum == 0 or i + 1 == len(rows):
+                opt.step()
+                opt.zero_grad()
+    merged = model.merge_and_unload()
+    merged.save_pretrained(out)
+    AutoTokenizer.from_pretrained(base).save_pretrained(out)
+    return out
+
+
+def _masked_row(tok, user: str, response: str, spans: list[tuple[int, int]] | None, offset: int, kind: str) -> dict:
+    """Tokenizes a one-turn chat. kind: 'all' (loss on the whole response), 'lm' or 'ul' (only on tokens overlapping
+    spans, which are character ranges of the code starting at `offset` inside the response)."""
+    response = response.strip()
+    text = tok.apply_chat_template([{"role": "user", "content": user}, {"role": "assistant", "content": response}],
+                                   tokenize=False)
+    r0 = text.rindex(response)
+    enc = tok(text, add_special_tokens=False, return_offsets_mapping=True)
+    lm, ul = [], []
+    for s, e in enc["offset_mapping"]:
+        in_resp = s >= r0
+        hit = in_resp if kind == "all" else in_resp and any(s < r0 + offset + ce and e > r0 + offset + cs
+                                                               for cs, ce in spans or [])
+        lm.append(1.0 if hit and kind in ("all", "lm") else 0.0)
+        ul.append(1.0 if hit and kind == "ul" else 0.0)
+    return {"ids": enc["input_ids"], "lm": lm, "ul": ul}
+
+
+def _security_rows(tok) -> list[dict]:
+    """SVEN training pairs: likelihood on the lines the fix added, unlikelihood on the lines it deleted."""
+    rows = []
+    for cwe in SVEN_CWES:
+        for d in _jsonl(SVEN.format(cwe)):
+            lang = EXT_LANG.get(Path(d["file_name"]).suffix, "c")
+            user = SECURITY_USER.format(lang=lang, name=d["func_name"], file=d["file_name"])
+            off = len(f"```{lang}\n")
+            for code, key, kind in ((d["func_src_after"], "added", "lm"), (d["func_src_before"], "deleted", "ul")):
+                spans = [(c["char_start"], c["char_end"]) for c in d["line_changes"][key]]
+                if spans:
+                    rows.append(_masked_row(tok, user, f"```{lang}\n{code}\n```", spans, off, kind))
+    return rows
+
+
+def _gated_co_decode(base, expert, ids, max_new: int = MAX_NEW) -> list[int]:
+    """CoGate Algorithm 1: if c(S_t) > tau the expert proposes x ~ S_t, kept iff a < min(1, B_t(x)/S_t(x)); otherwise
+    (gate closed or rejected) x ~ B_t."""
+    torch = base.torch
+
+    def dist(logits):
+        p = torch.softmax(logits.float() / COGATE_T, -1)
+        sp, si = torch.sort(p, descending=True)
+        sp[(sp.cumsum(-1) - sp) > COGATE_TOP_P] = 0
+        return torch.zeros_like(p).scatter(0, si, sp / sp.sum())
+
+    def confidence(S) -> float:
+        if COGATE_SIGNAL == "max":
+            return S.max().item()
+        nz = S[S > 0]
+        return 1.0 + (nz * nz.log()).sum().item() / math.log(S.shape[-1])
+
+    out_b, out_e = base.forward(ids), expert.forward(ids.to(expert.device))
+    pb_, pe_ = out_b.past_key_values, out_e.past_key_values
+    lb, le = out_b.logits[0, -1], out_e.logits[0, -1]
+    toks, eos = [], set(base.eos_ids)
+    for _ in range(max_new):
+        V = min(lb.shape[-1], le.shape[-1])
+        B, S = dist(lb[:V]), dist(le[:V].to(lb.device))
+        x = None
+        if confidence(S) > COGATE_TAU:
+            x = int(torch.multinomial(S, 1))
+            if not COGATE_A < min(1.0, (B[x] / S[x]).item()):
+                x = None
+        if x is None:
+            x = int(torch.multinomial(B, 1))
+        toks.append(x)
+        if x in eos:
+            break
+        nxt = torch.tensor([[x]], device=base.device)
+        out_b, out_e = base.forward(nxt, pb_), expert.forward(nxt.to(expert.device), pe_)
+        pb_, pe_ = out_b.past_key_values, out_e.past_key_values
+        lb, le = out_b.logits[0, -1], out_e.logits[0, -1]
+    return toks
+
+
+@h2h
+class CoGate(H2HTechnique):
+    """CoSec+ expert (smallest same-vocabulary Gemma 4, distilled from the target, then security-trained on SVEN)
+    co-decoding with the target behind a normalized-entropy confidence gate."""
+    hid, name, family, target = "H56", "CoGate", "decoding", ("SEC",)
+    whitebox = trains = True
+    data_rebuilt = True
+
+    def prepare(self, ctx: Ctx) -> None:
+        from transformers import AutoTokenizer
+        out = ctx.dir(self.hid)
+        if (out / "expert" / "config.json").exists():
+            return
+        tok = AutoTokenizer.from_pretrained(COGATE_EXPERT)
+        if tok.get_vocab() != AutoTokenizer.from_pretrained(ctx.hf_id).get_vocab():
+            raise ValueError(f"{COGATE_EXPERT} does not share the target's vocabulary")
+        aligned = out / "aligned"
+        if not (aligned / "config.json").exists():
+            _lora_train(COGATE_EXPERT, self._distill_rows(ctx, tok), aligned, COGATE_LORA, COGATE_LR, COGATE_EPOCHS)
+        _lora_train(str(aligned), _security_rows(tok), out / "expert", COGATE_LORA, COGATE_LR, COGATE_EPOCHS)
+
+    def _distill_rows(self, ctx: Ctx, tok) -> list[dict]:
+        """Functional-correctness alignment: the target's own test-passing solutions on training tasks."""
+        path, rows = ctx.dir(self.hid) / "distill.jsonl", []
+        if not path.exists():
+            with open(path, "w") as f:
+                for t in ctx.train_tasks[:COGATE_DISTILL_TASKS]:
+                    with scope(t.id, f"{self.hid}-distill", None):
+                        texts = ctx.llm.sample(C.messages(t), COGATE_DISTILL_SAMPLES)
+                    for x in texts:
+                        k, m = passes(t, C.code_of(t, x), t.hidden_tests)
+                        if m and k == m:
+                            f.write(json.dumps({"user": C.messages(t)[-1]["content"], "response": x}) + "\n")
+                            break
+        for l in path.read_text().splitlines():
+            d = json.loads(l)
+            rows.append(_masked_row(tok, d["user"], d["response"], None, 0, "all"))
+        return rows
+
+    def solve(self, task: Task, ctx: Ctx) -> str:
+        from ..whitebox import local_lm
+        base, expert = ctx.lm(), local_lm(str(ctx.dir(self.hid) / "expert"))
+        ctx.charge(1, "co-decode")
+        return ctx.keep(_decode_code(base, task, _gated_co_decode(base, expert, _prompt(base, task))))

@@ -61,10 +61,12 @@ def rank(task: Task, codes: list[str]) -> tuple[str, list[Scored]]:
     return best.code, scored
 
 
-def best_of(llm: LLM, task: Task, msgs: list[Message], n: int) -> tuple[str, list[Scored]]:
+def best_of(llm: LLM, task: Task, msgs: list[Message], n: int, temperature: float | None = None) -> tuple[str, list[Scored]]:
+    """temperature: None samples at the best-of-n temperature."""
     if n <= 1:
         return code_of(task, llm.ask(msgs)), []
-    return rank(task, [code_of(task, t) for t in llm.sample(msgs, n)])
+    kw = {} if temperature is None else {"temperature": temperature}
+    return rank(task, [code_of(task, t) for t in llm.sample(msgs, n, **kw)])
 
 
 DIM_INSTRUCTION = {

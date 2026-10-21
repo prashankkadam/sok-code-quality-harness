@@ -1,4 +1,4 @@
-"""E7 retrieval family (H39-H48). Corpora are built in prepare() from the authors' released data (or by their recipe when
+"""E7 retrieval family (H37-H46). Corpora are built in prepare() from the authors' released data (or by their recipe when
 not released), decontaminated against every E7 task with 13-gram overlap, and stored under ctx.dir(hid)."""
 from __future__ import annotations
 
@@ -274,7 +274,7 @@ def lora_sft(ctx: Ctx, hid: str, data: Path, *, rank: int, epochs: int, lr: floa
     return served
 
 
-# ---------- H39 PIE dynamic retrieval-based few-shot prompting ----------
+# ---------- H37 PIE dynamic retrieval-based few-shot prompting ----------
 
 PIE_K, PIE_SAMPLES, PIE_TEMPERATURE = 4, 8, 0.7
 PIE_SHOT = "### Program:\n{src}\n### Optimized Version:\n{tgt}\n\n"
@@ -285,7 +285,7 @@ PIE_QUERY = "### Program:\n{src}\n### Optimized Version:\n"
 class PIERetrieval(H2HTechnique):
     """K=4 nearest PIE training pairs by CodeBERTScore-Python embedding of the slow program; Best@8 at T=0.7, the fastest
     program passing the public examples is kept (PIE keeps the fastest correct of the 8)."""
-    hid, name, family, target = "H39", "Dynamic retrieval-based few-shot prompting", "retrieval", ("EFF",)
+    hid, name, family, target = "H37", "Dynamic retrieval-based few-shot prompting", "retrieval", ("EFF",)
     code_url = "https://github.com/LearningOpt/pie"
 
     def prepare(self, ctx: Ctx) -> None:
@@ -305,7 +305,7 @@ class PIERetrieval(H2HTechnique):
         return fastest(task, [C.code_of(task, o) for o in outs]) or p0
 
 
-# ---------- H40 LAIL ----------
+# ---------- H38 LAIL ----------
 
 LAIL_BM25, LAIL_POS, LAIL_NEG = 50, 5, 5
 LAIL_RANDOM_NEG, LAIL_LR, LAIL_BATCH = 63, 5e-5, 32
@@ -322,7 +322,7 @@ class LAIL(H2HTechnique):
     """Candidates labelled by the model's own length-normalized log-likelihood of the reference program given one
     candidate example (white-box, 50 BM25 candidates, top/bottom 5); a GraphCodeBERT retriever is trained contrastively on
     those labels and selects 3 examples (most similar last), concatenated without instructions."""
-    hid, name, family, target = "H40", "LAIL", "retrieval", ("RM",)
+    hid, name, family, target = "H38", "LAIL", "retrieval", ("RM",)
     whitebox = trains = True
     data_rebuilt = True
 
@@ -397,7 +397,7 @@ class LAIL(H2HTechnique):
         return C.code_of(task, ctx.llm.ask(user(body), temperature=LAIL_TEMPERATURE))
 
 
-# ---------- H41 KPC ----------
+# ---------- H39 KPC ----------
 
 KPC_SYSTEM = "You are a helpful assistant."
 KPC_LIST = ("List the fully qualified name of the Python standard library functions and methods used in the code above "
@@ -452,7 +452,7 @@ class KPC(H2HTechnique):
     """Prompt chaining: generate; a checker lists the standard-library APIs used, asks per (API, documented exception)
     whether it is handled, and every unhandled pair becomes one 'check <condition> ... otherwise raise' line sent back to
     the generator; repeat until no pair is unhandled. Knowledge base: Python library reference instead of the JDK docs."""
-    hid, name, family, target = "H41", "KPC", "retrieval", ("RM",)
+    hid, name, family, target = "H39", "KPC", "retrieval", ("RM",)
     code_url = "https://github.com/goodchar123/KPC"
     ported = data_rebuilt = True
 
@@ -486,7 +486,7 @@ class KPC(H2HTechnique):
             ctx.keep(C.code_of(task, resp))
 
 
-# ---------- H42 RAPGen ----------
+# ---------- H40 RAPGen ----------
 
 RAPGEN_MIN_PROBLEMS, RAPGEN_TEMPERATURE = 2, 0.7
 RAPGEN_PROMPT = """Complete the code below. Return the complete rewritten code in one ```{lang} block.
@@ -568,7 +568,7 @@ class RAPGen(H2HTechnique):
     """Knowledge base of (abstracted buggy line -> before, after, instruction) mined from past performance fixes; the
     instruction of the single most Aroma-similar before-method whose pattern matches a line of the code is retrieved and
     the code is rewritten zero-shot. The C# fix commits are not released: the base is mined from PIE's Python pairs."""
-    hid, name, family, target = "H42", "RAPGen", "retrieval", ("EFF",)
+    hid, name, family, target = "H40", "RAPGen", "retrieval", ("EFF",)
     ported = data_rebuilt = True
 
     def prepare(self, ctx: Ctx) -> None:
@@ -616,7 +616,7 @@ class RAPGen(H2HTechnique):
         return out or p0
 
 
-# ---------- H43 CodeGuarder ----------
+# ---------- H41 CodeGuarder ----------
 
 CODEGUARDER_ZIP = "https://zenodo.org/records/16957113/files/CodeGuarder_AE.zip?download=1"
 CG_K_SUB, CG_K_PER, CG_DEFAULT_W = 5, 2, 0.01
@@ -659,7 +659,7 @@ class CodeGuarder(H2HTechnique):
     """Released ReposVul knowledge (functionality, vulnerable/fixing pattern) indexed by functionality with jina-v3; the
     query is decomposed into sub-tasks, k'=2 entries per sub-task, sub-tasks re-ranked by summed CWE prevalence and the
     top k=5 kept (paper defaults), plus the top-1 functional example (RACG setting)."""
-    hid, name, family, target = "H43", "CodeGuarder", "retrieval", ("SEC",)
+    hid, name, family, target = "H41", "CodeGuarder", "retrieval", ("SEC",)
     code_url = "https://zenodo.org/records/16957113"
 
     def prepare(self, ctx: Ctx) -> None:
@@ -702,7 +702,7 @@ class CodeGuarder(H2HTechnique):
         return C.code_of(task, ctx.llm.ask(user(prompt), temperature=0, role="generate"))
 
 
-# ---------- H44 Retrieval Augmented Search ----------
+# ---------- H42 Retrieval Augmented Search ----------
 
 RAS_STEPS, RAS_K = 4, 8
 RAS_DESCRIBE = ('You are an expert programmer who has been provided with a program solving a programming problem, called the '
@@ -724,7 +724,7 @@ class RAS(H2HTechnique):
     with the closest descriptions (not used before) each prompt one rewrite, and the fastest rewrite passing the public
     examples becomes the next program; 4 steps (36 calls published, so it runs at the ceiling). Corpus: the authors'
     Mercury pairs with their descriptions, re-embedded locally."""
-    hid, name, family, target = "H44", "Retrieval Augmented Search", "retrieval", ("EFF",)
+    hid, name, family, target = "H42", "Retrieval Augmented Search", "retrieval", ("EFF",)
     code_url = "https://github.com/sagnikanupam/llmprogramoptimization"
 
     def prepare(self, ctx: Ctx) -> None:
@@ -767,7 +767,7 @@ class RAS(H2HTechnique):
         return p if cost(task, p) is not None else p0
 
 
-# ---------- H45 SemOpt ----------
+# ---------- H43 SemOpt ----------
 
 SEMOPT_KEYWORDS = (
     "performance", "optimize", "optimization", "speedup", "speed up", "speed-up", "fast", "faster", "fastest", "efficient",
@@ -990,7 +990,7 @@ class SemOpt(H2HTechnique):
     3 repair rounds, kept if they run without error); at test time every rule runs on the code, proposals are merged and
     ranked by count, and one call per target segment applies its top-4 matched strategies. The figshare library is not
     reachable: the Python library is rebuilt by the paper's recipe."""
-    hid, name, family, target = "H45", "SemOpt", "retrieval", ("EFF",)
+    hid, name, family, target = "H43", "SemOpt", "retrieval", ("EFF",)
     code_url = "https://figshare.com/s/0391db49a3620ed53a1f"
     data_rebuilt = True
 
@@ -1116,7 +1116,7 @@ class SemOpt(H2HTechnique):
         return segment(code, n), start - 1
 
 
-# ---------- H46 AutoPatch ----------
+# ---------- H44 AutoPatch ----------
 
 OSV_PYPI = "https://osv-vulnerabilities.storage.googleapis.com/PyPI/all.zip"
 AUTOPATCH_SINCE, AUTOPATCH_MAX_CVES = "2025-02-01", 75
@@ -1364,7 +1364,7 @@ class AutoPatch(H2HTechnique):
     database), vulnerability verifier with the matched CVE's checklist as a one-shot, and patcher with its fix-list. The
     released database is 75 C/C++ CVEs: a Python database of post-cutoff PyPI CVEs (OSV, single-function GitHub fixes) is
     built by the authors' database prompts; data flow comes from the Python AST instead of CodeQL."""
-    hid, name, family, target = "H46", "AutoPatch", "retrieval", ("SEC",)
+    hid, name, family, target = "H44", "AutoPatch", "retrieval", ("SEC",)
     code_url = "https://github.com/ai-llm-research/autopatch"
     ported = data_rebuilt = True
 
@@ -1498,7 +1498,7 @@ class AutoPatch(H2HTechnique):
         return patched or code
 
 
-# ---------- H47 PEACE ----------
+# ---------- H45 PEACE ----------
 
 PEACE_RANK, PEACE_EPOCHS, PEACE_LR = 32, 4, 1e-5
 PEACE_MIN_IMPROVEMENT, PEACE_TRAIN, PEACE_ALTERNATIVES = 10.0, 3450, 2
@@ -1592,7 +1592,7 @@ class PEACE(H2HTechnique):
     the most similar internal functions and external fast implementations, and the model integrates the result. Optimizer
     data rebuilt from PIE's Python pairs (the GitHub half and the external library are on an unreachable host; external
     fast functions are Mercury's fastest LeetCode solutions)."""
-    hid, name, family, target = "H47", "PEACE", "retrieval", ("EFF",)
+    hid, name, family, target = "H45", "PEACE", "retrieval", ("EFF",)
     code_url = "https://github.com/linrenmeng/Peace"
     trains = data_rebuilt = True
 
@@ -1673,7 +1673,7 @@ class PEACE(H2HTechnique):
         return ""
 
 
-# ---------- H48 Mitigation-Aware Chain-of-Thought ----------
+# ---------- H46 Mitigation-Aware Chain-of-Thought ----------
 
 MACOT_KB = "https://raw.githubusercontent.com/mohsystem/paper3/main/cwes_ds/dataset/enriched_cwe_dataset_v6.json"
 MACOT_TEMPERATURE = 1.0
@@ -1795,7 +1795,7 @@ def macot_mitigations(kb: list[dict], tags: list[str], lang: str) -> str:
 class MACoT(H2HTechnique):
     """The model tags the task with security domains; the authors' mitigation dataset returns the matching records
     (general rules, Python guidance and checklist, review checklist, examples) inside a five-step secure CoT prompt."""
-    hid, name, family, target = "H48", "Mitigation-Aware Chain-of-Thought", "retrieval", ("SEC",)
+    hid, name, family, target = "H46", "Mitigation-Aware Chain-of-Thought", "retrieval", ("SEC",)
     code_url = "https://github.com/mohsystem/paper3"
 
     def prepare(self, ctx: Ctx) -> None:

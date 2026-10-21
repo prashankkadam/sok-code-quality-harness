@@ -74,6 +74,8 @@ def main() -> int:
     ap.add_argument("--inputs", required=True)
     ap.add_argument("--out", required=True)
     ap.add_argument("--start", default="2021-07-07")
+    ap.add_argument("--against", default="", help="existing record files; matching records are dropped")
+    ap.add_argument("--prefix", default="R")
     a = ap.parse_args()
     run = REPO / "sok" / "slr" / "runs" / a.run
     recs = []
@@ -83,10 +85,23 @@ def main() -> int:
     early = [r for r in recs if r.get("date") and r["date"] < a.start]
     recs = [r for r in recs if not (r.get("date") and r["date"] < a.start)]
     out = dedup(recs)
+    known = 0
+    if a.against:
+        seen = set()
+        for f in a.against.split(","):
+            for r in read_jsonl(run / f):
+                seen |= {"doi:" + d.lower() for d in (r.get("dois") or [r.get("doi") or ""]) if d}
+                seen |= {"ax:" + r["arxiv_id"]} if r.get("arxiv_id") else set()
+                seen.add("t:" + norm_title(r.get("title", "")))
+        keep = [r for r in out if not ({"doi:" + d.lower() for d in r["dois"]} | ({"ax:" + r["arxiv_id"]} if r["arxiv_id"] else set())
+                                       | {"t:" + norm_title(r.get("title", ""))}) & seen]
+        known, out = len(out) - len(keep), keep
+        for i, r in enumerate(out):
+            r["rid"] = f"{a.prefix}{i + 1:05d}"
     with open(run / a.out, "w") as fh:
         for r in out:
             fh.write(json.dumps(r, ensure_ascii=False) + "\n")
-    stats = {"records_in": n_in, "dropped_before_window": len(early), "unique_after_dedup": len(out),
+    stats = {"records_in": n_in, "dropped_before_window": len(early), "already_screened": known, "unique_after_dedup": len(out),
              "duplicates_removed": n_in - len(early) - len(out),
              "by_source_combo": {}}
     for r in out:

@@ -1,0 +1,15 @@
+rid,action,detail,reason
+R00308,fill_target,readability-maintainability,selection-review target
+R00985,fill_target,readability-maintainability,selection-review target
+R01956,fill_target,readability-maintainability,selection-review target
+R01618,fix_year,2024->2025,"Correct year is 2025: the DOI (10.54254/2755-2721/116/2025.20425) and the copyright line of the full text both give 2025, and there is no earlier preprint; the record says 2024."
+R00453,exclude,EC8,"Earlier conference version (MODELSWARD 2024) of R01389, which the authors describe as an extension of this work with the same UVF case study and OCL vs OCL+ontology complexity comparison; keep R01389."
+R01601,exclude,EC8,"Same Seeker framework, authors and results (ACRS 0.85, CRS 92%) as R01321 (arXiv 2410.06949 v3, the fuller version); keep R01321."
+R04031,exclude,EC8,"Earlier preprint of R04250 (Safety Sidecar, ACL Findings 2026): same authors, same reflection-driven control module and identical security tables (83.7 to 94.9, up 11.2); keep R04250."
+R04742,exclude,EC8,"Short ICLR 2026 workshop version of SOSecure (R02031) by the same authors with the same Stack Overflow RAG revision method and the same fix rates (71.7%, 91.3%, 96.7%); keep R02031."
+R04746,exclude,EC8,"Research Square posting of the same Style2Code paper as R02450 (arXiv 2505.19442 v4): same title, authors, text and results (CSS 0.196); keep R02450."
+R06534,exclude,EC3,"Models are prompted to output only a list of package names, not code; the hallucination rate is computed on recommended package lists, so the evaluated artifact is not LLM-generated code."
+R05216,exclude,EC6,"Outcome is whether the model reproduces offensive identifiers injected through harmful renaming instructions (content safety of the NL channel), not readability, efficiency or security of the code; the extraction maps it to readability only as a proxy."
+R03710,exclude,IC3,The only quantitative security outcome is precision/recall/F1 of the model recognizing (commenting on) IaC weaknesses during generation and inspection; the security of the generated scripts themselves is never measured.
+R01390,context,IC1,"SILC is a logic-based blame and sanitizer framework that leaves the LLM's code unchanged; the LLM part of the study only measures how unsafe AI-regenerated code is (RQ1/RQ2), so there is no intervention on the LLM's output."
+R05367,context,IC1,"Prompt strategies are compared only on compilation success; security findings are reported overall and per model, never per prompt strategy, so no technique is evaluated on an NF outcome."

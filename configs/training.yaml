@@ -7,3 +7,4 @@ deployments:
 sft: {lora_rank: 16, epochs: 2, learning_rate: 1.0e-4, max_context: 16384, batch_samples: 4}
 dpo: {lora_rank: 16, epochs: 1, learning_rate: 5.0e-6, max_context: 16384, beta: 0.1}
 grpo: {lora_rank: 16, epochs: 1, learning_rate: 1.0e-6, max_context: 16384, kl_beta: 0.04, group_size: 8, temperature: 1.0, max_tokens: 4096}
+local_gpu_usd_per_hour: null

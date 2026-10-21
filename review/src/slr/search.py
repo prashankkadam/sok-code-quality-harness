@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import argparse
 import json
+import time
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -111,6 +112,8 @@ def run_openalex(string, run_dir, end, count_only):
     q = openalex_query(string)
     filt = f"title_and_abstract.search:{q},from_publication_date:{START},to_publication_date:{end}"
     base = {"filter": filt, "per-page": 200, "mailto": os.environ.get("CONTACT_EMAIL", "")}
+    if os.environ.get("OPENALEX_API_KEY"):
+        base["api_key"] = os.environ["OPENALEX_API_KEY"]
     st, body = http_get("https://api.openalex.org/works", params={**base, "per-page": 1}, cache=False)
     count = json.loads(body)["meta"]["count"]
     meta = {"source": "openalex", "endpoint": "https://api.openalex.org/works", "filter": filt,
@@ -120,8 +123,17 @@ def run_openalex(string, run_dir, end, count_only):
     cursor, recs = "*", []
     raw = (run_dir / "raw" / f"openalex_{string}.jsonl").open("w")
     while cursor:
-        st, body = http_get("https://api.openalex.org/works", params={**base, "cursor": cursor}, cache=False)
-        d = json.loads(body)
+        for attempt in range(6):
+            st, body = http_get("https://api.openalex.org/works", params={**base, "cursor": cursor}, cache=False)
+            try:
+                d = json.loads(body)
+                if "results" in d:
+                    break
+            except json.JSONDecodeError:
+                pass
+            time.sleep(10 * (attempt + 1))
+        else:
+            raise RuntimeError(f"OpenAlex paging failed: {st} {body[:300]!r}")
         for w in d["results"]:
             raw.write(json.dumps(w) + "\n")
             recs.append(norm_openalex(w))

@@ -3,12 +3,14 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
+from datetime import datetime
 from pathlib import Path
 
 import httpx
 
-from ..config import load
+from ..config import RUNS, load
 
 API = "https://api.fireworks.ai/v1"
 
@@ -53,6 +55,38 @@ def _wait(path: str, done=("JOB_STATE_COMPLETED",), fail=("JOB_STATE_FAILED", "J
         time.sleep(60)
 
 
+def _money(m: dict | None) -> float | None:
+    return None if not m else float(m.get("units") or 0) + (m.get("nanos") or 0) / 1e9
+
+
+def _hours(j: dict) -> float | None:
+    try:
+        a, b = (datetime.fromisoformat(re.sub(r"(\.\d{6})\d+", r"\1", j[k]).replace("Z", "+00:00"))
+                for k in ("createTime", "completedTime"))
+    except (KeyError, TypeError, ValueError):
+        return None
+    return (b - a).total_seconds() / 3600
+
+
+def write_job(model: str, rec: dict) -> None:
+    """Appends a finished training job to runs/train/<model>/jobs.jsonl (read by the compute ledger)."""
+    p = RUNS / "train" / model / "jobs.jsonl"
+    p.parent.mkdir(parents=True, exist_ok=True)
+    with open(p, "a") as f:
+        f.write(json.dumps({"t": time.time(), "model": model} | rec) + "\n")
+
+
+def log_job(model: str, kind: str, j: dict) -> dict:
+    """Managed Fireworks jobs expose no accelerator type or GPU-hours: the job's estimated cost and wall time are recorded."""
+    out = j.get("outputModel") or j.get("trainingConfig", {}).get("outputModel")
+    prog = j.get("jobProgress") or {}
+    write_job(model, {"job": j.get("name"), "kind": kind, "provider": "Fireworks fine-tuning", "output": out,
+                      "gpu_type": None, "gpus": None, "gpu_hours": None, "wall_hours": _hours(j),
+                      "cost": _money(j.get("estimatedCost")),
+                      "tokens": (prog.get("inputTokens") or 0) + (prog.get("outputTokens") or 0)})
+    return j
+
+
 def _cfg(model: str, kind: str) -> dict:
     return load("training")[kind] | {"baseModel": load("training")["base_models"][model]}
 
@@ -87,7 +121,7 @@ def sft(model: str, dataset: str, output_model: str, src: Path | None = None, ex
     if src:
         body["maxContextLength"] = context_for(src, model, body["maxContextLength"])
     j = _c().post(f"/accounts/{a}/supervisedFineTuningJobs", json=body).raise_for_status().json()
-    return _wait(j["name"])["outputModel"]
+    return log_job(model, "sft", _wait(j["name"]))["outputModel"]
 
 
 def dpo(model: str, dataset: str, output_model: str, src: Path | None = None, extra: dict | None = None) -> str:
@@ -103,7 +137,7 @@ def dpo(model: str, dataset: str, output_model: str, src: Path | None = None, ex
     if src:
         tc["maxContextLength"] = context_for(src, model, tc["maxContextLength"])
     j = _c().post(f"/accounts/{a}/dpoJobs", json=body).raise_for_status().json()
-    return _wait(j["name"])["trainingConfig"]["outputModel"]
+    return log_job(model, "dpo", _wait(j["name"]))["trainingConfig"]["outputModel"]
 
 
 def upload_lora(adapter_dir: Path, model_id: str, base_model_key: str) -> str:
