@@ -265,16 +265,20 @@ def budget_curves(R: Results, models: list[str], techs: list[str], metrics=MAIN)
     return out
 
 
-def h2h_summary(R: Results, techs: dict[str, tuple[str, tuple[str, ...]]], model: str = "g31", B: int = 16) -> dict:
+def h2h_summary(R: Results, techs: dict[str, tuple[str, tuple[str, ...]]], model: str = "g31", B: int = 16,
+                matched: dict[str, str] | None = None) -> dict:
     """E12 counts: techniques that improve every target metric against T0, best-of-n and the family's budget-matched
-    best-of-n (BoN-<family>), per family. techs: hid -> (family, target dims). A reference without results is skipped."""
+    reference (matched: family -> BoN@k or BoN, from run.matched_budgets), per family. techs: hid -> (family, target
+    dims). A reference without results is skipped."""
     col = {m.label: m for m in H2H}
     tgt = {"RM": ["RM"], "EFF": ["EB", "DPS"], "SEC": ["CWE", "CSE"]}
     res = {r: defaultdict(lambda: [0, 0]) for r in ("T0", "BoN", "BoN-matched")}
     for hid, (fam, dims) in techs.items():
         labels = [l for d in dims for l in tgt.get(d, [])]
         for ref in res:
-            rid = f"BoN-{fam}" if ref == "BoN-matched" else ref
+            rid = (matched or {}).get(fam, "") if ref == "BoN-matched" else ref
+            if not rid:
+                continue
             pairs = [(R.cell(col[l], model, hid, B), R.cell(col[l], model, rid, B), col[l].higher) for l in labels]
             if any(np.isnan(b) for _, b, _ in pairs):
                 continue

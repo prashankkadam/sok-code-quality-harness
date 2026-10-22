@@ -139,8 +139,9 @@ def judge_table(agree: dict) -> str:
 
 
 def h2h_table(R: S.Results, techs: dict[str, tuple[str, str]], model: str = "g31", B: int = 16,
-              matched: dict[str, int] | None = None) -> str:
-    """E12 body. techs: hid -> (family, name), in table order; each family block opens with its budget-matched best-of-n."""
+              matched: dict[str, str] | None = None) -> str:
+    """E12 body. techs: hid -> (family, name), in table order; a last panel lists the budget-matched BoN@k references
+    (matched: family -> reference id, from run.matched_budgets)."""
     def row(hid, name, label):
         return f"{label} & {name} & " + " & ".join(f(R.cell(m, model, hid, B)) for m in S.H2H) + f" & {f(R.calls(model, hid, B))}" + r"\\"
     out = [row("T0", "T0 single shot (reference)", "--"), row("BoN", r"best-of-$n$ (reference)", "--")]
@@ -148,10 +149,14 @@ def h2h_table(R: S.Results, techs: dict[str, tuple[str, str]], model: str = "g31
     for hid, (fam, name) in techs.items():
         if fam != fam_prev:
             out.append(rf"\midrule\multicolumn{{11}}{{@{{}}l}}{{\textit{{{fam}}}}}\\")
-            if matched and fam in matched:
-                out.append(row(f"BoN-{fam}", rf"best-of-{matched[fam]} (budget-matched reference)", "--"))
             fam_prev = fam
         out.append(row(hid, name, hid))
+    if matched:
+        from .h2h.references import MATCHED_KS
+        out.append(r"\midrule\multicolumn{11}{@{}l}{\textit{Budget-matched best-of-$n$ references (same ranker; "
+                   + ", ".join(map(str, MATCHED_KS[:-1])) + f" and {MATCHED_KS[-1]} calls; "
+                   + r"decoding techniques use the main reference)}}\\")
+        out += [row(f"BoN@{k}", f"best-of-{k}", "--") for k in MATCHED_KS]
     return "\n".join(out)
 
 

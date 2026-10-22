@@ -32,10 +32,13 @@ class BestOfN(H2HTechnique):
         return C.rank(task, codes)[0]
 
 
-def matched(family: str, k: int) -> BestOfN:
-    """Budget-matched reference: best-of-k under the id BoN-<family>."""
+MATCHED_KS = (2, 3, 5, 8)
+
+
+def matched(k: int) -> BestOfN:
+    """Budget-matched reference: best-of-k with the same ranker, under the id BoN@k."""
     ref = BestOfN()
-    ref.hid, ref.name, ref.n = f"BoN-{family}", rf"best-of-{k} (matched to {family})", k
+    ref.hid, ref.name, ref.n = f"BoN@{k}", f"best-of-{k}", k
     return ref
 
 

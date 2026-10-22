@@ -234,11 +234,12 @@ def h2h(hids: list[str] | None = None, seeds: list[int] | None = None, exp: str 
         _h2h_run(H2H[hid](), ctx, exp, seeds, judge)
 
 
-def matched_budgets(exp: str = "h2h", key: str = "g31") -> dict[str, int]:
-    """Per family: the median over its techniques of the mean calls per task in the stored E12 runs, rounded to the nearest
-    integer, at least 2 and at most the ceiling."""
+def matched_budgets(exp: str = "h2h", key: str = "g31") -> dict[str, str]:
+    """Per family: the reference nearest the median over its techniques of the mean calls per task in the stored E12 runs,
+    among BoN@k (k in MATCHED_KS) and the main best-of-n reference at its own mean calls."""
     from .h2h import load_all
     from .h2h.base import CEILING, H2H
+    from .h2h.references import MATCHED_KS
     from .stats import Results
     load_all()
     R, fams = Results(exp), defaultdict(list)
@@ -246,20 +247,22 @@ def matched_budgets(exp: str = "h2h", key: str = "g31") -> dict[str, int]:
         c = R.calls(key, hid, CEILING)
         if hid.startswith("H") and not math.isnan(c):
             fams[cls.family].append(c)
-    return {f: min(CEILING, max(2, math.floor(statistics.median(v) + 0.5))) for f, v in fams.items()}
+    refs = {f"BoN@{k}": float(k) for k in MATCHED_KS} | {"BoN": R.calls(key, "BoN", CEILING)}
+    return {f: min(refs, key=lambda r: abs(refs[r] - statistics.median(v))) for f, v in fams.items()}
 
 
-def h2h_bon_matched(families: list[str] | None = None, seeds: list[int] | None = None, exp: str = "h2h",
-                    key: str = "g31") -> dict[str, int]:
-    """Budget-matched best-of-n: BoN@k with k = the family's median calls per task, stored under the id BoN-<family>."""
-    from .h2h.references import matched
-    ks = matched_budgets(exp, key)
+def h2h_bon_matched(ks: list[int] | None = None, seeds: list[int] | None = None, exp: str = "h2h",
+                    key: str = "g31") -> dict[str, str]:
+    """Budget-matched best-of-n: BoN@k for k in MATCHED_KS (run after `h2h`); each family is then compared with the
+    reference nearest its median calls per task (matched_budgets), saved to bon_matched.json."""
+    from .h2h.references import MATCHED_KS, matched
     ctx = _h2h_ctx(key, exp)
     judge = judges(exp)
-    for fam in families or sorted(ks):
-        _h2h_run(matched(fam, ks[fam]), ctx, exp, seeds, judge)
-    (RUNS / exp / "bon_matched.json").write_text(json.dumps(ks, indent=1))
-    return ks
+    for k in ks or MATCHED_KS:
+        _h2h_run(matched(k), ctx, exp, seeds, judge)
+    refs = matched_budgets(exp, key)
+    (RUNS / exp / "bon_matched.json").write_text(json.dumps(refs, indent=1))
+    return refs
 
 
 def _fidelity_value(bench: Benchmark, metric: str, rows: list[dict]) -> float:

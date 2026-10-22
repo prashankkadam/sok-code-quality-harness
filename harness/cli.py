@@ -23,7 +23,7 @@ def main() -> None:
         q.add_argument("--budgets")
         q.add_argument("--seeds")
     b = sub.add_parser("h2h-bon-matched")
-    b.add_argument("--families")
+    b.add_argument("--ks")
     b.add_argument("--seeds")
     fc = sub.add_parser("fidelity")
     fc.add_argument("techniques")
@@ -64,7 +64,7 @@ def main() -> None:
     elif args.cmd == "h2h":
         run.h2h(_list(args.techniques), seeds)
     elif args.cmd == "h2h-bon-matched":
-        print(run.h2h_bon_matched(_list(args.families), seeds))
+        print(run.h2h_bon_matched([int(k) for k in _list(args.ks)] if args.ks else None, seeds))
     elif args.cmd == "fidelity":
         for hid in _list(args.techniques):
             print(run.fidelity_check(hid, args.model, seeds))
