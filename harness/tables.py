@@ -185,6 +185,44 @@ def fidelity_table(names: dict[str, str]) -> str:
     return "\n".join(out)
 
 
+
+H2H_PRIMARY = {"RM": ("RM", "Pylint score (points)"), "EFF": ("DPS", "EvalPerf DPS$_{norm}$ (points)"),
+               "SEC": ("CWE", "CWEval func-sec@1 (points)")}
+H2H_FAMILIES = ["prompting", "feedback", "refinement", "multiagent", "retrieval", "decoding", "training"]
+
+
+def h2h_forest(iv: dict, techs: dict[str, tuple[str, tuple[str, ...]]], path: Path) -> dict[str, list[str]]:
+    """Fig. E2: per technique, the difference from best-of-n on the primary metric of its first targeted dimension with
+    its 95% interval (iv from stats.h2h_intervals); filled markers lie beyond the interval. techs: hid -> (family,
+    targets). Returns the techniques above, below and within the interval (the counts quoted in the text)."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    higher = {m.label: m.higher for m in S.H2H}
+    colors = dict(zip(H2H_FAMILIES, ["#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e", "#e6ab02", "#a6761d"]))
+    out = {"above": [], "below": [], "within": []}
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 5.6))
+    for ax, (dim, (col, xlabel)) in zip(axes, H2H_PRIMARY.items()):
+        hids = sorted((h for h, (_, t) in techs.items() if t and t[0] == dim),
+                      key=lambda h: (H2H_FAMILIES.index(techs[h][0]), h))
+        for y, h in enumerate(hids):
+            mean, lo, hi = iv[(h, "BoN", col)]
+            sign = 1 if higher[col] else -1
+            d, a, b = sign * mean, min(sign * lo, sign * hi), max(sign * lo, sign * hi)
+            beyond = a > 0 or b < 0
+            out["above" if a > 0 else "below" if b < 0 else "within"].append(h)
+            c = colors[techs[h][0]]
+            ax.errorbar(d, -y, xerr=[[d - a], [b - d]], fmt="o", ms=3.2, color=c, mfc=c if beyond else "white",
+                        elinewidth=0.8, capsize=1.5)
+        ax.axvline(0, color="0.4", lw=0.7, ls="--")
+        ax.set_yticks([-y for y in range(len(hids))], hids, fontsize=5.5)
+        ax.set_title(f"{dim}-targeted (n={len(hids)})", fontsize=7.5)
+        ax.set_xlabel(xlabel + "\nminus best-of-$n$", fontsize=6.5)
+    fig.tight_layout()
+    fig.savefig(path)
+    return out
+
+
 def write_all(out: Path | None = None) -> Path:
     out = out or RUNS / "tables"
     out.mkdir(parents=True, exist_ok=True)
@@ -228,5 +266,8 @@ def write_all(out: Path | None = None) -> Path:
         iv = S.h2h_intervals(H, list(techs))
         (out / "tab_h2h_ci_t0.tex").write_text(h2h_ci_table(iv, list(techs), "T0"))
         (out / "tab_h2h_ci_bon.tex").write_text(h2h_ci_table(iv, list(techs), "BoN"))
+        primary = h2h_forest(iv, {h: (c.family, c.target) for h, c in H2H.items() if h in techs},
+                             out.parent / "figures" / "h2h_forest.pdf")
+        (out / "h2h_primary.json").write_text(json.dumps(primary, indent=1))
     (out / "tab_fidelity.tex").write_text(fidelity_table(names))
     return out
