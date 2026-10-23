@@ -17,14 +17,12 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from pathlib import Path
 
-import numpy as np
-
 from .. import sandbox
 from ..tasks import Task, Test
 from ..techniques import common as C
 from ..techniques.rag import ngrams
 from .base import Ctx, H2HTechnique, h2h
-from .retrieval import (CWE_CSV, banned, cwe_catalog, decontaminate, draft, embed, fetch, json_of, load_index, pie_hq,
+from .retrieval import (CWE_CSV, cwe_catalog, decontaminate, draft, embed, fetch, json_of, load_index, pie_hq,
                         pie_python, prep, read_jsonl, save_index, top_k, user, write_jsonl)
 
 MODEL_NAME = "Gemma 4 31B IT"
@@ -735,125 +733,77 @@ class ECO(H2HTechnique):
         return C.code_of(task, out) or code
 
 
-# ---------- H08 Universal Textual Teaching ----------
+# ---------- H08 StoryCoder ----------
 
-UTT_PROBLEMS, UTT_SAMPLES, UTT_BATCH, UTT_BUDGET, UTT_MAX_WORDS, UTT_TRAIN_SPLIT = 100, 5, 16, 100, 1000, 0.7
-UTT_STUDENT = """You are the Student. Solve the given task correctly and as well as you can.
+# Narrative transformation guidelines, verbatim from the paper (Figure A) and instruction_template.py of
+# https://github.com/gu-ni/StoryCoder.
+STORY_GUIDELINES = """Please transform the coding problem into a narrative story using the following guidelines.
+### Guidelines for Narrative Conversion:
+Before writing the narrative, you must complete two preliminary steps:
+1. Review the major categories of coding test algorithms:
+- Graph Algorithms
+- Dynamic Programming
+- Greedy Algorithms
+- Sorting and Searching
+- String Algorithms
+- Data Structures
+- Mathematics and Number Theory
+- Simulation and Implementation
+2. Decide which algorithm category the given problem most closely belongs to.
+Then, select a narrative genre that naturally aligns with the chosen algorithm.
+### Output Format:
+You must write the output in the exact following order with the specified headers:
+- Algorithm Category: (one of the categories above)
+- Narrative Genre: (a fitting genre of your choice)
+- Task Overview: Describe the background and objective of the problem in a clear, narrative-inspired manner. The selected algorithm should be introduced naturally here, with its logic explained as part of the setting or scenario.
+- Constraints: State input sizes, value ranges, conditions, and key operational rules. If efficiency or time limits exist, express them as natural constraints. The chosen algorithm should also shape these rules.
+- Example Input/Output: Reframe the examples as part of the scenario's flow. Present them as clear, contextual situations.
+The narrative must include all essential parts of the original problem, ensuring no constraints, goals, or examples are omitted.
+Do not include any other text outside these five sections.
+Do not attempt to solve the problem or provide any code. Your task is only to transform the problem statement into the narrative format as specified.
+### The coding problem is as follows:
+{problem}"""
+STORY_NARR_TEMPERATURE, STORY_CODE_TEMPERATURE = 1.0, 0.2
+STORY_MIN_WORDS = 40  # the paper's validity filter drops near-empty narratives (< 50 tokens)
 
-The current Primer contains reusable knowledge, reasoning strategies, validation methods, and common pitfalls distilled from previous teaching cases. Use any relevant information from it, but do not treat it as a restriction.
 
-Follow all requirements contained in the task. Output only the solution, with no additional commentary."""
-UTT_PROMPTER = """You are the Prompter. A Student is attempting a task, and a Teacher will prepare a worked solution to help the Student improve.
-
-Based on the task and the evaluation feedback from the Student's most recent attempt, identify the primary knowledge or reasoning gap. Distinguish the underlying cause from its symptoms, and state what the Teacher's worked solution should emphasize.
-
-Ground the instruction in the evaluation results and diagnostics. Focus on transferable principles, reasoning strategies, checks, or decision rules that would help with related tasks.
-
-Do not solve the task yourself. Output only a concrete and actionable teaching instruction in concise sentences."""
-UTT_TEACHER = """You are the Teacher. Produce a correct, complete, and high-quality worked solution to the given task.
-
-Follow the teaching instruction and emphasize the knowledge, reasoning strategy, or validation steps it identifies. The solution should help the Student learn and should contain useful knowledge.
-
-Follow all output-format requirements contained in the task. Output only the worked solution, with no additional commentary."""
-UTT_SYNTHESIZER = """You are the Synthesizer. Maintain a single evolving Primer that captures transferable knowledge for solving a family of related tasks.
-
-Use the task, teaching instruction, worked solution, and evaluation feedback to identify useful concepts, reasoning strategies, decision rules, validation methods, and common failure modes. Integrate these lessons into the current Primer.
-
-Merge new knowledge into the appropriate existing sections rather than appending a history of edits. Generalize beyond the specific task while remaining concrete and actionable. Preserve useful existing knowledge, combine duplicates, and remove content only when it is redundant, incorrect, or too vague to be useful.
-
-The Primer is a compact study guide, not a solution archive or changelog. Do not copy the complete task solution or retain unnecessary task-specific details. Keep the revised Primer within the specified word limit.
-
-Output only the complete revised Primer, with no preamble or explanation of the changes."""
+def strip_tags(narrative: str) -> str:
+    """As split_narratives.py: drop the Algorithm Category and Narrative Genre sections, keep the other three."""
+    t = re.sub(r"(?im)^\W*algorithm category:.*$\n?", "", narrative)
+    t = re.sub(r"(?im)^\W*narrative genre:.*$\n?", "", t)
+    return t.strip()
 
 
-def _role(system: str, **fields: str) -> list:
-    return user("\n\n".join(f"{k.replace('_', ' ').upper()}:\n{v}" for k, v in fields.items()), system)
+def story_valid(narrative: str) -> bool:
+    """The paper's validity rule: enough content and all three required components present."""
+    low = narrative.lower()
+    return (len(narrative.split()) >= STORY_MIN_WORDS
+            and all(h in low for h in ("task overview", "constraints", "example input/output")))
 
 
 @h2h
-class UTTPrimer(H2HTechnique):
-    """Offline, no weight update: on training tasks where the Teacher beats the Student (5 samples each), batches of 16
-    failed Student attempts get a Prompter diagnosis and a Teacher worked solution; a Synthesizer merges passing records
-    into a primer of at most 1,000 words, accepted only if the Student does not get worse on the batch; budget 100 Student
-    evaluations. Teacher, Prompter and Synthesizer are the same model. At test time the primer is prepended (one call).
-    Success is fast1-style: all tests pass and the run is no slower than the median passing sample."""
-    hid, name, family, target = "H08", "Universal Textual Teaching", "prompting", ("EFF",)
-
-    def prepare(self, ctx: Ctx) -> None:
-        d = ctx.dir(self.hid)
-        if (d / "primer.txt").exists():
-            return
-        tasks = [t for t in ctx.train_tasks if not (ngrams(t.prompt) & banned())][:UTT_PROBLEMS]
-        gap, ref = [], {}
-        with prep(self.hid):
-            for t in tasks:
-                s = [C.code_of(t, x) for x in ctx.llm.sample(_role(UTT_STUDENT, current_primer="", task=C.task_text(t)), UTT_SAMPLES)]
-                te = [C.code_of(t, x) for x in ctx.llm.sample(_role(UTT_TEACHER, task=C.task_text(t), teaching_instruction=""),
-                                                              UTT_SAMPLES)]
-                runs = [self._run(t, c) for c in s + te]
-                times = [sec for ok, sec, _ in runs if ok]
-                ref[t.id] = float(np.median(times)) if times else float("inf")
-                q_s = sum(self._fast(r, ref[t.id]) for r in runs[:UTT_SAMPLES]) / UTT_SAMPLES
-                q_t = sum(self._fast(r, ref[t.id]) for r in runs[UTT_SAMPLES:]) / UTT_SAMPLES
-                if q_t > q_s:
-                    gap.append(t)
-            random.Random(0).shuffle(gap)
-            train = gap[:int(len(gap) * UTT_TRAIN_SPLIT)]
-            primer, evals = "", 0
-            for i in range(0, len(train), UTT_BATCH):
-                if evals >= UTT_BUDGET:
-                    break
-                batch, records, n_old = train[i:i + UTT_BATCH], [], 0
-                for t in batch:
-                    z = C.code_of(t, ctx.llm.ask(_role(UTT_STUDENT, current_primer=primer, task=C.task_text(t)), role="student"))
-                    r = self._run(t, z)
-                    evals += 1
-                    if self._fast(r, ref[t.id]):
-                        n_old += 1
-                        continue
-                    a = ctx.llm.ask(_role(UTT_PROMPTER, task=C.task_text(t), evaluation_feedback=r[2]), role="prompter")
-                    demo = ctx.llm.ask(_role(UTT_TEACHER, task=C.task_text(t), teaching_instruction=a), role="teacher")
-                    rd = self._run(t, C.code_of(t, demo))
-                    if self._fast(rd, ref[t.id]):
-                        records.append({"task": C.task_text(t), "teaching_instruction": a, "worked_solution": demo,
-                                        "evaluation_feedback": r[2]})
-                if not records:
-                    continue
-                body = "\n\n".join(_role("", **rec)[-1]["content"] for rec in records)
-                tail = _role("", current_primer=primer, word_limit=str(UTT_MAX_WORDS))[-1]["content"]
-                cand = ctx.llm.ask(user(f"{body}\n\n{tail}", UTT_SYNTHESIZER), role="synthesizer")
-                n_new = 0
-                for t in batch:
-                    z = C.code_of(t, ctx.llm.ask(_role(UTT_STUDENT, current_primer=cand, task=C.task_text(t)), role="student"))
-                    n_new += self._fast(self._run(t, z), ref[t.id])
-                    evals += 1
-                if n_new >= n_old:
-                    primer = cand
-        (d / "primer.txt").write_text(primer)
-
-    @staticmethod
-    def _run(t: Task, code: str) -> tuple[bool, float, str]:
-        """Runs every test; the feedback reports how many failed and the smallest failing test in full."""
-        total, fails = 0.0, []
-        tests = t.hidden_tests or t.public_tests
-        for x in tests:
-            r = sandbox.run_test(t, code, x)
-            total += r.seconds
-            if not r.ok:
-                fails.append((x, r))
-        if not fails:
-            return True, total, f"All {len(tests)} tests passed; total runtime {total:.3f} s."
-        x, r = min(fails, key=lambda f: len(f[0].stdin) + len(str(f[0].expected)))
-        return False, total, (f"{len(fails)} of {len(tests)} tests failed. Smallest failing test:\ninput:\n{x.stdin}\nexpected:\n"
-                              f"{x.expected}\ngot:\n{r.stdout}\n{'time limit exceeded' if r.timeout else r.stderr}")
-
-    @staticmethod
-    def _fast(r: tuple[bool, float, str], ref: float) -> bool:
-        return r[0] and r[1] <= ref
+class StoryCoder(H2HTechnique):
+    """Self-solving setting (generator and solver are the same model): one call reformulates the problem into a narrative
+    (algorithm category and genre chosen by the model, then task overview, constraints and example input/output;
+    T=1.0); the algorithm and genre lines are stripped as in the released code, and a second call writes the code at
+    T=0.2. For stdin problems the narrative replaces the statement (narrative-only variant, as in split_narratives.py);
+    for function and edit tasks it is concatenated with the original task, so the signature and code to edit are kept
+    (the paper's Orig.+Narr. variant). The paper samples five narratives and ten solutions to report pass@10; one
+    narrative and one solution is its k=1 point. An invalid narrative is redrawn once (paper's validity filter)."""
+    hid, name, family, target = "H08", "StoryCoder", "prompting", ("RM",)
+    code_url = "https://github.com/gu-ni/StoryCoder"
 
     def solve(self, task: Task, ctx: Ctx) -> str:
-        primer = (ctx.dir(self.hid) / "primer.txt").read_text()
-        return C.code_of(task, ctx.llm.ask(_role(UTT_STUDENT, current_primer=primer, task=C.task_text(task)), role="student"))
+        ask = user(STORY_GUIDELINES.format(problem=task.prompt if task.mode != "edit" else C.task_text(task)))
+        narrative = ctx.llm.ask(ask, temperature=STORY_NARR_TEMPERATURE, role="narrative")
+        if not story_valid(narrative):
+            narrative = ctx.llm.ask(ask, temperature=STORY_NARR_TEMPERATURE, role="narrative")
+        story = strip_tags(narrative)
+        if task.mode == "stdio" and story_valid(narrative):
+            msgs = C.messages(Task(**{**task.__dict__, "prompt": story}))
+        else:
+            msgs = C.messages(task, pre=story)
+        return C.code_of(task, ctx.llm.ask(msgs, temperature=STORY_CODE_TEMPERATURE, role="code"))
 
 
 # ---------- H09 Constitutional Spec-Driven Development ----------

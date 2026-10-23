@@ -6,9 +6,9 @@ H04,R00888#0,prompting,Code2API (role designation + 8-step CoT + 5-shot in-conte
 H05,R02908#0,prompting,MPCO (Meta-Prompted Code Optimization),no,
 H06,R05930#0,prompting,BRACE (Black-box Risk Analysis and Contextual Elicitation),no,
 H07,R03399#0,prompting,ECO (symbolic advisor bottleneck diagnosis + ROI retriever performance-aware prompting),no,
-H08,R06912#0,prompting,Universal Textual Teaching (UTT) Primer,no,
-H09,R04475#0,prompting,Constitutional Spec-Driven Development (CSDD),yes,https://github.com/srinivasraom/banking-ms-by-constitution
-H10,R05489#0,prompting,SecureForge (benign falsification + MCMC prompt amplification + GEPA system-prompt optimization with Semgrep feedback),yes,https://github.com/sisl/SecureForge
+H08,R04475#0,prompting,Constitutional Spec-Driven Development (CSDD),yes,https://github.com/srinivasraom/banking-ms-by-constitution
+H09,R05489#0,prompting,SecureForge (benign falsification + MCMC prompt amplification + GEPA system-prompt optimization with Semgrep feedback),yes,https://github.com/sisl/SecureForge
+H10,V00017#0,prompting,StoryCoder (narrative reformulation prompting),yes,https://github.com/gu-ni/StoryCoder
 H11,R01176#0,feedback-loop,"SBLLM (execution-based representative sample selection + adaptive optimization pattern retrieval + genetic operator-inspired CoT prompting, evolutionary loop)",yes,https://github.com/shuzhenggao/sbllm
 H12,R01494#0,feedback-loop,PerfCodeGen (correctness refinement with reflection/planning + performance refinement using most time-consuming unit test feedback),no,
 H13,R01255#0,feedback-loop,PromSec (gGAN-guided iterative prompt optimization),yes,https://github.com/mahmoudkanazzal/PromSec

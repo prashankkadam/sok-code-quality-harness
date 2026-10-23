@@ -1,5 +1,5 @@
 family,eligible_general,eligible_domain,selected,landmarks,recent,notes
-prompting,15,14,10,5,5,
+prompting,13,15,10,5,5,
 feedback-loop,30,50,10,5,5,
 self-refinement,6,1,6,5,1,only 6 eligible general-purpose techniques
 multi-agent,14,32,10,5,5,

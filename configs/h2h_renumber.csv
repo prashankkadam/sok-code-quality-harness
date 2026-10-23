@@ -6,7 +6,7 @@ H04,R00888#0,prompting,Code2API (role designation + 8-step CoT + 5-shot in-conte
 H05,R02908#0,prompting,MPCO (Meta-Prompted Code Optimization),no,,H05
 H06,R05930#0,prompting,BRACE (Black-box Risk Analysis and Contextual Elicitation),no,,H06
 H07,R03399#0,prompting,ECO (symbolic advisor bottleneck diagnosis + ROI retriever performance-aware prompting),no,,H07
-H08,R06912#0,prompting,Universal Textual Teaching (UTT) Primer,no,,H08
+H08,V00017#0,prompting,StoryCoder (narrative reformulation prompting),yes,https://github.com/gu-ni/StoryCoder,
 H09,R04475#0,prompting,Constitutional Spec-Driven Development (CSDD),yes,https://github.com/srinivasraom/banking-ms-by-constitution,H09
 H10,R05489#0,prompting,SecureForge (benign falsification + MCMC prompt amplification + GEPA system-prompt optimization with Semgrep feedback),yes,https://github.com/sisl/SecureForge,
 H11,R01176#0,feedback-loop,"SBLLM (execution-based representative sample selection + adaptive optimization pattern retrieval + genetic operator-inspired CoT prompting, evolutionary loop)",yes,https://github.com/shuzhenggao/sbllm,H11

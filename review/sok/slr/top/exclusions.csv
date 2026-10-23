@@ -98,3 +98,4 @@ S01754#0,E2,"Evaluation on 15 self-made Verilog problems, single run, ADP compar
 S04071#0,E2,"Only three FHE workloads, one run each."
 S04129#0,E2,"The headline efficiency gain rests on a single human-guided deployment (Llama-3.2-1B), and the eight autonomous deployments are single runs without a baseline technique."
 S04639#0,E2,Evaluation is one 15-iteration run on a single sparse-DNN layer workload with one model.
+R02758#0,E4,"Model not named, code-quality score never defined, interactive-feedback variant relies on human feedback, and the Copilot/TabNine comparison has no setup; results cannot be checked or reproduced."
