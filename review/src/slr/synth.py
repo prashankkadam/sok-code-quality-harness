@@ -213,7 +213,7 @@ def prisma_counts(run):
         s = side.get(rid) or {}
         by[s.get("exclusion_criterion") or (stage_a.get(rid) or {}).get("exclusion_criterion") or "other"] += 1
     c["ft_excluded"] = len(excluded)
-    c["ft_excluded_by"] = dict(by.most_common())
+    c["ft_excluded_by"] = dict(sorted(by.items(), key=lambda kv: (-kv[1], kv[0])))  # deterministic order for ties
     sl = [s for rid, s in side.items() if rid in excluded]
     c["side_context"] = sum(1 for s in sl if s["side_list"] == "context")
     c["side_adjacent"] = sum(1 for s in sl if s["side_list"] == "adjacent")
@@ -460,25 +460,83 @@ def fig_trends(rows, studies):
 
 
 # ----------------------------------------------------------------------------------- tables
-def effect_table(rows):
-    order = ["+", "0", "-", "mixed", "NR"]
+EFFECT_ORDER = ["+", "0", "-", "mixed", "NR"]
+PEER = "Peer-reviewed studies only (sensitivity re-count of the main article's table of the same name). "
+
+
+def second_coder(run: str = RUN) -> dict:
+    """Second-coder audit of the LLM extraction (runs/<run>/second_coder.json): direction-of-effect fields compared and
+    agreements. With `final: false` the derived ranges render blue until the audit numbers are confirmed."""
+    p = SLR / "runs" / run / "second_coder.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+def effect_ranges(rows, audit: dict, reps: int = 20000, seed: int = 20261023) -> dict:
+    """Sensitivity range of every vote count to direction errors at the second coder's disagreement rate.
+
+    Per replicate the error rate e of one direction field is drawn from its Jeffreys posterior Beta(k+1/2, n-k+1/2)
+    (k disagreements in n audited fields). A count c of the N rows can lose its rows whose direction is wrong
+    (Binomial(c, e)) and gain wrongly coded rows from the other cells (Binomial(N - c, e (c + 1/2) / (N + 1/2)): a wrong
+    row lands in a cell in proportion to the cell's size). A cell of the cross-table depends on both direction fields
+    (error 1 - (1 - e)^2), a row or column total on one. Range: [c - q97.5(loss), c + q97.5(gain)]."""
+    import numpy as np
+    n, agree = audit["direction_fields"], audit["direction_agree"]
+    rng = np.random.default_rng(seed)
+    e = rng.beta(n - agree + 0.5, agree + 0.5, reps)
+    N = len(rows)
+
+    def span(c, eps):
+        loss = np.percentile(rng.binomial(c, eps), 97.5)
+        gain = np.percentile(rng.binomial(N - c, np.clip(eps * (c + 0.5) / (N + 0.5), 0, 1)), 97.5)
+        return max(0, c - int(loss)), c + int(gain)
+    o = EFFECT_ORDER
+    A = [r["effect_correctness"] if r["effect_correctness"] in o else "NR" for r in rows]
+    B = [r["effect_target"] if r["effect_target"] in o else "NR" for r in rows]
+    cell = Counter(zip(A, B))
+    out = {("cell", a, b): span(cell[(a, b)], 1 - (1 - e) ** 2) for a in o for b in o}
+    out.update({("row", a): span(sum(cell[(a, b)] for b in o), e) for a in o})
+    out.update({("col", b): span(sum(cell[(a, b)] for a in o), e) for b in o})
+    out["rate"] = (round(100 * (n - agree) / n, 1), n, agree)
+    out["final"] = bool(audit.get("final"))
+    return out
+
+
+def effect_table(rows, ranges: dict | None = None, peer: bool = False):
+    order = EFFECT_ORDER
     M = {(a, b): set() for a in order for b in order}
     for r in rows:
         a = r["effect_correctness"] if r["effect_correctness"] in order else "NR"
         b = r["effect_target"] if r["effect_target"] in order else "NR"
         M[(a, b)].add(r["study_id"])
     glyph = {"+": "\\up", "0": "\\same", "-": "\\down", "mixed": "mixed", "NR": "\\nr"}
-    lines = ["\\begin{table}[t]", "\\centering", "\\footnotesize",
-             "\\caption{Direction of effect on correctness (rows) against direction of effect on the targeted "
-             "quality dimension (columns), counted per technique row of \\texttt{extraction.csv} (vote counting by "
-             "direction, SWiM; no effect sizes are pooled). Counts are provisional (LLM-assisted extraction, "
-             "human review pending).}\\label{tab:effects}",
+    blue = ranges is not None and not ranges["final"]
+
+    def cellf(v, key):
+        if ranges is None:
+            return str(v)
+        rr = "({}--{})".format(*ranges[key])
+        return f"{v}\\,{{\\scriptsize " + (f"\\textcolor{{blue}}{{{rr}}}" if blue else rr) + "}"
+    cap = ("Direction of effect on correctness (rows) against direction of effect on the targeted quality dimension "
+           "(columns), counted per technique row of \\texttt{extraction.csv} (vote counting by direction, SWiM; no effect "
+           "sizes are pooled). Counts from LLM-assisted extraction reviewed by an author.")
+    if ranges is not None:
+        pct, n, agree = ranges["rate"]
+        cap += (" In parentheses: how far each count could move if direction fields were wrong at the rate at which the "
+                f"independent second coder disagreed with the extraction ({pct}\\%, {n - agree} of {n} audited fields; the "
+                "rate is drawn from its posterior, and the range is the 95th percentile of the rows a count can lose or "
+                "gain).")
+    if peer:
+        cap = PEER + cap
+    lines = [f"\\begin{{table}}[{'h' if peer else 't'}]", "\\centering", "\\footnotesize",
+             f"\\caption{{{cap}}}\\label{{tab:effects{'-peer' if peer else ''}}}",
+             *(["\\setlength{\\tabcolsep}{3.5pt}"] if ranges is not None else []),
              "\\begin{tabular}{l" + "r" * len(order) + "r}", "\\toprule",
              "\\dimCor{} \\textbackslash{} target & " + " & ".join(glyph[o] for o in order) + " & total \\\\", "\\midrule"]
     for a in order:
         tot = sum(len(M[(a, b)]) for b in order)
-        lines.append(glyph[a] + " & " + " & ".join(str(len(M[(a, b)])) for b in order) + f" & {tot} \\\\")
-    lines += ["\\midrule", "total & " + " & ".join(str(sum(len(M[(a, b)]) for a in order)) for b in order) +
+        lines.append(glyph[a] + " & " + " & ".join(cellf(len(M[(a, b)]), ("cell", a, b)) for b in order) +
+                     f" & {cellf(tot, ('row', a))} \\\\")
+    lines += ["\\midrule", "total & " + " & ".join(cellf(sum(len(M[(a, b)]) for a in order), ("col", b)) for b in order) +
               f" & {len(rows)} \\\\", "\\bottomrule", "\\end{tabular}",
               "\\\\[2pt]{\\scriptsize \\up{} improved, \\same{} no clear change, \\down{} worse, mixed = differs across "
               "settings, \\nr{} = not reported.}", "\\end{table}"]
@@ -486,7 +544,7 @@ def effect_table(rows):
     return {f"{a}|{b}": len(M[(a, b)]) for a in order for b in order}
 
 
-def nontargeted_table(rows, studies):
+def nontargeted_table(rows, studies, peer: bool = False):
     stats = {}
     for f in FAMILIES:
         ids = {r["rid"] for r in rows if fam(r["family_v0"]) == f}
@@ -506,11 +564,11 @@ def nontargeted_table(rows, studies):
     tot_other = sum(1 for rid in allids if {d for r in studies[rid]["rows"] for d in split(r["dims_measured"])} -
                     {d for r in studies[rid]["rows"] for d in split(r["dims_targeted"])})
     tot_corr = sum(1 for rid in allids if any(str(r["correctness_measured"]).lower() == "true" for r in studies[rid]["rows"]))
-    lines = ["\\begin{table}[t]", "\\centering", "\\footnotesize",
-             "\\caption{How often included studies measured anything beyond their targeted dimension: share of studies "
-             "per family that measured at least one non-targeted quality dimension, and share that measured "
-             "correctness. Counts are provisional (LLM-assisted extraction, human review pending).}"
-             "\\label{tab:nontargeted}",
+    lines = [f"\\begin{{table}}[{'h' if peer else 't'}]", "\\centering", "\\footnotesize",
+             "\\caption{" + (PEER if peer else "") + "How often included studies measured anything beyond their targeted "
+             "dimension: share of studies per family that measured at least one non-targeted quality dimension, and share "
+             "that measured correctness. Counts from LLM-assisted extraction reviewed by an author.}"
+             "\\label{tab:nontargeted" + ("-peer" if peer else "") + "}",
              "\\begin{tabular}{lrrrrr}", "\\toprule",
              "Family & Studies & \\multicolumn{2}{c}{Non-targeted dim.\\ measured} & \\multicolumn{2}{c}{\\dimCor{} measured} \\\\",
              "\\cmidrule(lr){3-4}\\cmidrule(lr){5-6}", " & & $n$ & \\% & $n$ & \\% \\\\", "\\midrule"]
@@ -526,12 +584,15 @@ def nontargeted_table(rows, studies):
     return stats, tot_other, tot_corr, n
 
 
-def qa_table(rows, studies):
+def qa_table(rows, studies, peer: bool = False):
     import numpy as np
-    lines = ["\\begin{table}[t]", "\\centering", "\\footnotesize",
-             "\\caption{Evidence quality by family: median QA score (0--10, items QA1--QA10 of Appendix~\\ref{sec:app-studies}) and the share of studies "
+    where = "Appendix~\\ref{sec:app-studies}" if peer else "Supplementary Material \\S S4"
+    lines = [f"\\begin{{table}}[{'h' if peer else 't'}]", "\\centering", "\\footnotesize",
+             "\\caption{" + (PEER if peer else "") + f"Evidence quality by family: median QA score (0--10, items QA1--QA10 "
+             f"of {where}) and the share of studies "
              "that report compute or cost (QA7 $>0$), consider contamination (QA9 $>0$), use human evaluation, and "
-             "release artifacts (QA8 $>0$). Provisional (LLM-assisted extraction).}\\label{tab:qa}",
+             "release artifacts (QA8 $>0$). LLM-assisted extraction reviewed by an author.}\\label{tab:qa"
+             + ("-peer" if peer else "") + "}",
              "\\begin{tabular}{lrrrrrr}", "\\toprule",
              "Family & $n$ & Med.\\ QA & Comp.\\ \\% & Cont.\\ \\% & Human \\% & Artif.\\ \\% \\\\",
              "\\midrule"]
@@ -557,6 +618,73 @@ def qa_table(rows, studies):
     lines += ["\\bottomrule", "\\end{tabular}", "\\end{table}"]
     (GEN / "tab_qa.tex").write_text("\n".join(lines) + "\n")
     return out
+
+
+NR_GROUPS = {
+    "year": ("Year", None),
+    "source_type": ("Type", ["Conference or workshop paper", "Journal article", "Preprint or repository", "Thesis",
+                             "Other or unknown"]),
+    "publisher": ("Publisher", ["IEEE", "ACM", "Springer", "Elsevier", "MDPI", "SSRN or Zenodo", "Other", "No DOI"]),
+    "found_by": ("Found by", ["OpenAlex only", "Semantic Scholar only", "Both databases", "Snowballing", "Venue sweep"]),
+    "oa": ("Open access (Unpaywall)", ["Closed", "Open, PDF link", "Open, landing page only", "No record"]),
+}
+NR_LABEL = {"openalex": "OpenAlex only", "semanticscholar": "Semantic Scholar only",
+            "openalex+semanticscholar": "Both databases", "snowballing": "Snowballing", "venue sweep": "Venue sweep",
+            "closed": "Closed", "open-pdf": "Open, PDF link", "open-landing": "Open, landing page only",
+            "unknown": "No record"}
+
+
+def notretrieved_table(run: str = RUN) -> dict:
+    """Profile of the reports sought but not retrieved (runs/<run>/not_retrieved.csv, from not_retrieved.py)."""
+    p = SLR / "runs" / run / "not_retrieved.csv"
+    if not p.exists():
+        return {}
+    rows = list(csv.DictReader(open(p)))
+    n = len(rows)
+
+    def val(r, k):
+        v = r[k]
+        if k == "publisher":
+            return v if v in ("IEEE", "ACM", "Springer", "Elsevier", "MDPI") else \
+                "SSRN or Zenodo" if v in ("SSRN", "Zenodo") else "No DOI" if v == "no DOI" else "Other"
+        return NR_LABEL.get(v, v)
+    panels = []
+    for k, (title, keys) in NR_GROUPS.items():
+        c = Counter(val(r, k) for r in rows)
+        keys = keys or sorted(c)
+        panels.append([title] + [(key, c[key]) for key in keys])
+    left, right = panels[:2] + panels[4:], panels[2:4]
+
+    def lines_of(ps):
+        out = []
+        for p_ in ps:
+            out.append(f"\\multicolumn{{3}}{{@{{}}l}}{{\\textit{{{p_[0]}}}}}")
+            out += [f"\\quad {tex_escape(k)} & {v} & {100 * v / n:.0f}" for k, v in p_[1:]]
+        return out
+    L, R = lines_of(left), lines_of(right)
+    R += [""] * (len(L) - len(R))
+    L += [""] * (len(R) - len(L))
+    body = [f"{a if a else '& &'} & {b if b else '& &'} \\\\" for a, b in zip(L, R)]
+    same = sum(1 for r in rows if r["same_as_included"])
+    closed = Counter(r["publisher"] for r in rows if r["oa"] == "closed")
+    t = ["\\begin{table}[h]", "\\centering", "\\scriptsize", "\\setlength{\\tabcolsep}{3pt}",
+         f"\\caption{{The {n} reports sought but not retrieved (no full text), by year, type, publisher, the search that "
+         "found them and open-access status. Type, publisher and open-access status come from the Unpaywall and Crossref "
+         "records retrieved during full-text retrieval (no record: no DOI or no Unpaywall entry). "
+         f"Of these, {same} are another version of an included study.}}\\label{{tab:app-notretrieved}}",
+         "\\begin{tabular}{@{}lrr@{\\hspace{14pt}}lrr@{}}", "\\toprule", " & $n$ & \\% & & $n$ & \\% \\\\", "\\midrule",
+         *body, "\\bottomrule", "\\end{tabular}", "\\end{table}"]
+    (GEN / "tab_notretrieved.tex").write_text("% GENERATED by src/slr/synth.py from runs/<run>/not_retrieved.csv\n"
+                                              + "\n".join(t) + "\n")
+    g = lambda k, v: sum(1 for r in rows if r[k] == v)  # noqa: E731
+    return {"nNr": n, "nNrConference": g("source_type", "Conference or workshop paper"),
+            "nNrJournal": g("source_type", "Journal article"), "nNrPreprint": g("source_type", "Preprint or repository"),
+            "nNrThesis": g("source_type", "Thesis"), "nNrIEEE": g("publisher", "IEEE"), "nNrACM": g("publisher", "ACM"),
+            "nNrSpringer": g("publisher", "Springer"), "nNrElsevier": g("publisher", "Elsevier"),
+            "nNrSince2025": sum(1 for r in rows if r["year"] >= "2025"), "nNrSnow": g("found_by", "snowballing"),
+            "nNrClosed": g("oa", "closed"), "nNrOpenPdf": g("oa", "open-pdf"), "nNrOpenLanding": g("oa", "open-landing"),
+            "nNrOaUnknown": g("oa", "unknown"), "nNrSameAsIncluded": same, "nNrClosedIEEE": closed["IEEE"],
+            "nNrClosedSpringer": closed["Springer"], "nNrClosedACM": closed["ACM"], "nNrClosedElsevier": closed["Elsevier"]}
 
 
 def tex_escape(s):
@@ -591,7 +719,7 @@ def appendix_tables(rows, studies):
     lines += ["\\bottomrule", "\\end{longtable}", "}"]
     (GEN / "app_studies.tex").write_text("\n".join(lines) + "\n")
     q = ["{\\scriptsize", "\\begin{longtable}{@{}l" + "c" * 10 + "r@{}}",
-         "\\caption{Per-study quality assessment (items QA1--QA10 of Appendix~\\ref{sec:app-studies}; 0, 0.5 or 1 per item; provisional, LLM-assisted)."
+         "\\caption{Per-study quality assessment (items QA1--QA10 of \\S S4; 0, 0.5 or 1 per item; LLM-assisted, reviewed by an author)."
          "}\\label{tab:app-qa}\\\\", "\\toprule",
          "ID & " + " & ".join(f"Q{i}" for i in range(1, 11)) + " & Total \\\\", "\\midrule", "\\endfirsthead",
          "\\toprule", "ID & " + " & ".join(f"Q{i}" for i in range(1, 11)) + " & Total \\\\", "\\midrule", "\\endhead"]
@@ -640,7 +768,15 @@ def counts_tex(c, rows, studies, extra):
         "nPeerReviewed": sum(1 for s in studies.values() if peer_reviewed(s)),
         "pctPreprint": round(100 * sum(1 for s in studies.values() if not peer_reviewed(s)) / max(1, len(studies))),
         **extra.get("sens", {}),
+        **extra.get("nr", {}),
     }
+    rng = extra.get("ranges")
+    if rng:  # vote-count ranges under the second coder's disagreement rate (effect_ranges), as counts and % of rows
+        N = len(rows)
+        for name, key in (("TargetUp", ("col", "+")), ("CorrNR", ("row", "NR")), ("CorrDown", ("row", "-"))):
+            lo, hi = rng[key]
+            m.update({f"n{name}Lo": lo, f"n{name}Hi": hi, f"pct{name}Lo": round(100 * lo / N), f"pct{name}Hi": round(100 * hi / N)})
+        m["pctDirDisagree"] = rng["rate"][0]
     tag = {"prompting": "Prompting", "feedback-loop": "Feedback", "self-refinement": "SelfRefine",
            "multi-agent": "MultiAgent", "retrieval": "Retrieval", "decoding": "Decoding", "training": "Training",
            "other": "Other"}
@@ -652,11 +788,14 @@ def counts_tex(c, rows, studies, extra):
     est = {"nHitsOpenAlex", "nRecordsIn", "nDuplicates", "nScreened", "nTaExcluded", "nTaForward", "nOtherIdentified",
            "nOtherForward", "nFtSought", "nFtNotRetrieved", "nFtAssessedRetrieved", "nSnowIncluded", "nFtExcluded",
            "nIncluded", "nExclNewRecords", "nExclSnowPending"} if c["snow_pending"] > 0 else set()
+    if rng and not rng["final"]:  # ranges rest on an audit sample still to be confirmed or enlarged
+        est |= {k for k in m if k.endswith(("Lo", "Hi")) and k[1:].startswith(("TargetUp", "CorrNR", "CorrDown"))
+                or k[3:].startswith(("TargetUp", "CorrNR", "CorrDown")) and k.endswith(("Lo", "Hi"))} | {"pctDirDisagree"}
     lines = ["% GENERATED by src/slr/synth.py. Use \\cnt{name} in text. Blue: flow counts that still include the estimate",
              "% for unextracted snowballing reports and round-2 records (round2.sh replaces them)."]
     for k, v in m.items():
         lines.append(f"\\expandafter\\def\\csname cnt@{k}\\endcsname{{{v}}}")
-        if k in est or (est and k.startswith("nRtwo")):
+        if k in est or (c["snow_pending"] > 0 and k.startswith("nRtwo")):
             lines.append(f"\\expandafter\\def\\csname cntblue@{k}\\endcsname{{}}")
     lines.append("\\makeatletter\\newcommand{\\cnt}[1]{\\ifcsname cntblue@#1\\endcsname\\textcolor{blue}{\\@nameuse{cnt@#1}}"
                  "\\else\\@nameuse{cnt@#1}\\fi}\\newcommand{\\cntraw}[1]{\\@nameuse{cnt@#1}}\\makeatother")
@@ -678,7 +817,9 @@ def main() -> int:
     M1, M2 = fig_maps(rows, studies)
     tax = fig_taxonomy(rows)
     per, bench = fig_trends(rows, studies)
-    eff = effect_table(rows)
+    audit = second_coder(a.run)
+    rng = effect_ranges(rows, audit) if audit else None
+    eff = effect_table(rows, rng)
     nt, tot_other, tot_corr, n = nontargeted_table(rows, studies)
     qa = qa_table(rows, studies)
     appendix_tables(rows, studies)
@@ -687,10 +828,12 @@ def main() -> int:
     GEN.mkdir(parents=True, exist_ok=True)
     peer = {k: s for k, s in studies.items() if peer_reviewed(s)}
     prows = [r for r in rows if r["rid"] in peer]
-    sens = {"effects": effect_table(prows), "nontargeted": nontargeted_table(prows, peer)[:2], "qa": qa_table(prows, peer)}
+    sens = {"effects": effect_table(prows, peer=True), "nontargeted": nontargeted_table(prows, peer, peer=True)[:2],
+            "qa": qa_table(prows, peer, peer=True)}
     GEN = full
+    nr = notretrieved_table(a.run)
     m = counts_tex(c, rows, studies, {"tot_other": tot_other, "tot_corr": tot_corr, "nt": nt,
-                                      "sens": sensitivity(eff, nt, qa, sens)})
+                                      "sens": sensitivity(eff, nt, qa, sens), "nr": nr, "ranges": rng})
     summary = {"prisma": c, "counts": m, "effects": eff, "nontargeted": nt, "qa": qa,
                "map_family": dict(zip(FAMILIES, M1)), "map_signal": dict(zip(SIGNALS, M2)),
                "per_year": per, "benchmarks": bench, "peer_reviewed_only": sens}

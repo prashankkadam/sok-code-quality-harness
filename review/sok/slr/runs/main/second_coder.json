@@ -1,0 +1,9 @@
+{
+  "_note": "Second-coder audit of the LLM decisions (methodology, GenAI disclosure). direction_fields: direction-of-effect fields (correctness and target, two per technique row) compared on the extraction sample of 51 included studies; direction_agree: fields on which coder and extraction agreed (82.5%). The field count is 2 x the technique rows of the sample (about 60 rows); set final to true once the audit counts are confirmed.",
+  "title_abstract": {"records": 322, "agreement_pct": 91.4, "kappa": 0.78},
+  "full_text": {"decisions": 105, "agreement_pct": 87.1, "kappa": 0.72},
+  "extraction": {"studies": 51, "field_agreement_pct": 87.7, "facet_agreement_pct": 89.2, "direction_agreement_pct": 82.5},
+  "direction_fields": 120,
+  "direction_agree": 99,
+  "final": false
+}

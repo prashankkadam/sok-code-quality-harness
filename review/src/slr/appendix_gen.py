@@ -30,7 +30,11 @@ for s in ("S1", "S1r1", "S2r1"):
         else:
             strings = [m.get("filter") or m.get("query_string")]
         extra = f" Date filter: {esc(json.dumps(m.get('params', {}).get('publicationDateOrYear', '')))}." if src == "s2" else ""
-        out.append(f"\\noindent\\textit{{{label}}} (raw hits {hits}).{extra}")
+        got = m.get("retrieved_unique") or m.get("retrieved")
+        # the record counts of Fig. 1 are the records retrieved; the API's hit count can differ (arXiv queries ran in
+        # chunks that overlap; OpenAlex paging returned one record more than its reported count)
+        n = f"raw hits {hits}" if not got or got == hits else f"reported hits {hits}; records retrieved {got}"
+        out.append(f"\\noindent\\textit{{{label}}} ({n}).{extra}")
         for st in strings:
             out.append("{\\scriptsize\\ttfamily\\raggedright " + esc(st) + "\\par}\\smallskip")
 (gen / "app_queries.tex").write_text("\n".join(out) + "\n")
