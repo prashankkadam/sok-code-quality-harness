@@ -364,6 +364,29 @@ def cmd_table(_a) -> None:
                         or sum(r["code_public"].strip() == "yes" for r in sel)),
         "nHlDomainListed": len(dom),
     }
+    # Funnel from the candidate rows to the eligible techniques (Section "Highlighted Techniques"), so the counts
+    # in the text bridge exactly: rows out of scope at pass 1 get no pass-2 record; then not the authors' technique,
+    # duplicates, domain-specific rows without a family, rows excluded under the five rules; the remaining rows
+    # count one technique per study and family, and a study highlighted in one family is not counted in another.
+    p2 = pass2()
+    dup = {t: r.get("duplicate_of", "").split(";")[0].strip() for t, r in p2.items()}
+    pool_tids = {r["tid"] for r in merged_rows}
+
+    def is_dup(t: str) -> bool:
+        d = dup.get(t, "")
+        if not d or d not in p2 or d not in pool_tids or d == t:
+            return False
+        return not (dup.get(d) == t and t < d)
+    excl_t = {r["tid"] for r in excl}
+    f1 = [r for r in merged_rows if r["tid"] in p2]
+    f2 = [r for r in f1 if r.get("is_technique", "").strip() == "yes"]
+    f3 = [r for r in f2 if not is_dup(r["tid"])]
+    f4 = [r for r in f3 if r.get("family_ok", "").strip() in FAMILIES]
+    f5 = [r for r in f4 if r["tid"] not in excl_t]
+    cnt.update({"nHlOutOfScope": len(merged_rows) - len(f1), "nHlNotTechnique": len(f1) - len(f2),
+                "nHlDuplicate": len(f2) - len(f3), "nHlNoFamily": len(f3) - len(f4),
+                "nHlExcludedApplied": len(f4) - len(f5), "nHlBaseRows": len(f5),
+                "nHlSameStudy": len(f5) - cnt["nHlEligibleGeneral"] - cnt["nHlEligibleDomain"]})
     for f, r in rep.items():
         cnt["nHlSel" + "".join(w.capitalize() for w in f.split("-"))] = int(r["selected"])
     # Benchmark usage among the included studies (E7's benchmark choice), from the extraction table.

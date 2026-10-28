@@ -115,7 +115,7 @@ def prisma_tex(c) -> None:
 \node[b, below=of sought] (ass) {{Reports assessed for eligibility\\ \cnt{{nFtAssessedRetrieved}}}};
 \node[r, right=of ass] (exc) {{Reports excluded \cnt{{nFtExcluded}}\\ {excl}}};
 \node[b, below=of ass, fill=blue!6] (inc) {{Studies included\\ \cnt{{nIncluded}}}};
-\node[r, below=of exc] (oth) {{Other methods: venue sweep and section-level searches{manual}; total \cnt{{nOtherIdentified}}. Snowballing (1 backward + 1 forward) \cnt{{nSnowIdentified}}, forwarded \cnt{{nSnowForward}}}};
+\node[r, below=of exc] (oth) {{Other methods (venue sweep and section-level searches{manual}): identified \cnt{{nOtherIdentified}}, excluded at title/abstract \cnt{{nOtherExcludedTa}}, sought \cnt{{nOtherForward}}. Snowballing (1 backward + 1 forward): identified \cnt{{nSnowIdentified}}, excluded at title/abstract \cnt{{nSnowExcludedTa}}, sought \cnt{{nSnowForward}}}};
 \node[draw, rounded corners=1pt, align=center, text width=114mm, anchor=north west] (side) at ([yshift=-5mm]inc.west |- oth.south) {{Side lists (not primary studies): context \cnt{{nSideContext}}, adjacent \cnt{{nSideAdjacent}}, correctness-only \cnt{{nSideCorrectness}}, secondary \cnt{{nSideSecondary}}}};
 \draw[a] (id) -- (scr); \draw[a] (id) -- (dup); \draw[a] (scr) -- (sought); \draw[a] (scr) -- (tax);
 \draw[a] (sought) -- (ass); \draw[a] (sought) -- (nr); \draw[a] (ass) -- (inc); \draw[a] (ass) -- (exc);
@@ -746,6 +746,8 @@ def counts_tex(c, rows, studies, extra):
         "nTaExcluded": c["ta_excluded_db"], "nTaForward": c["ta_forward_db"], "nOtherIdentified": c["other_identified"],
         "nOtherForward": c["other_forward"],
         "nSnowIdentified": c["snow_identified"], "nSnowForward": c["snow_forward"],
+        "nOtherExcludedTa": c["other_identified"] - c["other_forward"],
+        "nSnowExcludedTa": c["snow_identified"] - c["snow_forward"],
         "nFtSought": c["ft_sought"], "nFtNotRetrieved": c["ft_not_retrieved"], "nFtAssessedRetrieved": c["ft_assessed"],
         "nSnowIncluded": c["included_snow"] + c["snow_pending_included_est"],
         "nFtExcluded": c["ft_excluded"] + c["snow_pending"] - c["snow_pending_included_est"],

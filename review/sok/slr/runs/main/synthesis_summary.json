@@ -60,6 +60,8 @@
   "nOtherForward": 29,
   "nSnowIdentified": 4580,
   "nSnowForward": 506,
+  "nOtherExcludedTa": 135,
+  "nSnowExcludedTa": 4074,
   "nFtSought": 1777,
   "nFtNotRetrieved": 687,
   "nFtAssessedRetrieved": 1090,
