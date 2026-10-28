@@ -223,6 +223,24 @@ def h2h_forest(iv: dict, techs: dict[str, tuple[str, tuple[str, ...]]], path: Pa
     return out
 
 
+
+def b1_independent_table(R: S.Results, models: list[str], techs=("T1", "T2", "T6"), labels=("CC", "J", "Jg")) -> str:
+    """Single-call view on the measures the analyzers do not compute: T0's value, then each single-call technique's
+    paired difference from T0 at B=1 with a dagger when its 95% bootstrap interval excludes zero (supplement table)."""
+    col = {m.label: m for m in S.MAIN}
+    rows = ["T0 single shot & " + " & ".join(f(R.cell(col[l], k, "T0", 1)) for k in models for l in labels) + r"\\"]
+    for t in techs:
+        cells = []
+        for k in models:
+            for l in labels:
+                d = S.paired(R.tasks(col[l], k, t, 1), R.tasks(col[l], k, "T0", 1))
+                lo, hi = S.bootstrap_ci(d)
+                mark = r"$^\dagger$" if d and (lo > 0 or hi < 0) else ""
+                cells.append((f"${np.mean(d):+.2f}$" if d else "--") + mark)
+        rows.append(f"{tech_label(t)} & " + " & ".join(cells) + r"\\")
+    return "\n".join(rows)
+
+
 def write_all(out: Path | None = None) -> Path:
     out = out or RUNS / "tables"
     out.mkdir(parents=True, exist_ok=True)
@@ -246,6 +264,7 @@ def write_all(out: Path | None = None) -> Path:
         w.writerows(cells)
     (out / "tab_t7lo.tex").write_text(control_table(R, models))
     (out / "tab_budget.tex").write_text(budget_table(S.budget_curves(R, models, TECHS + CONTROLS), models))
+    (out / "tab_b1_indep.tex").write_text(b1_independent_table(R, models))
     ds = next(m for m in S.MAIN if m.label == "DS")
     A = S.Results("agent")
     (out / "tab_deepswe.tex").write_text("\n".join(
