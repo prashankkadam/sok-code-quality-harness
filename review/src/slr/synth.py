@@ -518,7 +518,7 @@ def effect_table(rows, ranges: dict | None = None, peer: bool = False):
         return f"{v}\\,{{\\scriptsize " + (f"\\textcolor{{blue}}{{{rr}}}" if blue else rr) + "}"
     cap = ("Direction of effect on correctness (rows) against direction of effect on the targeted quality dimension "
            "(columns), counted per technique row of \\texttt{extraction.csv} (vote counting by direction, SWiM; no effect "
-           "sizes are pooled). Counts from LLM-assisted extraction reviewed by an author.")
+           "sizes are pooled). Counts from LLM-assisted extraction reviewed by the author.")
     if ranges is not None:
         pct, n, agree = ranges["rate"]
         cap += (" In parentheses: how far each count could move if direction fields were wrong at the rate at which the "
@@ -567,7 +567,7 @@ def nontargeted_table(rows, studies, peer: bool = False):
     lines = [f"\\begin{{table}}[{'h' if peer else 't'}]", "\\centering", "\\footnotesize",
              "\\caption{" + (PEER if peer else "") + "How often included studies measured anything beyond their targeted "
              "dimension: share of studies per family that measured at least one non-targeted quality dimension, and share "
-             "that measured correctness. Counts from LLM-assisted extraction reviewed by an author.}"
+             "that measured correctness. Counts from LLM-assisted extraction reviewed by the author.}"
              "\\label{tab:nontargeted" + ("-peer" if peer else "") + "}",
              "\\begin{tabular}{lrrrrr}", "\\toprule",
              "Family & Studies & \\multicolumn{2}{c}{Non-targeted dim.\\ measured} & \\multicolumn{2}{c}{\\dimCor{} measured} \\\\",
@@ -591,7 +591,7 @@ def qa_table(rows, studies, peer: bool = False):
              "\\caption{" + (PEER if peer else "") + f"Evidence quality by family: median QA score (0--10, items QA1--QA10 "
              f"of {where}) and the share of studies "
              "that report compute or cost (QA7 $>0$), consider contamination (QA9 $>0$), use human evaluation, and "
-             "release artifacts (QA8 $>0$). LLM-assisted extraction reviewed by an author.}\\label{tab:qa"
+             "release artifacts (QA8 $>0$). LLM-assisted extraction reviewed by the author.}\\label{tab:qa"
              + ("-peer" if peer else "") + "}",
              "\\begin{tabular}{lrrrrrr}", "\\toprule",
              "Family & $n$ & Med.\\ QA & Comp.\\ \\% & Cont.\\ \\% & Human \\% & Artif.\\ \\% \\\\",
@@ -698,7 +698,7 @@ def tex_escape(s):
 def appendix_tables(rows, studies):
     lines = ["{\\scriptsize", "\\begin{longtable}{@{}p{0.07\\linewidth}p{0.37\\linewidth}p{0.05\\linewidth}"
              "p{0.12\\linewidth}p{0.08\\linewidth}p{0.16\\linewidth}@{}}",
-             "\\caption{Included primary studies (LLM-assisted screening and extraction, reviewed by an author). ID = record "
+             "\\caption{Included primary studies (LLM-assisted screening and extraction, reviewed by the author). ID = record "
              "identifier in the replication package; Targets = targeted dimensions (none: the study targets correctness "
              "and reports the quality dimensions listed); Src = arXiv ID or DOI.}"
              "\\label{tab:app-studies}\\\\", "\\toprule", "ID & Title & Year & Family & Targets & Src \\\\",
@@ -719,7 +719,7 @@ def appendix_tables(rows, studies):
     lines += ["\\bottomrule", "\\end{longtable}", "}"]
     (GEN / "app_studies.tex").write_text("\n".join(lines) + "\n")
     q = ["{\\scriptsize", "\\begin{longtable}{@{}l" + "c" * 10 + "r@{}}",
-         "\\caption{Per-study quality assessment (items QA1--QA10 of \\S S4; 0, 0.5 or 1 per item; LLM-assisted, reviewed by an author)."
+         "\\caption{Per-study quality assessment (items QA1--QA10 of \\S S4; 0, 0.5 or 1 per item; LLM-assisted, reviewed by the author)."
          "}\\label{tab:app-qa}\\\\", "\\toprule",
          "ID & " + " & ".join(f"Q{i}" for i in range(1, 11)) + " & Total \\\\", "\\midrule", "\\endfirsthead",
          "\\toprule", "ID & " + " & ".join(f"Q{i}" for i in range(1, 11)) + " & Total \\\\", "\\midrule", "\\endhead"]
